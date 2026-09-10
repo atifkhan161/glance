@@ -1,9 +1,143 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @State private var cacheStore = CacheStore.shared
+    @State private var showClearConfirm = false
+    @State private var cacheAges: [String: String] = [:]
+
     var body: some View {
-        SourcesView()
-            .navigationTitle("Settings")
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                // Cache section
+                cacheSection
+
+                Divider()
+                    .background(Theme.Colors.borderSubtle)
+
+                // About section
+                aboutSection
+            }
+            .padding(Theme.cardPadding)
+            .padding(.bottom, 100)
+        }
+        .background(Theme.canvas)
+        .navigationTitle("Settings")
+        .navigationBarTitleDisplayMode(.large)
+        .task {
+            await loadCacheAges()
+        }
+    }
+
+    // MARK: - Cache Section
+
+    private var cacheSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("CACHE")
+                .font(Theme.Fonts.manrope(10, weight: .bold))
+                .foregroundStyle(Theme.Colors.textMuted)
+                .tracking(1.2)
+
+            VStack(spacing: 8) {
+                cacheRow("Real Madrid", key: "cache_madrid")
+                cacheRow("Pokémon GO", key: "cache_pogo")
+                cacheRow("GitHub Trending", key: "cache_github")
+                cacheRow("AI Intel", key: "cache_aiintel")
+            }
+
+            Button {
+                showClearConfirm = true
+            } label: {
+                HStack {
+                    Image(systemName: "trash")
+                    Text("Clear All Cache")
+                }
+                .font(Theme.Fonts.manrope(13, weight: .medium))
+                .foregroundStyle(Theme.Colors.error)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(Theme.Colors.error.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+            }
+            .accessibilityLabel("Clear all cache data")
+        }
+        .alert("Clear Cache", isPresented: $showClearConfirm) {
+            Button("Cancel", role: .cancel) { }
+            Button("Clear", role: .destructive) {
+                Task { await clearCache() }
+            }
+        } message: {
+            Text("This will remove all cached data. API keys will be preserved.")
+        }
+    }
+
+    private func cacheRow(_ name: String, key: String) -> some View {
+        HStack {
+            Text(name)
+                .font(Theme.Fonts.manrope(14))
+                .foregroundStyle(Theme.Colors.textPrimary)
+            Spacer()
+            Text(cacheAges[key] ?? "No data")
+                .font(Theme.Fonts.manrope(12))
+                .foregroundStyle(Theme.Colors.textMuted)
+        }
+        .padding(12)
+        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    // MARK: - About Section
+
+    private var aboutSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("ABOUT")
+                .font(Theme.Fonts.manrope(10, weight: .bold))
+                .foregroundStyle(Theme.Colors.textMuted)
+                .tracking(1.2)
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Glance")
+                        .font(Theme.Fonts.manrope(18, weight: .bold))
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                    Spacer()
+                    Text("v0.1.0")
+                        .font(Theme.Fonts.manrope(12))
+                        .foregroundStyle(Theme.Colors.textMuted)
+                }
+
+                Text("A zero-backend personal intelligence dashboard. Aggregates four data streams into one home screen.")
+                    .font(Theme.Fonts.manrope(13))
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                HStack(spacing: 16) {
+                    if let githubURL = URL(string: "https://github.com/atifkhan") {
+                        Link("GitHub", destination: githubURL)
+                    }
+                }
+                .font(Theme.Fonts.manrope(12))
+                .foregroundStyle(Theme.Colors.accent)
+            }
+            .padding(Theme.cardPadding)
+            .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+        }
+    }
+
+    // MARK: - Helpers
+
+    private func loadCacheAges() async {
+        let keys = ["cache_madrid", "cache_pogo", "cache_github", "cache_aiintel"]
+        for key in keys {
+            if let envelope: CacheEnvelope<Data> = await cacheStore.load(key) {
+                let date = Date(timeIntervalSince1970: TimeInterval(envelope.timestampMs) / 1000)
+                cacheAges[key] = TimeFormat.age(from: date)
+            } else {
+                cacheAges[key] = "No data"
+            }
+        }
+    }
+
+    private func clearCache() async {
+        await cacheStore.clearAll()
+        cacheAges = [:]
     }
 }
 

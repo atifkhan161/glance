@@ -2,13 +2,14 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(AppState.self) private var appState
+    @State private var store = PulseStore()
 
     var body: some View {
         @Bindable var bindable = appState
         TabView(selection: $bindable.selectedTab) {
             Tab(value: GlanceTab.pulse) {
                 NavigationStack {
-                    PulseView()
+                    PulseView(store: store)
                 }
             } label: {
                 Label("Pulse", systemImage: "bolt.fill")
@@ -16,7 +17,7 @@ struct ContentView: View {
 
             Tab(value: GlanceTab.madrid) {
                 NavigationStack {
-                    MadridHubView()
+                    MadridHubView(store: store)
                 }
             } label: {
                 Label("Madrid", systemImage: "newspaper")
@@ -24,7 +25,7 @@ struct ContentView: View {
 
             Tab(value: GlanceTab.pogo) {
                 NavigationStack {
-                    PoGoHubView()
+                    PoGoHubView(store: store)
                 }
             } label: {
                 Label("PoGo", systemImage: "gamecontroller")
@@ -32,7 +33,7 @@ struct ContentView: View {
 
             Tab(value: GlanceTab.github) {
                 NavigationStack {
-                    GitHubHubView()
+                    GitHubHubView(store: store)
                 }
             } label: {
                 Label("GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
