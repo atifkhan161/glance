@@ -22,6 +22,8 @@ struct PulseView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
+                    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                    impactFeedback.impactOccurred()
                     Task { await store.refreshAll() }
                 } label: {
                     Image(systemName: "arrow.clockwise")

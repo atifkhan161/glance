@@ -37,6 +37,8 @@ struct GlanceCardView: View {
             }
 
             Button {
+                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                impactFeedback.impactOccurred()
                 Task { await store.refresh(card) }
             } label: {
                 Image(systemName: "arrow.clockwise")
