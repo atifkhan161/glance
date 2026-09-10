@@ -5,6 +5,7 @@ enum GlanceTab: String, CaseIterable, Hashable, Sendable {
     case madrid
     case pogo
     case github
+    case sources
     case settings
 }
 

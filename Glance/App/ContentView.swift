@@ -39,6 +39,14 @@ struct ContentView: View {
                 Label("GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
             }
 
+            Tab(value: GlanceTab.sources) {
+                NavigationStack {
+                    SourcesView()
+                }
+            } label: {
+                Label("Sources", systemImage: "key")
+            }
+
             Tab(value: GlanceTab.settings) {
                 NavigationStack {
                     SettingsView()
