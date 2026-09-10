@@ -5,6 +5,7 @@ struct KeychainStore: Sendable {
     static let shared = KeychainStore()
 
     func save(_ value: String, forKey key: String) throws {
+        guard !value.isEmpty else { throw KeychainError.emptyValue }
         let data = Data(value.utf8)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -44,4 +45,5 @@ struct KeychainStore: Sendable {
 
 enum KeychainError: Error {
     case saveFailed(OSStatus)
+    case emptyValue
 }
