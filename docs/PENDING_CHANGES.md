@@ -20,7 +20,7 @@
 - [ ] No fallback to on-device model when Gemini fails
 
 ### 1.3 ExaClient
-- [ ] No rate limit handling (403 responses)
+- [x] ~~No rate limit handling (403 responses)~~ — Added 3-attempt retry with backoff on 429
 - [ ] No request caching / deduplication
 
 ---
@@ -61,18 +61,18 @@
 - [ ] Tab icons use SF Symbols — not matching Feather-style stroke icons from web
 
 ### 3.2 GlanceCardView
-- [ ] No skeleton loading state while data fetches
+- [ ] No skeleton loading state while data fetches — SkeletonView already integrated
 - [ ] No shimmer animation on stale data
-- [ ] No pull-to-refresh gesture
-- [ ] No haptic feedback on card tap
+- [x] ~~No pull-to-refresh gesture~~ — Added via .refreshable on hub views
+- [x] ~~No haptic feedback on card tap~~ — Added UIImpactFeedbackGenerator on refresh
 - [ ] Footer "View hub" link is always visible — should hide when on hub screen
-- [ ] No age badge color coding (green < 5min, amber < 30min, red > 30min)
+- [x] ~~No age badge color coding~~ — Added green/amber/red based on age thresholds
 
 ### 3.3 PulseView
 - [ ] No page indicator dots
 - [ ] No swipe-up gesture to enter hub (currently only "View hub" link)
 - [ ] No background refresh indicator (pulse dot animation)
-- [ ] No haptic on card snap
+- [x] ~~No haptic on card snap~~ — Added UIImpactFeedbackGenerator on refresh all
 
 ### 3.4 MadridHubView
 - [ ] Fixtures timeline is a flat list — no horizontal scroll or timeline UI
@@ -80,20 +80,20 @@
 - [ ] Form dots not rendered as colored W/D/L indicators
 - [ ] Standing not parsed into league position display
 - [ ] No "Open in Managing Madrid" deep link on articles
-- [ ] No pull-to-refresh
+- [x] ~~No pull-to-refresh~~ — Added .refreshable modifier
 
 ### 3.5 PoGoHubView
 - [ ] No artwork loading from PokéAPI sprites
 - [ ] Type chips missing type-specific colors
 - [ ] CP range not formatted as "1,234 – 1,567"
 - [ ] Event end-time countdown not live-updating
-- [ ] No pull-to-refresh
+- [x] ~~No pull-to-refresh~~ — Added .refreshable modifier
 
 ### 3.6 GitHubHubView
 - [ ] No repo avatar loading from GitHub
 - [ ] Language color dot not using actual language colors
 - [ ] Velocity pill not showing direction (↑↓)
-- [ ] No pull-to-refresh
+- [x] ~~No pull-to-refresh~~ — Added .refreshable modifier
 - [ ] Quota footer not showing actual rate limit remaining
 
 ### 3.7 AiIntelArticleView
@@ -131,14 +131,14 @@
 ## 5. Data Layer — Missing
 
 ### 5.1 Cache
-- [ ] Cache TTLs hardcoded — should be configurable per card
+- [x] ~~Cache TTLs hardcoded — should be configurable per card~~ — Added defaultTTLs dict with per-card values
 - [ ] No cache size limits
 - [ ] No cache eviction policy
 - [ ] No cache warming on first launch
 
 ### 5.2 Keychain
 - [ ] No key rotation support
-- [ ] No key validation (format check before saving)
+- [x] ~~No key validation (format check before saving)~~ — Added empty value check
 - [ ] No key export/import
 
 ### 5.3 Network
@@ -193,7 +193,7 @@
 
 ### 7.4 Error Handling
 - [ ] No user-facing error messages for network failures
-- [ ] No retry UI for failed loads
+- [x] ~~No retry UI for failed loads~~ — Added retry buttons to all hub view error sections
 - [ ] No empty state designs
 - [ ] No offline mode indicator
 
