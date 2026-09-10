@@ -6,7 +6,7 @@ struct CacheEnvelope<T: Codable & Sendable>: Codable, Sendable {
     let data: T
 
     var isExpired: Bool {
-        ttlMs.map { Date.now.millisecondsSinceEpoch - timestampMs > $0 } ?? false
+        ttlMs.map { Date.now.millisecondsSinceEpoch - timestampMs >= $0 } ?? false
     }
 
     init(data: T, ttlMs: Int64? = nil) {
