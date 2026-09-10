@@ -33,7 +33,10 @@ struct GlanceCardView: View {
             if let age = currentAge {
                 Text(age)
                     .font(Theme.Fonts.manrope(12))
-                    .foregroundStyle(Theme.Colors.textMuted)
+                    .foregroundStyle(ageColor(for: age))
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(ageColor(for: age).opacity(0.15), in: .capsule)
             }
 
             Button {
@@ -637,6 +640,18 @@ extension CardID {
         case .aiIntel: Theme.Colors.cardCyan
         }
     }
+}
+
+// MARK: - Age Color Helper
+
+private func ageColor(for age: String) -> Color {
+    let lower = age.lowercased()
+    if lower.contains("just now") || lower.contains("min") {
+        let minutes = Int(lower.components(separatedBy: " ").first ?? "0") ?? 0
+        if minutes < 5 { return .green }
+        if minutes < 30 { return Theme.Colors.cardAmber }
+    }
+    return Theme.Colors.error
 }
 
 #Preview {
