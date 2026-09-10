@@ -213,6 +213,19 @@ struct GitHubHubView: View {
             Text(message)
                 .font(Theme.Fonts.manrope(14))
                 .foregroundStyle(Theme.Colors.textSecondary)
+            Button {
+                Task { await store.refresh(.github) }
+            } label: {
+                HStack {
+                    Image(systemName: "arrow.clockwise")
+                    Text("Retry")
+                }
+                .font(Theme.Fonts.manrope(13, weight: .medium))
+                .foregroundStyle(Theme.Colors.cardEmerald)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Theme.Colors.cardEmerald.opacity(0.15), in: .capsule)
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(40)

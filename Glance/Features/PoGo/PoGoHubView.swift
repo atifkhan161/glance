@@ -316,6 +316,19 @@ struct PoGoHubView: View {
             Text(message)
                 .font(Theme.Fonts.manrope(14))
                 .foregroundStyle(Theme.Colors.textSecondary)
+            Button {
+                Task { await store.refresh(.pogo) }
+            } label: {
+                HStack {
+                    Image(systemName: "arrow.clockwise")
+                    Text("Retry")
+                }
+                .font(Theme.Fonts.manrope(13, weight: .medium))
+                .foregroundStyle(Theme.Colors.cardRose)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Theme.Colors.cardRose.opacity(0.15), in: .capsule)
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(40)

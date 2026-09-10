@@ -332,6 +332,19 @@ struct MadridHubView: View {
             Text(message)
                 .font(Theme.Fonts.manrope(14))
                 .foregroundStyle(Theme.Colors.textSecondary)
+            Button {
+                Task { await store.refresh(.madrid) }
+            } label: {
+                HStack {
+                    Image(systemName: "arrow.clockwise")
+                    Text("Retry")
+                }
+                .font(Theme.Fonts.manrope(13, weight: .medium))
+                .foregroundStyle(Theme.Colors.cardAmber)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Theme.Colors.cardAmber.opacity(0.15), in: .capsule)
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(40)
