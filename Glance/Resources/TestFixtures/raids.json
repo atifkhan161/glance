@@ -1,0 +1,166 @@
+[
+  {
+    "name": "Alolan Rattata",
+    "tier": "1-Star Raids",
+    "canBeShiny": true,
+    "types": [
+      {
+        "name": "dark",
+        "image": "https://leekduck.com/assets/img/types/dark.png"
+      },
+      {
+        "name": "normal",
+        "image": "https://leekduck.com/assets/img/types/normal.png"
+      }
+    ],
+    "combatPower": {
+      "normal": {
+        "min": 381,
+        "max": 419
+      },
+      "boosted": {
+        "min": 477,
+        "max": 524
+      }
+    },
+    "boostedWeather": [
+      {
+        "name": "fog",
+        "image": "https://leekduck.com/assets/img/weather/foggy.png"
+      },
+      {
+        "name": "partly cloudy",
+        "image": "https://leekduck.com/assets/img/weather/partlycloudy.png"
+      }
+    ],
+    "image": "https://cdn.leekduck.com/assets/img/pokemon_icons/pm19.fALOLA.icon.png"
+  },
+  {
+    "name": "Dunsparce",
+    "tier": "1-Star Raids",
+    "canBeShiny": true,
+    "types": [
+      {
+        "name": "normal",
+        "image": "https://leekduck.com/assets/img/types/normal.png"
+      }
+    ],
+    "combatPower": {
+      "normal": {
+        "min": 906,
+        "max": 965
+      },
+      "boosted": {
+        "min": 1132,
+        "max": 1206
+      }
+    },
+    "boostedWeather": [
+      {
+        "name": "partly cloudy",
+        "image": "https://leekduck.com/assets/img/weather/partlycloudy.png"
+      }
+    ],
+    "image": "https://cdn.leekduck.com/assets/img/pokemon_icons/pm206.icon.png"
+  },
+  {
+    "name": "Scraggy",
+    "tier": "1-Star Raids",
+    "canBeShiny": true,
+    "types": [
+      {
+        "name": "dark",
+        "image": "https://leekduck.com/assets/img/types/dark.png"
+      },
+      {
+        "name": "fighting",
+        "image": "https://leekduck.com/assets/img/types/fighting.png"
+      }
+    ],
+    "combatPower": {
+      "normal": {
+        "min": 732,
+        "max": 784
+      },
+      "boosted": {
+        "min": 915,
+        "max": 980
+      }
+    },
+    "boostedWeather": [
+      {
+        "name": "fog",
+        "image": "https://leekduck.com/assets/img/weather/foggy.png"
+      },
+      {
+        "name": "cloudy",
+        "image": "https://leekduck.com/assets/img/weather/cloudy.png"
+      }
+    ],
+    "image": "https://cdn.leekduck.com/assets/img/pokemon_icons/pm559.icon.png"
+  },
+  {
+    "name": "Fidough",
+    "tier": "1-Star Raids",
+    "canBeShiny": true,
+    "types": [
+      {
+        "name": "fairy",
+        "image": "https://leekduck.com/assets/img/types/fairy.png"
+      }
+    ],
+    "combatPower": {
+      "normal": {
+        "min": 519,
+        "max": 563
+      },
+      "boosted": {
+        "min": 648,
+        "max": 703
+      }
+    },
+    "boostedWeather": [
+      {
+        "name": "cloudy",
+        "image": "https://leekduck.com/assets/img/weather/cloudy.png"
+      }
+    ],
+    "image": "https://cdn.leekduck.com/assets/img/pokemon_icons/pm926.icon.png"
+  },
+  {
+    "name": "Alolan Dugtrio",
+    "tier": "3-Star Raids",
+    "canBeShiny": true,
+    "types": [
+      {
+        "name": "ground",
+        "image": "https://leekduck.com/assets/img/types/ground.png"
+      },
+      {
+        "name": "steel",
+        "image": "https://leekduck.com/assets/img/types/steel.png"
+      }
+    ],
+    "combatPower": {
+      "normal": {
+        "min": 1021,
+        "max": 1084
+      },
+      "boosted": {
+        "min": 1276,
+        "max": 1355
+      }
+    },
+    "boostedWeather": [
+      {
+        "name": "sunny",
+        "image": "https://leekduck.com/assets/img/weather/sunny.png"
+      },
+      {
+        "name": "snow",
+        "image": "https://leekduck.com/assets/img/weather/snowy.png"
+      }
+    ],
+    "image": "https://cdn.leekduck.com/assets/img/pokemon_icons/pm51.fALOLA.icon.png"
+  }
+]

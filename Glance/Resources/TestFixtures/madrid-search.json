@@ -1,0 +1,19 @@
+{
+  "query": "Real Madrid",
+  "results": [
+    {
+      "title": "Real Madrid edge derby thriller",
+      "link": "https://managingmadrid.com/1",
+      "published": "2026-09-09T20:00:00Z",
+      "source": "Managing Madrid",
+      "excerpt": "Late winner seals three points."
+    },
+    {
+      "title": "Mbappe brace powers Madrid",
+      "link": "https://managingmadrid.com/2",
+      "published": "2026-09-08T18:30:00Z",
+      "source": "Managing Madrid",
+      "excerpt": "Two goals in the second half."
+    }
+  ]
+}

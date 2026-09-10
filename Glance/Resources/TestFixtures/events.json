@@ -1,0 +1,354 @@
+[
+  {
+    "eventID": "pokemonspotlighthour2026-09-10",
+    "name": "Weedle, Kakuna, and Beedrill Spotlight Hour",
+    "eventType": "pokemon-spotlight-hour",
+    "heading": "Pok\u00e9mon Spotlight Hour",
+    "link": "https://leekduck.com/events/pokemonspotlighthour2026-09-10/",
+    "image": "https://cdn.leekduck.com/assets/img/events/pokemonspotlighthour.jpg",
+    "start": "2026-09-10T18:00:00.000",
+    "end": "2026-09-10T19:00:00.000",
+    "extraData": {
+      "spotlight": {
+        "name": "Weedle",
+        "canBeShiny": true,
+        "image": "https://cdn.leekduck.com/assets/img/pokemon_icons/pokemon_icon_013_00.png",
+        "bonus": "2\u00d7 Transfer Candy",
+        "list": [
+          {
+            "name": "Weedle",
+            "canBeShiny": true,
+            "image": "https://cdn.leekduck.com/assets/img/pokemon_icons/pokemon_icon_013_00.png"
+          },
+          {
+            "name": "Kakuna",
+            "canBeShiny": true,
+            "image": "https://cdn.leekduck.com/assets/img/pokemon_icons/pokemon_icon_014_00.png"
+          },
+          {
+            "name": "Beedrill",
+            "canBeShiny": true,
+            "image": "https://cdn.leekduck.com/assets/img/pokemon_icons/pokemon_icon_015_00.png"
+          }
+        ]
+      },
+      "generic": {
+        "hasSpawns": true,
+        "hasFieldResearchTasks": false
+      }
+    }
+  },
+  {
+    "eventID": "september-communitydayclassic2026",
+    "name": "Gible Community Day Classic",
+    "eventType": "community-day",
+    "heading": "Community Day",
+    "link": "https://leekduck.com/events/september-communitydayclassic2026/",
+    "image": "https://cdn.leekduck.com/assets/img/events/article-images/2026/2026-09-12-september-communitydayclassic2026/gible-community-day-classic.jpg",
+    "start": "2026-09-12T14:00:00.000",
+    "end": "2026-09-12T17:00:00.000",
+    "extraData": {
+      "communityday": {
+        "spawns": [
+          {
+            "name": "Gible",
+            "image": "https://cdn.leekduck.com/assets/img/pokemon_icons/pokemon_icon_443_00.png"
+          }
+        ],
+        "bonuses": [
+          {
+            "text": "Increased Spawns",
+            "image": "https://cdn.leekduck.com/assets/img/events/bonuses/wildgrass.png"
+          },
+          {
+            "text": "3x Catch XP",
+            "image": "https://cdn.leekduck.com/assets/img/events/bonuses/xp.png"
+          },
+          {
+            "text": "3-hour Incense*",
+            "image": "https://cdn.leekduck.com/assets/img/events/bonuses/incense.png"
+          },
+          {
+            "text": "1-hour Lures**",
+            "image": "https://cdn.leekduck.com/assets/img/events/bonuses/lure.png"
+          }
+        ],
+        "bonusDisclaimers": [
+          "* The three-hour Incense bonus excludes Daily Adventure Incense.\n** Lure Modules will last for one hour and may attract the featured Pok\u00e9mon. While most bonuses are only active during the three-hour event period, this bonus will be active from 2:00 p.m. to 9:00 p.m. local time."
+        ],
+        "shinies": [
+          {
+            "name": "Gible",
+            "image": "https://cdn.leekduck.com/assets/img/pokemon_icons/pokemon_icon_443_00_shiny.png"
+          },
+          {
+            "name": "Gabite",
+            "image": "https://cdn.leekduck.com/assets/img/pokemon_icons/pokemon_icon_444_00_shiny.png"
+          },
+          {
+            "name": "Garchomp",
+            "image": "https://cdn.leekduck.com/assets/img/pokemon_icons/pokemon_icon_445_00_shiny.png"
+          }
+        ],
+        "specialresearch": [
+          {
+            "name": "Gible Community Day Classic (1/3)",
+            "step": 1,
+            "tasks": [
+              {
+                "text": "Catch 3 Pokemon",
+                "reward": {
+                  "text": "Gible",
+                  "image": "https://cdn.leekduck.com/assets/img/pokemon_icons_crop/pokemon_icon_443_00.png"
+                }
+              },
+              {
+                "text": "Catch 5 Pokemon",
+                "reward": {
+                  "text": "Gible",
+                  "image": "https://cdn.leekduck.com/assets/img/pokemon_icons_crop/pokemon_icon_443_00.png"
+                }
+              },
+              {
+                "text": "Catch 10 Pokemon",
+                "reward": {
+                  "text": "Gible",
+                  "image": "https://cdn.leekduck.com/assets/img/pokemon_icons_crop/pokemon_icon_443_00.png"
+                }
+              },
+              {
+                "text": "Make 7 Nice Throws",
+                "reward": {
+                  "text": "Ultra Ball \u00d720",
+                  "image": "https://cdn.leekduck.com/assets/img/items/Ultra%20Ball.png"
+                }
+              },
+              {
+                "text": "Make 5 Great Throws",
+                "reward": {
+                  "text": "Lucky Egg \u00d71",
+                  "image": "https://cdn.leekduck.com/assets/img/items/Lucky%20Egg.png"
+                }
+              },
+              {
+                "text": "Make 5 Curveball Throws",
+                "reward": {
+                  "text": "Incense \u00d71",
+                  "image": "https://cdn.leekduck.com/assets/img/items/Incense.png"
+                }
+              }
+            ],
+            "rewards": [
+              {
+                "text": "Gible",
+                "image": "https://cdn.leekduck.com/assets/img/pokemon_icons_crop/pokemon_icon_443_00.png"
+              },
+              {
+                "text": "\u00d750",
+                "image": "https://cdn.leekduck.com/assets/img/candy/regular/443.png"
+              },
+              {
+                "text": "\u00d75",
+                "image": "https://cdn.leekduck.com/assets/img/candy/xl/443.png"
+              }
+            ]
+          },
+          {
+            "name": "Gible Community Day Classic (2/3)",
+            "step": 2,
+            "tasks": [
+              {
+                "text": "Catch 3 Pokemon",
+                "reward": {
+                  "text": "Gible",
+                  "image": "https://cdn.leekduck.com/assets/img/pokemon_icons_crop/pokemon_icon_443_00.png"
+                }
+              },
+              {
+                "text": "Catch 5 Pokemon",
+                "reward": {
+                  "text": "Gible",
+                  "image": "https://cdn.leekduck.com/assets/img/pokemon_icons_crop/pokemon_icon_443_00.png"
+                }
+              },
+              {
+                "text": "Catch 10 Pokemon",
+                "reward": {
+                  "text": "Gabite",
+                  "image": "https://cdn.leekduck.com/assets/img/pokemon_icons_crop/pokemon_icon_444_00.png"
+                }
+              },
+              {
+                "text": "Use 3 Berries to help catch Pokemon",
+                "reward": {
+                  "text": "Ultra Ball \u00d720",
+                  "image": "https://cdn.leekduck.com/assets/img/items/Ultra%20Ball.png"
+                }
+              },
+              {
+                "text": "Use 5 Berries to help catch Pokemon",
+                "reward": {
+                  "text": "Charged TM \u00d71",
+                  "image": "https://cdn.leekduck.com/assets/img/items/Charged%20TM.png"
+                }
+              },
+              {
+                "text": "Use 7 Berries to help catch Pokemon",
+                "reward": {
+                  "text": "Silver Pinap Berry \u00d73",
+                  "image": "https://cdn.leekduck.com/assets/img/items/Silver%20Pinap%20Berry.png"
+                }
+              }
+            ],
+            "rewards": [
+              {
+                "text": "Gible",
+                "image": "https://cdn.leekduck.com/assets/img/pokemon_icons_crop/pokemon_icon_443_00.png"
+              },
+              {
+                "text": "\u00d77500",
+                "image": "https://cdn.leekduck.com/assets/img/items/Stardust.png"
+              },
+              {
+                "text": "\u00d73",
+                "image": "https://cdn.leekduck.com/assets/img/items/Rare%20Candy.png"
+              }
+            ]
+          },
+          {
+            "name": "Gible Community Day Classic (3/3)",
+            "step": 3,
+            "tasks": [
+              {
+                "text": "Catch 3 Pokemon",
+                "reward": {
+                  "text": "Gible",
+                  "image": "https://cdn.leekduck.com/assets/img/pokemon_icons_crop/pokemon_icon_443_00.png"
+                }
+              },
+              {
+                "text": "Catch 5 Pokemon",
+                "reward": {
+                  "text": "Gible",
+                  "image": "https://cdn.leekduck.com/assets/img/pokemon_icons_crop/pokemon_icon_443_00.png"
+                }
+              },
+              {
+                "text": "Catch 10 Pokemon",
+                "reward": {
+                  "text": "Garchomp",
+                  "image": "https://cdn.leekduck.com/assets/img/pokemon_icons_crop/pokemon_icon_445_00.png"
+                }
+              },
+              {
+                "text": "Spin 3 PokeStops or Gyms",
+                "reward": {
+                  "text": "Ultra Ball \u00d720",
+                  "image": "https://cdn.leekduck.com/assets/img/items/Ultra%20Ball.png"
+                }
+              },
+              {
+                "text": "Spin 5 PokeStops or Gyms",
+                "reward": {
+                  "text": "Rocket Radar \u00d71",
+                  "image": "https://cdn.leekduck.com/assets/img/items/Rocket%20Radar.png"
+                }
+              },
+              {
+                "text": "Explore 1 km",
+                "reward": {
+                  "text": "Premium Battle Pass \u00d71",
+                  "image": "https://cdn.leekduck.com/assets/img/items/Premium%20Battle%20Pass.png"
+                }
+              }
+            ],
+            "rewards": [
+              {
+                "text": "Gible",
+                "image": "https://cdn.leekduck.com/assets/img/pokemon_icons_crop/pokemon_icon_443_00.png"
+              },
+              {
+                "text": "10000 XP",
+                "image": "https://cdn.leekduck.com/assets/img/icons/xp.png"
+              },
+              {
+                "text": "\u00d71",
+                "image": "https://cdn.leekduck.com/assets/img/items/Rare%20Candy%20XL.png"
+              }
+            ]
+          }
+        ]
+      },
+      "generic": {
+        "hasSpawns": true,
+        "hasFieldResearchTasks": true
+      }
+    }
+  },
+  {
+    "eventID": "pokemonspotlighthour2026-09-13",
+    "name": "Houndour and Houndoom Spotlight Hour",
+    "eventType": "pokemon-spotlight-hour",
+    "heading": "Pok\u00e9mon Spotlight Hour",
+    "link": "https://leekduck.com/events/pokemonspotlighthour2026-09-13/",
+    "image": "https://cdn.leekduck.com/assets/img/events/pokemonspotlighthour.jpg",
+    "start": "2026-09-13T18:00:00.000",
+    "end": "2026-09-13T19:00:00.000",
+    "extraData": {
+      "spotlight": {
+        "name": "Houndour",
+        "canBeShiny": true,
+        "image": "https://cdn.leekduck.com/assets/img/pokemon_icons/pokemon_icon_228_00.png",
+        "bonus": "2\u00d7 Transfer Candy",
+        "list": [
+          {
+            "name": "Houndour",
+            "canBeShiny": true,
+            "image": "https://cdn.leekduck.com/assets/img/pokemon_icons/pokemon_icon_228_00.png"
+          },
+          {
+            "name": "Houndoom",
+            "canBeShiny": true,
+            "image": "https://cdn.leekduck.com/assets/img/pokemon_icons/pokemon_icon_229_00.png"
+          }
+        ]
+      },
+      "generic": {
+        "hasSpawns": true,
+        "hasFieldResearchTasks": false
+      }
+    }
+  },
+  {
+    "eventID": "mega-squads",
+    "name": "Mega Squads",
+    "eventType": "event",
+    "heading": "Event",
+    "link": "https://leekduck.com/events/mega-squads/",
+    "image": "https://cdn.leekduck.com/assets/img/events/article-images/2026/2026-09-08-mega-squads/mega-squads.jpg",
+    "start": "2026-09-08T10:00:00.000",
+    "end": "2026-09-14T20:00:00.000",
+    "extraData": {
+      "generic": {
+        "hasSpawns": true,
+        "hasFieldResearchTasks": false
+      }
+    }
+  },
+  {
+    "eventID": "max-mondays-2026-09-14",
+    "name": "Dynamax Rhyhorn during Max Monday",
+    "eventType": "max-mondays",
+    "heading": "Max Mondays",
+    "link": "https://leekduck.com/events/max-mondays-2026-09-14/",
+    "image": "https://cdn.leekduck.com/assets/img/events/max-battles-kanto.jpg",
+    "start": "2026-09-14T06:00:00.000",
+    "end": "2026-09-14T21:00:00.000",
+    "extraData": {
+      "generic": {
+        "hasSpawns": false,
+        "hasFieldResearchTasks": false
+      }
+    }
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "name": "glance",
+    "full_name": "atifkhan/glance",
+    "stargazers_count": 42,
+    "language": "TypeScript",
+    "updated_at": "2026-09-09T12:00:00Z",
+    "open_issues_count": 3
+  },
+  {
+    "id": 2,
+    "name": "glance-ios",
+    "full_name": "atifkhan/glance-ios",
+    "stargazers_count": 5,
+    "language": "Swift",
+    "updated_at": "2026-09-10T08:00:00Z",
+    "open_issues_count": 1
+  }
+]
