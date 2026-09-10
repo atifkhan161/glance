@@ -44,12 +44,24 @@ struct ExaClient: ExaClientProtocol, Sendable {
             "contents": ["highlights": true],
         ]
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-            throw GlanceError.networkError("Exa search failed")
+
+        for attempt in 0 ..< 3 {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse else {
+                throw GlanceError.networkError("No HTTP response")
+            }
+            if http.statusCode == 200 {
+                let decoded = try JSONDecoder().decode(ExaResponse.self, from: data)
+                return decoded.results
+            }
+            if http.statusCode == 429 {
+                let delay: UInt64 = attempt == 0 ? 1_000_000_000 : 2_000_000_000
+                try await Task.sleep(nanoseconds: delay)
+                continue
+            }
+            throw GlanceError.networkError("Exa search failed with status \(http.statusCode)")
         }
-        let decoded = try JSONDecoder().decode(ExaResponse.self, from: data)
-        return decoded.results
+        throw GlanceError.networkError("Exa search failed after retries")
     }
 }
 
