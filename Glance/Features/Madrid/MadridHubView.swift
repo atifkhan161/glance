@@ -22,6 +22,9 @@ struct MadridHubView: View {
         .background(Theme.canvas)
         .navigationTitle("Real Madrid")
         .navigationBarTitleDisplayMode(.large)
+        .refreshable {
+            await store.refreshCard(.madrid)
+        }
         .navigationDestination(for: MMArticle.self) { article in
             MadridArticleView(article: article)
         }

@@ -26,6 +26,9 @@ struct PoGoHubView: View {
         .background(Theme.canvas)
         .navigationTitle("Pokémon GO")
         .navigationBarTitleDisplayMode(.large)
+        .refreshable {
+            await store.refreshCard(.pogo)
+        }
         .navigationDestination(for: PoGoRaid.self) { raid in
             RaidDetailView(raid: raid)
         }

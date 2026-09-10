@@ -30,6 +30,9 @@ struct GitHubHubView: View {
         .background(Theme.canvas)
         .navigationTitle("GitHub Trending")
         .navigationBarTitleDisplayMode(.large)
+        .refreshable {
+            await store.refreshCard(.github)
+        }
         .navigationDestination(for: GitHubRepoWithVelocity.self) { repo in
             RepoDetailView(repository: repo)
         }

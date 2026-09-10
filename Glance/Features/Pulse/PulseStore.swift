@@ -83,6 +83,10 @@ final class PulseStore {
         }
     }
 
+    func refreshCard(_ card: CardID) async {
+        await refresh(card)
+    }
+
     func refresh(_ card: CardID) async {
         switch card {
         case .madrid:
