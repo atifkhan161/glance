@@ -7,6 +7,13 @@ actor CacheStore {
     private var memory: [String: Data] = [:]
     private let defaults = UserDefaults.standard
 
+    static let defaultTTLs: [String: TimeInterval] = [
+        "cache_madrid": 6 * 3_600,    // 6 hours
+        "cache_pogo": 6 * 3_600,      // 6 hours
+        "cache_github": 24 * 3_600,   // 24 hours
+        "cache_aiintel": 12 * 3_600,  // 12 hours
+    ]
+
     func hydrate() {
         for key in Self.allCacheKeys {
             if let data = defaults.data(forKey: key) {
@@ -44,6 +51,10 @@ actor CacheStore {
             memory.removeValue(forKey: key)
             defaults.removeObject(forKey: key)
         }
+    }
+
+    func ttl(for key: String) -> TimeInterval {
+        Self.defaultTTLs[key] ?? 6 * 3_600
     }
 
     static let allCacheKeys = [
