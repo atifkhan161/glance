@@ -63,6 +63,7 @@
 		DE1BF522CA162C01B5B90EC0 /* repositories.json in Resources */ = {isa = PBXBuildFile; fileRef = 15FFE18A5D893CFA93AE65E3 /* repositories.json */; };
 		E0ACE6FDC5DBB9DA3A878EF0 /* GitHubPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0862D2780839821BE7EB6B1 /* GitHubPipeline.swift */; };
 		E5CB8D9BFF379C4E8765123A /* SkeletonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F457B157FC966D801CD62CE1 /* SkeletonView.swift */; };
+		F0A1B2C3D4E5F6A7B8C9D0E1 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* Components.swift */; };
 		E78A461D3A5B0A1F140AF378 /* GeminiClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8432ADC86D8071C0A729DC28 /* GeminiClient.swift */; };
 		E9DC9274D7EF30EAFCE6C500 /* PoGoPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5618ACB47108C5ECE2A1DF1 /* PoGoPipeline.swift */; };
 		EC388E6180F7AFEFE7A00C77 /* ManagingMadridClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761E28609E32E6E33EB2DC21 /* ManagingMadridClient.swift */; };
@@ -161,6 +162,7 @@
 		F2AC54314574769AC551ABBC /* KeychainStoreTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = KeychainStoreTests.swift; sourceTree = "<group>"; };
 		F2C9DD56660DF3077E99A52C /* TimeFormatTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = TimeFormatTests.swift; sourceTree = "<group>"; };
 		F457B157FC966D801CD62CE1 /* SkeletonView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SkeletonView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A7B8C9D0E1F2 /* Components.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		F65672F62EC7DA587E61CBB6 /* CacheStoreTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CacheStoreTests.swift; sourceTree = "<group>"; };
 		FE51DADF51E57ECD0B40BE8F /* Glance.xcassets */ = {isa = PBXFileReference; explicitFileType = folder.assetcatalog; path = Glance.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -439,6 +441,7 @@
 				33B8021DC59DAC0AAA0673BE /* GlanceBadge.swift */,
 				F457B157FC966D801CD62CE1 /* SkeletonView.swift */,
 				BE285836ED3E944296D83FED /* PulseDot.swift */,
+				A1B2C3D4E5F6A7B8C9D0E1F2 /* Components.swift */,
 			);
 			path = DesignSystem;
 			sourceTree = "<group>";
@@ -647,6 +650,7 @@
 				F92EC9784909D6464A009A36 /* GlanceBadge.swift in Sources */,
 				E5CB8D9BFF379C4E8765123A /* SkeletonView.swift in Sources */,
 				20C65BD7D4E849F2ABC8E612 /* PulseDot.swift in Sources */,
+				F0A1B2C3D4E5F6A7B8C9D0E1 /* Components.swift in Sources */,
 				4C5A4447575865357AA90C3A /* Enums.swift in Sources */,
 				258D90A7CF4894803C569D75 /* Extensions.swift in Sources */,
 			);

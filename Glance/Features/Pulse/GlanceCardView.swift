@@ -503,40 +503,18 @@ struct GlanceCardView: View {
     // MARK: - Shared Helpers
 
     private func errorView(_ message: String) -> some View {
-        VStack(spacing: 12) {
-            Image(systemName: "exclamationmark.triangle")
-                .font(.title2)
-                .foregroundStyle(Theme.Colors.error)
-            Text("Something went wrong")
-                .font(Theme.Fonts.manrope(14, weight: .semibold))
-                .foregroundStyle(Theme.Colors.textPrimary)
-            Text(message)
-                .font(Theme.Fonts.manrope(12))
-                .foregroundStyle(Theme.Colors.textMuted)
-            Button("Tap to retry") {
-                Task { await store.refresh(card) }
-            }
-            .font(Theme.Fonts.manrope(13, weight: .semibold))
-            .foregroundStyle(card.accentColor)
+        GlanceErrorView(message: message, accentColor: card.accentColor) {
+            Task { await store.refresh(card) }
         }
-        .frame(maxWidth: .infinity)
-        .padding(40)
     }
 
     private func keyMissingView(card: CardID) -> some View {
-        VStack(spacing: 12) {
-            Image(systemName: "key")
-                .font(.title2)
-                .foregroundStyle(Theme.Colors.cardAmber)
-            Text("Key Missing")
-                .font(Theme.Fonts.manrope(14, weight: .semibold))
-                .foregroundStyle(Theme.Colors.cardAmber)
-            Text("Configure in Sources")
-                .font(Theme.Fonts.manrope(12))
-                .foregroundStyle(Theme.Colors.textMuted)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(40)
+        GlanceEmptyView(
+            icon: "key",
+            title: "Key Missing",
+            message: "Configure in Sources",
+            accentColor: Theme.Colors.cardAmber
+        )
     }
 
     private var currentAge: String? {

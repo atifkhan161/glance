@@ -155,27 +155,27 @@ struct MadridHubView: View {
     // MARK: - Form Section
 
     private func formSection(_ data: MadridData) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("FORM & STANDING")
-                .font(Theme.Fonts.manrope(10, weight: .bold))
-                .foregroundStyle(Theme.Colors.cardAmber)
-                .tracking(1.2)
-
+        HubSectionCard(title: "FORM & STANDING", titleColor: Theme.Colors.cardAmber) {
             if !data.form.isEmpty {
                 HStack(spacing: 8) {
                     ForEach(data.form, id: \.self) { result in
+                        let trimmed = result.trimmingCharacters(in: .whitespaces)
+                        let letter = String(trimmed.prefix(1)).uppercased()
+                        let score = trimmed.count > 1 ? String(trimmed.dropFirst()).trimmingCharacters(in: .whitespaces) : ""
+
                         VStack(spacing: 4) {
-                            Text(String(result.prefix(1)))
+                            Text(letter)
                                 .font(Theme.Fonts.manrope(16, weight: .bold))
-                                .foregroundStyle(formColor(result))
-                            if result.count > 1 {
-                                Text(String(result.dropFirst()).trimmingCharacters(in: .whitespaces))
-                                    .font(Theme.Fonts.manrope(10))
+                                .foregroundStyle(formColor(letter))
+                            if !score.isEmpty {
+                                Text(score)
+                                    .font(Theme.Fonts.manrope(9))
                                     .foregroundStyle(Theme.Colors.textMuted)
                             }
                         }
                         .frame(width: 40, height: 48)
-                        .background(formColor(result).opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+                        .background(formColor(letter).opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+                        .accessibilityLabel(formAccessibilityLabel(letter, score: score))
                     }
                 }
             }
@@ -184,6 +184,7 @@ struct MadridHubView: View {
                 Text(data.standing)
                     .font(Theme.Fonts.manrope(14))
                     .foregroundStyle(Theme.Colors.textSecondary)
+                    .accessibilityLabel("League standing: \(data.standing)")
             }
 
             if let h2h = data.headToHead {
@@ -195,24 +196,28 @@ struct MadridHubView: View {
                 .foregroundStyle(Theme.Colors.textMuted)
             }
         }
-        .padding(Theme.cardPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+    }
+
+    private func formAccessibilityLabel(_ letter: String, score: String) -> String {
+        switch letter {
+        case "W": "Win\(score.isEmpty ? "" : " \(score)")"
+        case "D": "Draw\(score.isEmpty ? "" : " \(score)")"
+        case "L": "Loss\(score.isEmpty ? "" : " \(score)")"
+        default: "\(letter)\(score.isEmpty ? "" : " \(score)")"
+        }
     }
 
     // MARK: - Intel Section
 
     private func intelSection(_ intel: String, headToHead: String?) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("TACTICAL INTEL")
-                .font(Theme.Fonts.manrope(10, weight: .bold))
-                .foregroundStyle(Theme.Colors.cardAmber)
-                .tracking(1.2)
+            SectionHeader("TACTICAL INTEL", color: Theme.Colors.cardAmber)
 
             Text(intel)
                 .font(Theme.Fonts.manrope(14))
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
+                .accessibilityLabel("Tactical intel: \(intel)")
         }
         .padding(Theme.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -228,59 +233,49 @@ struct MadridHubView: View {
     // MARK: - MM Articles
 
     private func mmArticlesSection(_ articles: [MMArticle]) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("LATEST FROM MANAGING MADRID")
-                .font(Theme.Fonts.manrope(10, weight: .bold))
-                .foregroundStyle(Theme.Colors.cardAmber)
-                .tracking(1.2)
-
+        HubSectionCard(title: "LATEST FROM MANAGING MADRID", titleColor: Theme.Colors.cardAmber) {
             ForEach(articles.prefix(10)) { article in
-                NavigationLink(value: article) {
-                    HStack(alignment: .top, spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(article.title)
-                                .font(Theme.Fonts.manrope(14, weight: .semibold))
-                                .foregroundStyle(Theme.Colors.textPrimary)
-                                .lineLimit(2)
-                                .multilineTextAlignment(.leading)
+                if let url = URL(string: "https://www.managingmadrid.com") {
+                    Link(destination: url.appendingPathComponent(article.url.isEmpty ? "" : article.url)) {
+                        HStack(alignment: .top, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(article.title)
+                                    .font(Theme.Fonts.manrope(14, weight: .semibold))
+                                    .foregroundStyle(Theme.Colors.textPrimary)
+                                    .lineLimit(2)
+                                    .multilineTextAlignment(.leading)
 
-                            HStack(spacing: 6) {
-                                Text(article.author)
-                                Text("·")
-                                Text(article.category)
-                                Text("·")
-                                Text(article.published)
+                                HStack(spacing: 6) {
+                                    Text(article.author)
+                                    Text("·")
+                                    Text(article.category)
+                                    Text("·")
+                                    Text(article.published)
+                                }
+                                .font(Theme.Fonts.manrope(11))
+                                .foregroundStyle(Theme.Colors.textMuted)
+                                .lineLimit(1)
                             }
-                            .font(Theme.Fonts.manrope(11))
-                            .foregroundStyle(Theme.Colors.textMuted)
-                            .lineLimit(1)
+
+                            Spacer()
+
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundStyle(Theme.Colors.textMuted)
+                                .padding(.top, 4)
                         }
-
-                        Spacer()
-
-                        Image(systemName: "arrow.up.right")
-                            .font(.caption)
-                            .foregroundStyle(Theme.Colors.textMuted)
-                            .padding(.top, 4)
+                        .padding(.vertical, 8)
                     }
-                    .padding(.vertical, 8)
+                    .accessibilityLabel("Read \(article.title) on Managing Madrid")
                 }
             }
         }
-        .padding(Theme.cardPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
     }
 
     // MARK: - Exa Articles
 
     private func exaArticlesSection(_ articles: [ExaArticle]) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("RELATED ARTICLES")
-                .font(Theme.Fonts.manrope(10, weight: .bold))
-                .foregroundStyle(Theme.Colors.textMuted)
-                .tracking(1.2)
-
+        HubSectionCard(title: "RELATED ARTICLES", titleColor: Theme.Colors.textMuted) {
             ForEach(articles.prefix(5)) { article in
                 if let url = URL(string: article.url) {
                     Link(destination: url) {
@@ -307,9 +302,6 @@ struct MadridHubView: View {
                 }
             }
         }
-        .padding(Theme.cardPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
     }
 
     // MARK: - Helpers
@@ -322,45 +314,18 @@ struct MadridHubView: View {
     }
 
     private func errorSection(_ message: String) -> some View {
-        VStack(spacing: 12) {
-            Image(systemName: "exclamationmark.triangle")
-                .font(.title2)
-                .foregroundStyle(Theme.Colors.error)
-            Text(message)
-                .font(Theme.Fonts.manrope(14))
-                .foregroundStyle(Theme.Colors.textSecondary)
-            Button {
-                Task { await store.refresh(.madrid) }
-            } label: {
-                HStack {
-                    Image(systemName: "arrow.clockwise")
-                    Text("Retry")
-                }
-                .font(Theme.Fonts.manrope(13, weight: .medium))
-                .foregroundStyle(Theme.Colors.cardAmber)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(Theme.Colors.cardAmber.opacity(0.15), in: .capsule)
-            }
+        GlanceErrorView(message: message, accentColor: Theme.Colors.cardAmber) {
+            Task { await store.refresh(.madrid) }
         }
-        .frame(maxWidth: .infinity)
-        .padding(40)
     }
 
     private var keyMissingSection: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "key")
-                .font(.title2)
-                .foregroundStyle(Theme.Colors.cardAmber)
-            Text("Exa API key required")
-                .font(Theme.Fonts.manrope(14, weight: .semibold))
-                .foregroundStyle(Theme.Colors.cardAmber)
-            Text("Configure in Sources tab")
-                .font(Theme.Fonts.manrope(12))
-                .foregroundStyle(Theme.Colors.textMuted)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(40)
+        GlanceEmptyView(
+            icon: "key",
+            title: "Exa API key required",
+            message: "Configure in Sources tab",
+            accentColor: Theme.Colors.cardAmber
+        )
     }
 
     private func formColor(_ result: String) -> Color {
