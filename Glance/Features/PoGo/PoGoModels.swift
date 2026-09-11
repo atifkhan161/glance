@@ -73,6 +73,7 @@ struct PoGoEvent: Codable, Sendable, Identifiable, Equatable, Hashable {
     let image: String?
     let start: String?
     let end: String?
+    let countdown: String?
 
     var id: String { eventID }
 
@@ -84,7 +85,8 @@ struct PoGoEvent: Codable, Sendable, Identifiable, Equatable, Hashable {
         link: String? = nil,
         image: String? = nil,
         start: String? = nil,
-        end: String? = nil
+        end: String? = nil,
+        countdown: String? = nil
     ) {
         self.eventID = eventID
         self.name = name
@@ -94,6 +96,7 @@ struct PoGoEvent: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.image = image
         self.start = start
         self.end = end
+        self.countdown = countdown
     }
 
     func hash(into hasher: inout Hasher) {

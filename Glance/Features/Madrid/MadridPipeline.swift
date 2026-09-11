@@ -70,12 +70,16 @@ struct MadridPipeline: Sendable {
         let snippets = results.flatMap { $0.highlights }.joined(separator: "\n")
         let (enrichment, source) = await router.enrichMadrid(snippets: snippets)
 
+        // Extract form dots from parsed results
+        let formDots = parsed.formDots
+        let formStrings = formDots.map { "\($0.result) \($0.score)" }
+
         let data = MadridData(
             fixture: parsed.fixture,
             schedule: parsed.schedule,
-            form: enrichment?.form ?? [],
+            form: enrichment?.form ?? formStrings,
             standing: enrichment?.standing ?? "",
-            intel: enrichment?.intel ?? "",
+            intel: enrichment?.intel ?? generateFallbackIntel(for: parsed.fixture),
             headToHead: enrichment?.headToHead,
             articles: articles,
             mmArticles: mmArticles,
@@ -84,6 +88,11 @@ struct MadridPipeline: Sendable {
         )
         await cache.save("cache_madrid", envelope: CacheEnvelope(data: data, ttlMs: 24 * 3_600_000))
         return parsed.fixture == nil ? .degraded(data: data, reason: "No fixture") : .ready(data: data)
+    }
+
+    private func generateFallbackIntel(for fixture: Fixture?) -> String {
+        guard let fixture else { return "Real Madrid latest updates" }
+        return "Upcoming match: Real Madrid vs \(fixture.opponent) in \(fixture.competition)"
     }
 }
 

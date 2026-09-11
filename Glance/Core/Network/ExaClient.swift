@@ -32,8 +32,40 @@ struct ExaResult: Codable, Sendable {
     }
 }
 
+private actor ExaCacheStore {
+    static let shared = ExaCacheStore()
+    
+    private var cache: [String: (results: [ExaResult], timestamp: Date)] = [:]
+    private let ttl: TimeInterval = 300 // 5 minutes
+    
+    func get(_ key: String) -> [ExaResult]? {
+        guard let cached = cache[key],
+              Date.now.timeIntervalSince(cached.timestamp) < ttl else {
+            return nil
+        }
+        return cached.results
+    }
+    
+    func set(_ key: String, results: [ExaResult]) {
+        cache[key] = (results: results, timestamp: Date.now)
+    }
+    
+    func clear() {
+        cache.removeAll()
+    }
+}
+
 struct ExaClient: ExaClientProtocol, Sendable {
+    private let cacheStore = ExaCacheStore.shared
+    
     func search(query: String, apiKey: String) async throws -> [ExaResult] {
+        let cacheKey = query.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Check cache first (deduplication)
+        if let cached = await cacheStore.get(cacheKey) {
+            return cached
+        }
+        
         var request = URLRequest(url: URL(string: "https://api.exa.ai/search")!)
         request.httpMethod = "POST"
         request.addValue(apiKey, forHTTPHeaderField: "x-api-key")
@@ -52,16 +84,27 @@ struct ExaClient: ExaClientProtocol, Sendable {
             }
             if http.statusCode == 200 {
                 let decoded = try JSONDecoder().decode(ExaResponse.self, from: data)
+                await cacheStore.set(cacheKey, results: decoded.results)
                 return decoded.results
             }
             if http.statusCode == 429 {
-                let delay: UInt64 = attempt == 0 ? 1_000_000_000 : 2_000_000_000
+                let delay: UInt64
+                if let retryAfter = http.value(forHTTPHeaderField: "Retry-After"),
+                   let seconds = Double(retryAfter) {
+                    delay = UInt64(seconds * 1_000_000_000)
+                } else {
+                    delay = attempt == 0 ? 1_000_000_000 : 2_000_000_000
+                }
                 try await Task.sleep(nanoseconds: delay)
                 continue
             }
             throw GlanceError.networkError("Exa search failed with status \(http.statusCode)")
         }
         throw GlanceError.networkError("Exa search failed after retries")
+    }
+    
+    func clearCache() async {
+        await cacheStore.clear()
     }
 }
 

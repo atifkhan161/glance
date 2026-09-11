@@ -27,11 +27,56 @@ struct PoGoPipeline: Sendable {
         raids.first { $0.tier.contains("5-Star") && $0.name.hasPrefix("Shadow") }
     }
 
+    static func prioritizeRaids(_ raids: [PoGoRaid]) -> [PoGoRaid] {
+        // Sort by: Mega > 5-Star > Shadow > Tier
+        raids.sorted { a, b in
+            let aPriority = raidPriority(a)
+            let bPriority = raidPriority(b)
+            return aPriority > bPriority
+        }
+    }
+
+    private static func raidPriority(_ raid: PoGoRaid) -> Int {
+        if raid.isMega { return 100 }
+        if raid.isFiveStar && !raid.isShadow { return 90 }
+        if raid.isShadow { return 80 }
+        if raid.tier.contains("3-Star") { return 60 }
+        if raid.tier.contains("1-Star") { return 40 }
+        return 20
+    }
+
     static func filterActiveEvents(_ events: [PoGoEvent], now: Date = Date.now) -> [PoGoEvent] {
         let formatter = ISO8601DateFormatter()
-        return events.filter { event in
-            guard let end = event.end, let endDate = formatter.date(from: end) ?? Self.looseDate(end) else { return true }
-            return endDate > now
+        return events.map { event in
+            var updated = event
+            if let end = event.end, let endDate = formatter.date(from: end) ?? Self.looseDate(end) {
+                let countdown = Self.calculateCountdown(from: now, to: endDate)
+                updated = PoGoEvent(
+                    eventID: event.eventID, name: event.name, eventType: event.eventType,
+                    heading: event.heading, link: event.link, image: event.image,
+                    start: event.start, end: event.end, countdown: countdown
+                )
+                if endDate <= now { return nil }
+            }
+            return updated
+        }
+        .compactMap { $0 }
+    }
+
+    static func calculateCountdown(from now: Date, to end: Date) -> String {
+        let interval = end.timeIntervalSince(now)
+        guard interval > 0 else { return "Ended" }
+        
+        let days = Int(interval) / 86400
+        let hours = (Int(interval) % 86400) / 3600
+        let minutes = (Int(interval) % 3600) / 60
+        
+        if days > 0 {
+            return "\(days)d \(hours)h remaining"
+        } else if hours > 0 {
+            return "\(hours)h \(minutes)m remaining"
+        } else {
+            return "\(minutes)m remaining"
         }
     }
 
@@ -44,7 +89,7 @@ struct PoGoPipeline: Sendable {
     func refresh(force: Bool = false) async -> PoGoData {
         async let raidsTask: [PoGoRaid] = { (try? await self.client.fetchRaids()) ?? [] }()
         async let eventsTask: [PoGoEvent] = { (try? await self.client.fetchEvents()) ?? [] }()
-        let raids = await raidsTask
+        let raids = Self.prioritizeRaids(await raidsTask)
         let events = Self.filterActiveEvents(await eventsTask)
         let fiveStar = Self.pickFiveStar(raids)
         let mega = Self.pickMega(raids)
@@ -53,10 +98,16 @@ struct PoGoPipeline: Sendable {
         let snippets = raids.prefix(10).map { "\($0.name) (\($0.tier))" }.joined(separator: ", ")
         var (priority, source) = await router.priorityPoGo(snippets: snippets)
         if priority.isEmpty {
-            let bossName = fiveStar?.name ?? mega?.name ?? "Check raids in-app"
-            priority = bossName != "Check raids in-app"
-                ? "Focus on \(bossName) raids this week."
-                : "Check active raids in-game for current priority."
+            // Smart fallback based on available data
+            if let megaBoss = mega {
+                priority = "Mega raids active: \(megaBoss.name) — prioritize for Candy XL"
+            } else if let fiveStarBoss = fiveStar {
+                priority = "5-Star raids: \(fiveStarBoss.name) — check for Shiny availability"
+            } else if let shadowBoss = shadow {
+                priority = "Shadow raids: \(shadowBoss.name) — high damage output"
+            } else {
+                priority = "Check active raids in-game for current priority."
+            }
             source = "none"
         }
         let data = PoGoData(

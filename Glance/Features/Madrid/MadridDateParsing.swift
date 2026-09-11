@@ -1,22 +1,6 @@
 import Foundation
 
 extension MadridPipeline {
-    static func detectStadium(in text: String) -> String {
-        let pattern = "(?:Santiago\\s+Bernab[ée]u|Bernab[ée]u|Estadio\\s+[A-Z][^,.]+)"
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
-              let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
-              let range = Range(match.range, in: text) else { return "" }
-        return String(text[range]).trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    static func detectCompetition(in text: String) -> String {
-        let pattern = "(?:UEFA Champions League|La Liga|Champions League|Copa del Rey)"
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
-              let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
-              let range = Range(match.range, in: text) else { return "" }
-        return String(text[range])
-    }
-
     static let monthMap: [String: Int] = [
         "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
         "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
