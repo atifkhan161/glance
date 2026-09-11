@@ -7,25 +7,19 @@ struct AiIntelArticleView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                // Hero image with shimmer loading
+                // Hero image with caching
                 if let imageURL = article.image, !imageURL.isEmpty {
-                    AsyncImage(url: URL(string: imageURL)) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image.resizable().scaledToFill()
-                        case .failure:
-                            Rectangle()
-                                .fill(Theme.Colors.surface2)
-                                .overlay {
-                                    Image(systemName: "photo")
-                                        .font(.title2)
-                                        .foregroundStyle(Theme.Colors.textMuted)
-                                }
-                        default:
-                            Rectangle()
-                                .fill(Theme.Colors.surface2)
-                                .shimmer()
-                        }
+                    CachedAsyncImage(url: URL(string: imageURL)) { image in
+                        image.resizable().scaledToFill()
+                    } placeholder: {
+                        Rectangle()
+                            .fill(Theme.Colors.surface2)
+                            .overlay {
+                                Image(systemName: "photo")
+                                    .font(.title2)
+                                    .foregroundStyle(Theme.Colors.textMuted)
+                            }
+                            .shimmer()
                     }
                     .frame(height: 200)
                     .frame(maxWidth: .infinity)

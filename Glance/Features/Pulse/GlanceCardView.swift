@@ -135,7 +135,7 @@ struct GlanceCardView: View {
 
                     HStack(alignment: .center, spacing: 16) {
                         // Real Madrid crest
-                        AsyncImage(url: URL(string: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg")) { image in
+                        CachedAsyncImage(url: URL(string: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg")) { image in
                             image.resizable().scaledToFit()
                         } placeholder: {
                             Text("RM")
@@ -323,7 +323,7 @@ struct GlanceCardView: View {
 
     private func raidTile(raid: PoGoRaid, label: String) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            AsyncImage(url: URL(string: raid.image ?? "")) { image in
+            CachedAsyncImage(url: URL(string: raid.image ?? "")) { image in
                 image.resizable().scaledToFit()
             } placeholder: {
                 Text(String(raid.name.prefix(2)))
@@ -376,7 +376,7 @@ struct GlanceCardView: View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             ForEach(data.repos.prefix(5)) { item in
                 HStack(spacing: 10) {
-                    AsyncImage(url: URL(string: item.repo.ownerAvatar)) { image in
+                    CachedAsyncImage(url: URL(string: item.repo.ownerAvatar)) { image in
                         image.resizable().scaledToFit()
                     } placeholder: {
                         Circle().fill(Theme.Colors.surface3)

@@ -150,7 +150,7 @@ struct PoGoHubView: View {
     private func raidRow(_ raid: PoGoRaid) -> some View {
         HStack(spacing: 12) {
             // Artwork
-            AsyncImage(url: URL(string: raid.image ?? "")) { image in
+            CachedAsyncImage(url: URL(string: raid.image ?? "")) { image in
                 image.resizable().scaledToFit()
             } placeholder: {
                 Text(String(raid.name.prefix(2)))

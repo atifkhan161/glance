@@ -118,21 +118,15 @@ struct GitHubHubView: View {
     private func repoRow(_ item: GitHubRepoWithVelocity) -> some View {
         HStack(spacing: 12) {
             // Avatar
-            AsyncImage(url: URL(string: item.repo.ownerAvatar)) { phase in
-                switch phase {
-                case .success(let image):
-                    image.resizable().scaledToFit()
-                case .failure:
-                    Circle().fill(Theme.Colors.surface3)
-                        .overlay {
-                            Image(systemName: "person.fill")
-                                .font(.caption)
-                                .foregroundStyle(Theme.Colors.textMuted)
-                        }
-                default:
-                    Circle().fill(Theme.Colors.surface3)
-                        .shimmer()
-                }
+            CachedAsyncImage(url: URL(string: item.repo.ownerAvatar)) { image in
+                image.resizable().scaledToFit()
+            } placeholder: {
+                Circle().fill(Theme.Colors.surface3)
+                    .overlay {
+                        Image(systemName: "person.fill")
+                            .font(.caption)
+                            .foregroundStyle(Theme.Colors.textMuted)
+                    }
             }
             .frame(width: 40, height: 40)
             .clipShape(.circle)
