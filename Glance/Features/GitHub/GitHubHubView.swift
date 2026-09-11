@@ -118,13 +118,25 @@ struct GitHubHubView: View {
     private func repoRow(_ item: GitHubRepoWithVelocity) -> some View {
         HStack(spacing: 12) {
             // Avatar
-            AsyncImage(url: URL(string: item.repo.ownerAvatar)) { image in
-                image.resizable().scaledToFit()
-            } placeholder: {
-                Circle().fill(Theme.Colors.surface3)
+            AsyncImage(url: URL(string: item.repo.ownerAvatar)) { phase in
+                switch phase {
+                case .success(let image):
+                    image.resizable().scaledToFit()
+                case .failure:
+                    Circle().fill(Theme.Colors.surface3)
+                        .overlay {
+                            Image(systemName: "person.fill")
+                                .font(.caption)
+                                .foregroundStyle(Theme.Colors.textMuted)
+                        }
+                default:
+                    Circle().fill(Theme.Colors.surface3)
+                        .shimmer()
+                }
             }
             .frame(width: 40, height: 40)
             .clipShape(.circle)
+            .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.repo.fullName)
@@ -149,17 +161,21 @@ struct GitHubHubView: View {
                     .font(Theme.Fonts.manrope(12))
                     .foregroundStyle(Theme.Colors.textSecondary)
 
-                    // Velocity
+                    // Velocity with direction
                     if let velocity = item.velocity, velocity > 0 {
-                        Text("+\(velocity)")
-                            .font(Theme.Fonts.manrope(11, weight: .bold))
-                            .foregroundStyle(Theme.Colors.cardEmerald)
-                            .padding(.horizontal, 4)
-                            .padding(.vertical, 2)
-                            .background(Theme.Colors.cardEmerald.opacity(0.15), in: .capsule)
+                        HStack(spacing: 2) {
+                            Text(GitHubPipeline.velocityDirection(item.velocity))
+                                .font(Theme.Fonts.manrope(10))
+                            Text("+\(velocity)")
+                        }
+                        .font(Theme.Fonts.manrope(11, weight: .bold))
+                        .foregroundStyle(Theme.Colors.cardEmerald)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Theme.Colors.cardEmerald.opacity(0.15), in: .capsule)
                     }
 
-                    // Language
+                    // Language with color dot
                     if let lang = item.repo.language {
                         HStack(spacing: 3) {
                             Circle().fill(Theme.languageColor(for: lang)).frame(width: 6, height: 6)
@@ -169,7 +185,7 @@ struct GitHubHubView: View {
                         .foregroundStyle(Theme.Colors.textMuted)
                     }
 
-                    // Pushed
+                    // Pushed relative time
                     if let pushed = item.repo.pushedAt {
                         Text(TimeFormat.relativeTime(from: pushed))
                             .font(Theme.Fonts.manrope(11))
@@ -186,50 +202,37 @@ struct GitHubHubView: View {
         }
         .padding(12)
         .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(repoAccessibilityLabel(item))
+    }
+
+    private func repoAccessibilityLabel(_ item: GitHubRepoWithVelocity) -> String {
+        var parts = [item.repo.fullName]
+        parts.append("\(item.repo.stars) stars")
+        if let v = item.velocity, v > 0 {
+            parts.append("velocity plus \(v)")
+        }
+        if let lang = item.repo.language {
+            parts.append("language \(lang)")
+        }
+        return parts.joined(separator: ", ")
     }
 
     // MARK: - Helpers
 
     private func errorSection(_ message: String) -> some View {
-        VStack(spacing: 12) {
-            Image(systemName: "exclamationmark.triangle")
-                .font(.title2)
-                .foregroundStyle(Theme.Colors.error)
-            Text(message)
-                .font(Theme.Fonts.manrope(14))
-                .foregroundStyle(Theme.Colors.textSecondary)
-            Button {
-                Task { await store.refresh(.github) }
-            } label: {
-                HStack {
-                    Image(systemName: "arrow.clockwise")
-                    Text("Retry")
-                }
-                .font(Theme.Fonts.manrope(13, weight: .medium))
-                .foregroundStyle(Theme.Colors.cardEmerald)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(Theme.Colors.cardEmerald.opacity(0.15), in: .capsule)
-            }
+        GlanceErrorView(message: message, accentColor: Theme.Colors.cardEmerald) {
+            Task { await store.refresh(.github) }
         }
-        .frame(maxWidth: .infinity)
-        .padding(40)
     }
 
     private var keyMissingSection: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "chevron.left.forwardslash.chevron.right")
-                .font(.title2)
-                .foregroundStyle(Theme.Colors.cardEmerald)
-            Text("No repository data")
-                .font(Theme.Fonts.manrope(14, weight: .semibold))
-                .foregroundStyle(Theme.Colors.cardEmerald)
-            Text("Pull to refresh")
-                .font(Theme.Fonts.manrope(12))
-                .foregroundStyle(Theme.Colors.textMuted)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(40)
+        GlanceEmptyView(
+            icon: "chevron.left.forwardslash.chevron.right",
+            title: "No repository data",
+            message: "Pull to refresh",
+            accentColor: Theme.Colors.cardEmerald
+        )
     }
 }
 
