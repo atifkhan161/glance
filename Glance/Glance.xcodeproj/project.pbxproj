@@ -73,6 +73,7 @@
 		EC388E6180F7AFEFE7A00C77 /* ManagingMadridClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761E28609E32E6E33EB2DC21 /* ManagingMadridClient.swift */; };
 		EDDC18A1BC9900E24D8AD800 /* GlanceCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1BCC33D8717BCEE296C1A85 /* GlanceCardView.swift */; };
 		F6D002212AC3604CA4A5217C /* AiIntelArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0C5CA83E8935D20AEB0F7FD /* AiIntelArticleView.swift */; };
+		D7E8F9A0B1C2D3E4F5A6B7C8 /* AiIntelHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8F9A0B1C2D3E4F5A6B7C8D9 /* AiIntelHubView.swift */; };
 		F92EC9784909D6464A009A36 /* GlanceBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33B8021DC59DAC0AAA0673BE /* GlanceBadge.swift */; };
 		FA080D8C8DBEBE1E0F6C6725 /* MadridHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 325CB57B76E82C3934F41946 /* MadridHubView.swift */; };
 		FCE22EADB5AD23EA6857653C /* RepoDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 864D49570619C81F73AAA049 /* RepoDetailView.swift */; };
@@ -161,6 +162,7 @@
 		D5B2447E97774943AE055B07 /* RaidDetailView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = RaidDetailView.swift; sourceTree = "<group>"; };
 		D8BA1856748C178C982EF498 /* GlanceUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = GlanceUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E0C5CA83E8935D20AEB0F7FD /* AiIntelArticleView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AiIntelArticleView.swift; sourceTree = "<group>"; };
+		E8F9A0B1C2D3E4F5A6B7C8D9 /* AiIntelHubView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AiIntelHubView.swift; sourceTree = "<group>"; };
 		E5C520B3259951583C6815C6 /* GlanceApp.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GlanceApp.swift; sourceTree = "<group>"; };
 		F0862D2780839821BE7EB6B1 /* GitHubPipeline.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubPipeline.swift; sourceTree = "<group>"; };
 		F2AC54314574769AC551ABBC /* KeychainStoreTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = KeychainStoreTests.swift; sourceTree = "<group>"; };
@@ -264,6 +266,7 @@
 				AEA5067D2AF7AAD2149798EB /* AiIntelModels.swift */,
 				B7282ABAAB95A19566D2F48E /* AiIntelPipeline.swift */,
 				E0C5CA83E8935D20AEB0F7FD /* AiIntelArticleView.swift */,
+				E8F9A0B1C2D3E4F5A6B7C8D9 /* AiIntelHubView.swift */,
 			);
 			path = AiIntel;
 			sourceTree = "<group>";
@@ -657,6 +660,7 @@
 				7C57C7437D4379800D31724E /* AiIntelModels.swift in Sources */,
 				A4BD23CA0E1F654CB69F2637 /* AiIntelPipeline.swift in Sources */,
 				F6D002212AC3604CA4A5217C /* AiIntelArticleView.swift in Sources */,
+				D7E8F9A0B1C2D3E4F5A6B7C8 /* AiIntelHubView.swift in Sources */,
 				70C4D04F2D86D901D561200C /* SettingsStore.swift in Sources */,
 				0DA71C7319CF6FEF3DDAF056 /* SettingsView.swift in Sources */,
 				45FB5BDD7E141CD05BDE5054 /* SourcesView.swift in Sources */,

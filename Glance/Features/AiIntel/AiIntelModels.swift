@@ -6,7 +6,7 @@ struct AiIntelData: Codable, Sendable, Equatable {
     let timestamp: Date
 }
 
-struct AiIntelArticle: Codable, Sendable, Identifiable, Equatable {
+struct AiIntelArticle: Codable, Sendable, Identifiable, Hashable, Equatable {
     let id: String
     let tag: String
     let headline: String

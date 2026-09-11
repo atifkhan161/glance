@@ -55,11 +55,7 @@ struct PulseView: View {
         case .github:
             GitHubHubView(store: store)
         case .aiIntel:
-            AiIntelArticleView(article: AiIntelArticle(
-                id: "", tag: "", headline: "", url: "",
-                source: "", author: "", publishedDate: nil, image: nil,
-                bullets: [], highlights: [], benchmarks: []
-            ))
+            AiIntelHubView(store: store)
         }
     }
 }
