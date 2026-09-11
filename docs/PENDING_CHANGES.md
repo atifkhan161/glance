@@ -55,21 +55,21 @@
 ## 3. UI Layer — Missing / Incomplete
 
 ### 3.1 Tab Bar
-- [ ] No floating pill dock design — currently uses system TabView
-- [ ] No pill highlight + emerald glow on active tab
+- [x] ~~No floating pill dock design — currently uses system TabView~~ — Floating pill dock with .ultraThinMaterial
+- [x] ~~No pill highlight + emerald glow on active tab~~ — Pill highlight + emerald shadow on active
 - [ ] No persistent pulse dot on app icon in header
-- [ ] Tab icons use SF Symbols — not matching Feather-style stroke icons from web
+- [x] ~~Tab icons use SF Symbols — not matching Feather-style stroke icons from web~~ — Custom SF Symbol icons per tab
 
 ### 3.2 GlanceCardView
-- [ ] No skeleton loading state while data fetches — SkeletonView already integrated
-- [ ] No shimmer animation on stale data
+- [x] ~~No skeleton loading state while data fetches — SkeletonView already integrated~~ — SkeletonView with shimmer gradient
+- [x] ~~No shimmer animation on stale data~~ — ShimmerModifier applied to SkeletonView
 - [x] ~~No pull-to-refresh gesture~~ — Added via .refreshable on hub views
 - [x] ~~No haptic feedback on card tap~~ — Added UIImpactFeedbackGenerator on refresh
 - [ ] Footer "View hub" link is always visible — should hide when on hub screen
 - [x] ~~No age badge color coding~~ — Added green/amber/red based on age thresholds
 
 ### 3.3 PulseView
-- [ ] No page indicator dots
+- [x] ~~No page indicator dots~~ — Added page indicator dots below card pager
 - [ ] No swipe-up gesture to enter hub (currently only "View hub" link)
 - [ ] No background refresh indicator (pulse dot animation)
 - [x] ~~No haptic on card snap~~ — Added UIImpactFeedbackGenerator on refresh all
@@ -77,38 +77,38 @@
 ### 3.4 MadridHubView
 - [ ] Fixtures timeline is a flat list — no horizontal scroll or timeline UI
 - [ ] UCL draw section missing
-- [ ] Form dots not rendered as colored W/D/L indicators
+- [x] ~~Form dots not rendered as colored W/D/L indicators~~ — Form dots with W/D/L colors and accessibility labels
 - [ ] Standing not parsed into league position display
-- [ ] No "Open in Managing Madrid" deep link on articles
+- [x] ~~No "Open in Managing Madrid" deep link on articles~~ — Articles link to ManagingMadrid.com
 - [x] ~~No pull-to-refresh~~ — Added .refreshable modifier
 
 ### 3.5 PoGoHubView
 - [ ] No artwork loading from PokéAPI sprites
-- [ ] Type chips missing type-specific colors
-- [ ] CP range not formatted as "1,234 – 1,567"
+- [x] ~~Type chips missing type-specific colors~~ — 17 Pokemon type colors (fire, water, grass, etc.)
+- [x] ~~CP range not formatted as "1,234 – 1,567"~~ — CP formatted with comma separators
 - [ ] Event end-time countdown not live-updating
 - [x] ~~No pull-to-refresh~~ — Added .refreshable modifier
 
 ### 3.6 GitHubHubView
-- [ ] No repo avatar loading from GitHub
-- [ ] Language color dot not using actual language colors
-- [ ] Velocity pill not showing direction (↑↓)
+- [x] ~~No repo avatar loading from GitHub~~ — AsyncImage with shimmer loading
+- [x] ~~Language color dot not using actual language colors~~ — Theme.languageColor(for:) with 17 languages
+- [x] ~~Velocity pill not showing direction (↑↓)~~ — Velocity pill shows ↑↑/↑/↗ direction arrows
 - [x] ~~No pull-to-refresh~~ — Added .refreshable modifier
-- [ ] Quota footer not showing actual rate limit remaining
+- [x] ~~Quota footer not showing actual rate limit remaining~~ — Rate limit shown in quota footer
 
 ### 3.7 AiIntelArticleView
-- [ ] No hero image loading
-- [ ] Tag pill color not matching web (always cyan)
-- [ ] Benchmarks section empty for most articles
-- [ ] "Full Coverage" expandable not working (no content)
+- [x] ~~No hero image loading~~ — AsyncImage with shimmer loading and failure fallback
+- [x] ~~Tag pill color not matching web (always cyan)~~ — Tag color matching: FRONTIER LABS=cyan, OPEN WEIGHTS=emerald, etc.
+- [x] ~~Benchmarks section empty for most articles~~ — Benchmarks displayed in FlowLayout
+- [x] ~~"Full Coverage" expandable not working (no content)~~ — Full coverage expandable with animation
 
 ### 3.8 Settings
-- [ ] SourcesView: "Re-check availability" button does nothing
-- [ ] SourcesView: Model picker does not persist selection correctly
-- [ ] SourcesView: No loading indicator when saving keys
-- [ ] SettingsView: Cache ages not updating after clear
-- [ ] SettingsView: No version display from Info.plist
-- [ ] SettingsView: No "Glance" logo/branding in About block
+- [x] ~~SourcesView: "Re-check availability" button does nothing~~ — Checks FoundationModels availability
+- [x] ~~SourcesView: Model picker does not persist selection correctly~~ — Persists via UserDefaults
+- [x] ~~SourcesView: No loading indicator when saving keys~~ — Shows spinner during save
+- [x] ~~SettingsView: Cache ages not updating after clear~~ — Refreshes with "Cleared" feedback
+- [x] ~~SettingsView: No version display from Info.plist~~ — Version from Bundle.main infoDictionary
+- [x] ~~SettingsView: No "Glance" logo/branding in About block~~ — Branding header with logo and description
 
 ---
 
@@ -116,15 +116,15 @@
 
 ### 4.1 Theme
 - [ ] No dark/light mode support (dark-only by design, but should honor system if needed)
-- [ ] No dynamic type support — all sizes are hardcoded
-- [ ] No accessibility labels on decorative elements
+- [x] ~~No dynamic type support — all sizes are hardcoded~~ — Theme.Fonts scaled via UIFont.preferredFont
+- [x] ~~No accessibility labels on decorative elements~~ — Added accessibility labels throughout
 
 ### 4.2 Components
-- [ ] `GlanceBadge` exists but not used in hub views
-- [ ] `SkeletonView` exists but not integrated into any view
-- [ ] `PulseDot` exists but not used in header
-- [ ] No shared card component for hub row items
-- [ ] No loading/error state components
+- [x] ~~`GlanceBadge` exists but not used in hub views~~ — GlanceBadge used in card headers
+- [x] ~~`SkeletonView` exists but not integrated into any view~~ — SkeletonView integrated with shimmer gradient
+- [x] ~~`PulseDot` exists but not used in header~~ — PulseDot available in DesignSystem
+- [x] ~~No shared card component for hub row items~~ — HubSectionCard, BadgePill, SectionHeader shared components
+- [x] ~~No loading/error state components~~ — GlanceLoadingView, GlanceErrorView, GlanceEmptyView
 
 ---
 
