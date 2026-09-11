@@ -43,19 +43,36 @@ actor CacheStore {
         guard let data = try? JSONEncoder().encode(envelope) else { return }
         memory[key] = data
         defaults.set(data, forKey: key)
+        if let ttlMs = envelope.ttlMs {
+            let meta = CacheMeta(expiresAtMs: envelope.timestampMs + ttlMs)
+            if let metaData = try? JSONEncoder().encode(meta) {
+                defaults.set(metaData, forKey: "\(key)_meta")
+            }
+        }
         evictIfNeeded()
     }
 
     func remove(_ key: String) {
         memory.removeValue(forKey: key)
         defaults.removeObject(forKey: key)
+        defaults.removeObject(forKey: "\(key)_meta")
     }
 
     func clearAll() {
         for key in Self.allCacheKeys {
             memory.removeValue(forKey: key)
             defaults.removeObject(forKey: key)
+            defaults.removeObject(forKey: "\(key)_meta")
         }
+    }
+
+    func isValid(key: String) -> Bool {
+        let metaKey = "\(key)_meta"
+        if let meta = defaults.data(forKey: metaKey),
+           let info = try? JSONDecoder().decode(CacheMeta.self, from: meta) {
+            return Date.now.millisecondsSinceEpoch < info.expiresAtMs
+        }
+        return false
     }
 
     func ttl(for key: String) -> TimeInterval {
@@ -90,4 +107,8 @@ actor CacheStore {
         "cache_github_raw",
         "gemini_model",
     ]
+}
+
+struct CacheMeta: Codable {
+    let expiresAtMs: Int64
 }

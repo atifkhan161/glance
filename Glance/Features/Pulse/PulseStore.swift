@@ -36,6 +36,14 @@ final class PulseStore {
             .first ?? "never"
     }
 
+    var needsRefresh: Bool {
+        if case .ready = madrid {} else { return true }
+        if case .ready = pogo {} else { return true }
+        if case .ready = github {} else { return true }
+        if case .ready = aiIntel {} else { return true }
+        return false
+    }
+
     private var madridAge: String? { madrid.age }
     private var pogoAge: String? { pogo.age }
     private var githubAge: String? { github.age }
@@ -81,10 +89,33 @@ final class PulseStore {
     }
 
     func refreshCard(_ card: CardID) async {
-        await refresh(card)
+        await refresh(card, force: true)
     }
 
-    func refresh(_ card: CardID) async {
+    func refresh(_ card: CardID, force: Bool = false) async {
+        let cacheKey: String
+        switch card {
+        case .madrid: cacheKey = "cache_madrid"
+        case .pogo: cacheKey = "cache_pogo"
+        case .github: cacheKey = "cache_github"
+        case .aiIntel: cacheKey = "cache_aiintel"
+        }
+
+        if !force {
+            let isValid = await cache.isValid(key: cacheKey)
+            if isValid {
+                switch card {
+                case .madrid:
+                    if case .ready = madrid { return }
+                case .pogo:
+                    if case .ready = pogo { return }
+                case .github:
+                    if case .ready = github { return }
+                case .aiIntel:
+                    if case .ready = aiIntel { return }
+                }
+            }
+        }
         switch card {
         case .madrid:
             if case .ready(let data, let age) = madrid { madrid = .stale(data: data, age: age) }

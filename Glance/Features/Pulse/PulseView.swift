@@ -41,7 +41,9 @@ struct PulseView: View {
         }
         .task {
             await store.loadFromCache()
-            await store.refreshAll()
+            if store.needsRefresh {
+                await store.refreshAll()
+            }
         }
     }
 
