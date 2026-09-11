@@ -7,35 +7,40 @@ struct AiIntelArticleView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                // Hero image
-                if let imageURL = article.image {
-                    AsyncImage(url: URL(string: imageURL)) { image in
-                        image.resizable().scaledToFit()
-                    } placeholder: {
-                        Rectangle()
-                            .fill(Theme.Colors.surface2)
-                            .frame(height: 200)
+                // Hero image with shimmer loading
+                if let imageURL = article.image, !imageURL.isEmpty {
+                    AsyncImage(url: URL(string: imageURL)) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image.resizable().scaledToFill()
+                        case .failure:
+                            Rectangle()
+                                .fill(Theme.Colors.surface2)
+                                .overlay {
+                                    Image(systemName: "photo")
+                                        .font(.title2)
+                                        .foregroundStyle(Theme.Colors.textMuted)
+                                }
+                        default:
+                            Rectangle()
+                                .fill(Theme.Colors.surface2)
+                                .shimmer()
+                        }
                     }
+                    .frame(height: 200)
                     .frame(maxWidth: .infinity)
                     .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius))
+                    .accessibilityLabel("Article hero image")
                 }
 
-                // Tag pill
-                Text(article.tag)
-                    .font(Theme.Fonts.manrope(10, weight: .bold))
-                    .foregroundStyle(article.tag == "FRONTIER LABS" ? Theme.Colors.cardCyan : Theme.Colors.textMuted)
-                    .tracking(1.2)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(
-                        (article.tag == "FRONTIER LABS" ? Theme.Colors.cardCyan : Theme.Colors.textMuted).opacity(0.15),
-                        in: .capsule
-                    )
+                // Tag pill with matching color
+                BadgePill(text: article.tag, color: tagColor(article.tag))
 
                 // Headline
                 Text(article.headline)
                     .font(Theme.Fonts.manrope(22, weight: .bold))
                     .foregroundStyle(Theme.Colors.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
 
                 // Source, author, date
                 HStack(spacing: 12) {
@@ -67,10 +72,7 @@ struct AiIntelArticleView: View {
                 // Benchmarks
                 if !article.benchmarks.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("BENCHMARKS")
-                            .font(Theme.Fonts.manrope(10, weight: .bold))
-                            .foregroundStyle(Theme.Colors.cardCyan)
-                            .tracking(1.2)
+                        SectionHeader("BENCHMARKS", color: Theme.Colors.cardCyan)
 
                         FlowLayout(spacing: 8) {
                             ForEach(article.benchmarks, id: \.self) { bench in
@@ -88,10 +90,7 @@ struct AiIntelArticleView: View {
                 // Key points
                 if !article.bullets.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("KEY POINTS")
-                            .font(Theme.Fonts.manrope(10, weight: .bold))
-                            .foregroundStyle(Theme.Colors.textMuted)
-                            .tracking(1.2)
+                        SectionHeader("KEY POINTS")
 
                         ForEach(Array(article.bullets.enumerated()), id: \.offset) { index, bullet in
                             HStack(alignment: .top, spacing: 10) {
@@ -125,6 +124,8 @@ struct AiIntelArticleView: View {
                                     .foregroundStyle(Theme.Colors.cardCyan)
                             }
                         }
+                        .accessibilityLabel(showFullCoverage ? "Collapse full coverage" : "Expand full coverage")
+                        .accessibilityHint("Double tap to \(showFullCoverage ? "collapse" : "expand") additional coverage details")
 
                         if showFullCoverage {
                             ForEach(article.highlights, id: \.self) { highlight in
@@ -133,6 +134,7 @@ struct AiIntelArticleView: View {
                                     .foregroundStyle(Theme.Colors.textSecondary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
+                            .transition(.opacity.combined(with: .move(edge: .top)))
                         }
                     }
                 }
@@ -151,6 +153,7 @@ struct AiIntelArticleView: View {
                         .padding(.vertical, 12)
                         .background(Theme.Colors.cardCyan.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
                     }
+                    .accessibilityLabel("Read original article on \(article.source)")
                 }
             }
             .padding(Theme.cardPadding)
@@ -159,6 +162,19 @@ struct AiIntelArticleView: View {
         .background(Theme.canvas)
         .navigationTitle("AI Intel")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    // MARK: - Tag Color
+
+    private func tagColor(_ tag: String) -> Color {
+        switch tag.uppercased() {
+        case "FRONTIER LABS": Theme.Colors.cardCyan
+        case "OPEN WEIGHTS": Theme.Colors.cardEmerald
+        case "BENCHMARKS": Theme.Colors.cardAmber
+        case "RESEARCH": Theme.Colors.cardRose
+        case "PRODUCTS": Theme.Colors.cardAmber
+        default: Theme.Colors.textMuted
+        }
     }
 }
 
