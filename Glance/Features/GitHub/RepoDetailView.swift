@@ -80,7 +80,7 @@ struct RepoDetailView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         if let lang = repository.repo.language {
-                            pill(icon: "chevron.left.forwardslash.chevron.right", text: lang, color: languageColor(lang))
+                            pill(icon: "chevron.left.forwardslash.chevron.right", text: lang, color: Theme.languageColor(for: lang))
                         }
                         if let license = repository.repo.license?.name {
                             pill(icon: "document", text: license, color: Theme.Colors.textSecondary)
@@ -174,18 +174,6 @@ struct RepoDetailView: View {
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .background(color.opacity(0.1), in: .capsule)
-    }
-
-    private func languageColor(_ language: String) -> Color {
-        switch language {
-        case "Swift": Color(red: 0.94, green: 0.31, blue: 0.22)
-        case "TypeScript": Color(red: 0.19, green: 0.47, blue: 0.78)
-        case "JavaScript": Color(red: 0.95, green: 0.88, blue: 0.35)
-        case "Python": Color(red: 0.21, green: 0.45, blue: 0.65)
-        case "Go": Color(red: 0, green: 0.68, blue: 0.85)
-        case "Rust": Color(red: 0.87, green: 0.65, blue: 0.52)
-        default: Theme.Colors.textMuted
-        }
     }
 }
 

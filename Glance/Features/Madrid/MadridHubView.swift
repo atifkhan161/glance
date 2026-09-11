@@ -105,7 +105,7 @@ struct MadridHubView: View {
 
                 if !fixture.stadium.isEmpty {
                     HStack(spacing: 6) {
-                        Image(systemName: "stadium")
+                        Image(systemName: "building.columns")
                         Text(fixture.stadium)
                     }
                     .font(Theme.Fonts.manrope(13))
@@ -270,9 +270,6 @@ struct MadridHubView: View {
         .padding(Theme.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
-        .navigationDestination(for: MMArticle.self) { article in
-            MadridArticleView(article: article)
-        }
     }
 
     // MARK: - Exa Articles

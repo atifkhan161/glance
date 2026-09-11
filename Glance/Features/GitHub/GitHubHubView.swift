@@ -162,7 +162,7 @@ struct GitHubHubView: View {
                     // Language
                     if let lang = item.repo.language {
                         HStack(spacing: 3) {
-                            Circle().fill(languageColor(lang)).frame(width: 6, height: 6)
+                            Circle().fill(Theme.languageColor(for: lang)).frame(width: 6, height: 6)
                             Text(lang)
                         }
                         .font(Theme.Fonts.manrope(11))
@@ -189,21 +189,6 @@ struct GitHubHubView: View {
     }
 
     // MARK: - Helpers
-
-    private func languageColor(_ language: String) -> Color {
-        switch language {
-        case "Swift": Color(red: 0.94, green: 0.31, blue: 0.22)
-        case "TypeScript": Color(red: 0.19, green: 0.47, blue: 0.78)
-        case "JavaScript": Color(red: 0.95, green: 0.88, blue: 0.35)
-        case "Python": Color(red: 0.21, green: 0.45, blue: 0.65)
-        case "Go": Color(red: 0, green: 0.68, blue: 0.85)
-        case "Rust": Color(red: 0.87, green: 0.65, blue: 0.52)
-        case "Java": Color(red: 0.69, green: 0.45, blue: 0.09)
-        case "C++": Color(red: 0.95, green: 0.29, blue: 0.49)
-        case "Kotlin": Color(red: 0.66, green: 0.48, blue: 1.0)
-        default: Theme.Colors.textMuted
-        }
-    }
 
     private func errorSection(_ message: String) -> some View {
         VStack(spacing: 12) {
