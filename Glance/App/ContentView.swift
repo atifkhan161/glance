@@ -41,8 +41,8 @@ struct ContentView: View {
                 dockButton(tab, selection: selection)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 10)
         .background(.ultraThinMaterial, in: Capsule())
         .overlay(
             Capsule()
@@ -60,18 +60,18 @@ struct ContentView: View {
                 selection.wrappedValue = tab
             }
         } label: {
-            VStack(spacing: 2) {
+            VStack(spacing: 3) {
                 Image(systemName: tab.icon)
-                    .font(.system(size: 16, weight: isSelected ? .bold : .medium))
+                    .font(.system(size: 18, weight: isSelected ? .bold : .medium))
                     .foregroundStyle(isSelected ? tab.accentColor : Theme.Colors.textMuted)
-                    .frame(width: 44, height: 28)
+                    .frame(width: 48, height: 32)
                     .background(
                         isSelected ? tab.accentColor.opacity(0.15) : .clear,
                         in: Capsule()
                     )
 
                 Text(tab.shortLabel)
-                    .font(Theme.Fonts.manrope(9, weight: isSelected ? .bold : .medium))
+                    .font(Theme.Fonts.manrope(10, weight: isSelected ? .bold : .medium))
                     .foregroundStyle(isSelected ? tab.accentColor : Theme.Colors.textMuted)
             }
         }
