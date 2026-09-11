@@ -20,9 +20,7 @@ struct SkeletonView: View {
                 .frame(maxWidth: 160)
         }
         .padding()
-        .opacity(reduceMotion ? 1 : (phase ? 0.4 : 1))
-        .animation(reduceMotion ? nil : .easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: phase)
-        .task { phase = true }
+        .shimmer()
         .accessibilityHidden(true)
     }
 }

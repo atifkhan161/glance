@@ -40,11 +40,16 @@ enum Theme {
 
     enum Fonts {
         static func manrope(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-            Font.custom("Manrope", size: size).weight(weight)
+            Font.custom("Manrope", size: scaledSize(size)).weight(weight)
         }
 
         static func hankenGrotesk(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-            Font.custom("Hanken Grotesk", size: size).weight(weight)
+            Font.custom("Hanken Grotesk", size: scaledSize(size)).weight(weight)
+        }
+
+        private static func scaledSize(_ size: CGFloat) -> CGFloat {
+            let factor = UIFont.preferredFont(forTextStyle: .body).pointSize / 17.0
+            return size * factor
         }
     }
 }
@@ -86,6 +91,42 @@ struct FlowLayout: Layout {
         }
 
         return (CGSize(width: maxWidth, height: totalHeight), positions)
+    }
+}
+
+// MARK: - Shimmer Modifier
+
+struct ShimmerModifier: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var phase: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                LinearGradient(
+                    colors: [
+                        .clear,
+                        Theme.Colors.textMuted.opacity(reduceMotion ? 0 : 0.08),
+                        .clear
+                    ],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .offset(x: phase)
+                .mask(content)
+            )
+            .onAppear {
+                guard !reduceMotion else { return }
+                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                    phase = 400
+                }
+            }
+    }
+}
+
+extension View {
+    func shimmer() -> some View {
+        modifier(ShimmerModifier())
     }
 }
 
