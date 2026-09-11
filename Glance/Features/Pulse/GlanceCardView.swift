@@ -482,50 +482,12 @@ struct GlanceCardView: View {
 
     private func githubContent(_ data: GitHubData) -> some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
-            ForEach(data.repos.prefix(7)) { item in
-                HStack(spacing: 10) {
-                    CachedAsyncImage(url: URL(string: item.repo.ownerAvatar)) { image in
-                        image.resizable().scaledToFit()
-                    } placeholder: {
-                        Circle().fill(Theme.Colors.surface3)
-                    }
-                    .frame(width: 32, height: 32)
-                    .clipShape(.circle)
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(item.repo.fullName)
-                            .font(Theme.Fonts.manrope(13, weight: .semibold))
-                            .foregroundStyle(Theme.Colors.textPrimary)
-                            .lineLimit(1)
-
-                        HStack(spacing: 8) {
-                            Text("★ \(TimeFormat.stars(item.repo.stars))")
-                                .font(Theme.Fonts.manrope(12))
-                                .foregroundStyle(Theme.Colors.textSecondary)
-
-                            if let velocity = item.velocity, velocity > 0 {
-                                Text("+\(velocity)")
-                                    .font(Theme.Fonts.manrope(11, weight: .bold))
-                                    .foregroundStyle(card.accentColor)
-                                    .padding(.horizontal, 4)
-                                    .padding(.vertical, 2)
-                                    .background(card.accentColor.opacity(0.15), in: .capsule)
-                            }
-
-                            if let lang = item.repo.language {
-                                HStack(spacing: 3) {
-                                    Circle().fill(Theme.languageColor(for: lang)).frame(width: 6, height: 6)
-                                    Text(lang)
-                                        .font(Theme.Fonts.manrope(11))
-                                        .foregroundStyle(Theme.Colors.textMuted)
-                                }
-                            }
-                        }
-                    }
-
-                    Spacer()
+            VStack(alignment: .leading, spacing: 10) {
+                ForEach(Array(data.repos.prefix(3))) { item in
+                    githubPreviewRow(item)
                 }
             }
+            .padding(.horizontal, Theme.cardPadding)
 
             Text("\(data.totalCount) repos this week")
                 .font(Theme.Fonts.manrope(12))
@@ -539,6 +501,60 @@ struct GlanceCardView: View {
                     .padding(.horizontal, Theme.cardPadding)
             }
         }
+    }
+
+    private func githubPreviewRow(_ item: GitHubRepoWithVelocity) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            CachedAsyncImage(url: URL(string: item.repo.ownerAvatar)) { image in
+                image.resizable().scaledToFit()
+            } placeholder: {
+                Circle().fill(Theme.Colors.surface3)
+            }
+            .frame(width: 36, height: 36)
+            .clipShape(.circle)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.repo.fullName)
+                    .font(Theme.Fonts.manrope(13, weight: .semibold))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .lineLimit(1)
+
+                if let desc = item.repo.description, !desc.isEmpty {
+                    Text(desc)
+                        .font(Theme.Fonts.manrope(12))
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .lineLimit(2)
+                }
+
+                HStack(spacing: 8) {
+                    Text("★ \(TimeFormat.stars(item.repo.stars))")
+                        .font(Theme.Fonts.manrope(12))
+                        .foregroundStyle(Theme.Colors.textSecondary)
+
+                    if let velocity = item.velocity, velocity > 0 {
+                        Text("+\(velocity)")
+                            .font(Theme.Fonts.manrope(11, weight: .bold))
+                            .foregroundStyle(card.accentColor)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(card.accentColor.opacity(0.15), in: .capsule)
+                    }
+
+                    if let lang = item.repo.language {
+                        HStack(spacing: 3) {
+                            Circle().fill(Theme.languageColor(for: lang)).frame(width: 6, height: 6)
+                            Text(lang)
+                                .font(Theme.Fonts.manrope(11))
+                                .foregroundStyle(Theme.Colors.textMuted)
+                        }
+                    }
+                }
+            }
+
+            Spacer()
+        }
+        .padding(12)
+        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: 14))
     }
 
     // MARK: - AI Intel Body

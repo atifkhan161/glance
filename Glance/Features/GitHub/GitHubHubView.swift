@@ -55,7 +55,7 @@ struct GitHubHubView: View {
             sortControl
 
             // Repo list
-            LazyVStack(spacing: 8) {
+            LazyVStack(spacing: 12) {
                 ForEach(sortedRepos(data.repos)) { item in
                     NavigationLink(value: item) {
                         repoRow(item)
@@ -194,7 +194,7 @@ struct GitHubHubView: View {
                 .font(.caption)
                 .foregroundStyle(Theme.Colors.textMuted)
         }
-        .padding(12)
+        .padding(14)
         .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
         .accessibilityElement(children: .combine)
         .accessibilityLabel(repoAccessibilityLabel(item))
