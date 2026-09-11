@@ -7,6 +7,9 @@ actor CacheStore {
     private var memory: [String: Data] = [:]
     private let defaults = UserDefaults.standard
 
+    private static let maxCacheSize = 10 * 1_024 * 1_024 // 10 MB
+    private static let evictionThreshold = 8 * 1_024 * 1_024 // 8 MB
+
     static let defaultTTLs: [String: TimeInterval] = [
         "cache_madrid": 6 * 3_600,    // 6 hours
         "cache_pogo": 6 * 3_600,      // 6 hours
@@ -20,6 +23,7 @@ actor CacheStore {
                 memory[key] = data
             }
         }
+        evictIfNeeded()
     }
 
     func load<T: Codable & Sendable>(_ key: String) -> CacheEnvelope<T>? {
@@ -39,6 +43,7 @@ actor CacheStore {
         guard let data = try? JSONEncoder().encode(envelope) else { return }
         memory[key] = data
         defaults.set(data, forKey: key)
+        evictIfNeeded()
     }
 
     func remove(_ key: String) {
@@ -55,6 +60,25 @@ actor CacheStore {
 
     func ttl(for key: String) -> TimeInterval {
         Self.defaultTTLs[key] ?? 6 * 3_600
+    }
+
+    var currentSize: Int {
+        memory.values.reduce(0) { $0 + $1.count }
+    }
+
+    private func evictIfNeeded() {
+        let size = currentSize
+        guard size > Self.evictionThreshold else { return }
+
+        // Sort by size (largest first) and remove until under threshold
+        let sorted = memory.sorted { $0.value.count > $1.value.count }
+        var remaining = size
+        for (key, data) in sorted {
+            guard remaining > Self.evictionThreshold else { break }
+            memory.removeValue(forKey: key)
+            defaults.removeObject(forKey: key)
+            remaining -= data.count
+        }
     }
 
     static let allCacheKeys = [

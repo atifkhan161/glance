@@ -3,15 +3,21 @@ import SwiftUI
 struct GlanceCardView: View {
     let card: CardID
     let store: PulseStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 cardHeader
                 cardBody
+                    .transition(reduceMotion ? .opacity : .asymmetric(
+                        insertion: .opacity.combined(with: .move(edge: .trailing)),
+                        removal: .opacity
+                    ))
                 cardFooter
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentAge)
         }
         .background(Theme.canvas)
         .scrollIndicators(.hidden)

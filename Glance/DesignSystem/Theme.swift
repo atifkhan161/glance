@@ -128,6 +128,31 @@ extension View {
     func shimmer() -> some View {
         modifier(ShimmerModifier())
     }
+
+    func cardEntrance(index: Int = 0) -> some View {
+        modifier(CardEntranceModifier(index: index))
+    }
+
+    func accessibleHint(_ hint: String) -> some View {
+        self.accessibilityHint(Text(hint))
+    }
+}
+
+// MARK: - Card Entrance Animation
+
+struct CardEntranceModifier: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let index: Int
+
+    func body(content: Content) -> some View {
+        content
+            .transition(.asymmetric(
+                insertion: reduceMotion
+                    ? .opacity
+                    : .opacity.combined(with: .move(edge: .trailing).combined(with: .scale(scale: 0.95))),
+                removal: .opacity
+            ))
+    }
 }
 
 extension Theme {
