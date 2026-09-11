@@ -5,18 +5,24 @@ struct PulseView: View {
 
     var body: some View {
         @Bindable var bindable = store
-        TabView(selection: $bindable.currentCard) {
-            GlanceCardView(card: .madrid, store: store)
-                .tag(CardID.madrid)
-            GlanceCardView(card: .pogo, store: store)
-                .tag(CardID.pogo)
-            GlanceCardView(card: .github, store: store)
-                .tag(CardID.github)
-            GlanceCardView(card: .aiIntel, store: store)
-                .tag(CardID.aiIntel)
+        ZStack(alignment: .bottom) {
+            TabView(selection: $bindable.currentCard) {
+                GlanceCardView(card: .madrid, store: store)
+                    .tag(CardID.madrid)
+                GlanceCardView(card: .pogo, store: store)
+                    .tag(CardID.pogo)
+                GlanceCardView(card: .github, store: store)
+                    .tag(CardID.github)
+                GlanceCardView(card: .aiIntel, store: store)
+                    .tag(CardID.aiIntel)
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .background(Theme.canvas)
+
+            // Page indicator dots
+            pageIndicator
+                .padding(.bottom, 12)
         }
-        .tabViewStyle(.page(indexDisplayMode: .never))
-        .background(Theme.canvas)
         .navigationTitle("Glance")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -39,6 +45,21 @@ struct PulseView: View {
             await store.loadFromCache()
             await store.refreshAll()
         }
+    }
+
+    // MARK: - Page Indicator Dots
+
+    private var pageIndicator: some View {
+        HStack(spacing: 8) {
+            ForEach(CardID.allCases, id: \.self) { card in
+                Circle()
+                    .fill(store.currentCard == card ? card.accentColor : Theme.Colors.textMuted.opacity(0.4))
+                    .frame(width: store.currentCard == card ? 8 : 6, height: store.currentCard == card ? 8 : 6)
+                    .animation(.spring(response: 0.3), value: store.currentCard)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Page \(CardID.allCases.firstIndex(of: store.currentCard)! + 1) of \(CardID.allCases.count)")
     }
 
     @ViewBuilder
