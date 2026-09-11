@@ -9,6 +9,11 @@ struct PulseView: View {
                 ForEach(CardID.allCases, id: \.self) { card in
                     GlanceCardView(card: card, store: store)
                         .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: 16))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Theme.Colors.borderSubtle.opacity(0.6), lineWidth: 1)
+                        )
+                        .shadow(color: Color(uiColor: UIColor { traits in traits.userInterfaceStyle == .dark ? UIColor.black.withAlphaComponent(0.35) : UIColor.black.withAlphaComponent(0.06) }), radius: 8, y: 2)
                         .padding(.horizontal, 12)
                 }
             }
