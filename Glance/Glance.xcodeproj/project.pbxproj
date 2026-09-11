@@ -66,6 +66,8 @@
 		F0A1B2C3D4E5F6A7B8C9D0E1 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* Components.swift */; };
 		B1C2D3E4F5A6B7C8D9E0F1A2 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2D3E4F5A6B7C8D9E0F1A2B3 /* NetworkMonitor.swift */; };
 		D3E4F5A6B7C8D9E0F1A2B3C4 /* CachedAsyncImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4F5A6B7C8D9E0F1A2B3C4D5 /* CachedAsyncImage.swift */; };
+		F5A6B7C8D9E0F1A2B3C4D5E6 /* IntelligenceRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6B7C8D9E0F1A2B3C4D5E6F7 /* IntelligenceRouterTests.swift */; };
+		B7C8D9E0F1A2B3C4D5E6F7A8 /* CacheTTTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8D9E0F1A2B3C4D5E6F7A8B9 /* CacheTTTests.swift */; };
 		E78A461D3A5B0A1F140AF378 /* GeminiClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8432ADC86D8071C0A729DC28 /* GeminiClient.swift */; };
 		E9DC9274D7EF30EAFCE6C500 /* PoGoPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5618ACB47108C5ECE2A1DF1 /* PoGoPipeline.swift */; };
 		EC388E6180F7AFEFE7A00C77 /* ManagingMadridClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761E28609E32E6E33EB2DC21 /* ManagingMadridClient.swift */; };
@@ -167,6 +169,8 @@
 		A1B2C3D4E5F6A7B8C9D0E1F2 /* Components.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		C2D3E4F5A6B7C8D9E0F1A2B3 /* NetworkMonitor.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		E4F5A6B7C8D9E0F1A2B3C4D5 /* CachedAsyncImage.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CachedAsyncImage.swift; sourceTree = "<group>"; };
+		A6B7C8D9E0F1A2B3C4D5E6F7 /* IntelligenceRouterTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = IntelligenceRouterTests.swift; sourceTree = "<group>"; };
+		C8D9E0F1A2B3C4D5E6F7A8B9 /* CacheTTTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CacheTTTests.swift; sourceTree = "<group>"; };
 		F65672F62EC7DA587E61CBB6 /* CacheStoreTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CacheStoreTests.swift; sourceTree = "<group>"; };
 		FE51DADF51E57ECD0B40BE8F /* Glance.xcassets */ = {isa = PBXFileReference; explicitFileType = folder.assetcatalog; path = Glance.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -206,6 +210,8 @@
 				F65672F62EC7DA587E61CBB6 /* CacheStoreTests.swift */,
 				F2AC54314574769AC551ABBC /* KeychainStoreTests.swift */,
 				F2C9DD56660DF3077E99A52C /* TimeFormatTests.swift */,
+				A6B7C8D9E0F1A2B3C4D5E6F7 /* IntelligenceRouterTests.swift */,
+				C8D9E0F1A2B3C4D5E6F7A8B9 /* CacheTTTests.swift */,
 			);
 			path = GlanceTests;
 			sourceTree = "<group>";
@@ -597,6 +603,8 @@
 				47C63C93AFB93383EBBA3EFC /* CacheStoreTests.swift in Sources */,
 				645351B4B35C32E3FE95EF0D /* KeychainStoreTests.swift in Sources */,
 				34012DCF640F1EAC14E3F416 /* TimeFormatTests.swift in Sources */,
+				F5A6B7C8D9E0F1A2B3C4D5E6 /* IntelligenceRouterTests.swift in Sources */,
+				B7C8D9E0F1A2B3C4D5E6F7A8 /* CacheTTTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
