@@ -65,23 +65,16 @@ struct PoGoHubView: View {
     // MARK: - Priority Panel
 
     private func priorityPanel(_ priority: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
+        HubSectionCard(title: "TARGET PRIORITY", titleColor: Theme.Colors.cardRose) {
+            HStack(spacing: 8) {
                 Text("🎯")
-                Text("TARGET PRIORITY")
-                    .font(Theme.Fonts.manrope(10, weight: .bold))
-                    .foregroundStyle(Theme.Colors.cardRose)
-                    .tracking(1.2)
+                    .accessibilityHidden(true)
+                Text(priority)
+                    .font(Theme.Fonts.manrope(14, weight: .medium))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-
-            Text(priority)
-                .font(Theme.Fonts.manrope(14, weight: .medium))
-                .foregroundStyle(Theme.Colors.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(Theme.cardPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
     }
 
     // MARK: - Tier Tabs
@@ -189,25 +182,33 @@ struct PoGoHubView: View {
                         .padding(.vertical, 2)
                         .background(tierBadgeColor(raid).opacity(0.15), in: .capsule)
 
-                    // Type icons
+                    // Type icons with type-specific colors
                     ForEach(raid.types.prefix(3), id: \.name) { type in
                         Text(type.name)
-                            .font(Theme.Fonts.manrope(9))
-                            .foregroundStyle(Theme.Colors.textMuted)
-                            .padding(.horizontal, 4)
-                            .padding(.vertical, 1)
-                            .background(Theme.Colors.surface3, in: .capsule)
+                            .font(Theme.Fonts.manrope(9, weight: .medium))
+                            .foregroundStyle(pokeTypeColor(type.name))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(pokeTypeColor(type.name).opacity(0.15), in: .capsule)
                     }
                 }
 
-                // CP range
+                // CP range formatted
                 if let cp = raid.combatPower {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 8) {
                         if let normal = cp.normal {
-                            Text("CP \(normal.min ?? 0)–\(normal.max ?? 0)")
+                            let minStr = formatCP(normal.min)
+                            let maxStr = formatCP(normal.max)
+                            Text("CP \(minStr) – \(maxStr)")
                         }
                         if let boosted = cp.boosted {
-                            Text("⬆ \(boosted.min ?? 0)–\(boosted.max ?? 0)")
+                            let minStr = formatCP(boosted.min)
+                            let maxStr = formatCP(boosted.max)
+                            HStack(spacing: 2) {
+                                Image(systemName: "arrow.up")
+                                    .font(.system(size: 8))
+                                Text("\(minStr) – \(maxStr)")
+                            }
                         }
                     }
                     .font(Theme.Fonts.manrope(11))
@@ -244,12 +245,7 @@ struct PoGoHubView: View {
     // MARK: - Events Section
 
     private func eventsSection(_ events: [PoGoEvent]) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("UPCOMING EVENTS")
-                .font(Theme.Fonts.manrope(10, weight: .bold))
-                .foregroundStyle(Theme.Colors.cardRose)
-                .tracking(1.2)
-
+        HubSectionCard(title: "UPCOMING EVENTS", titleColor: Theme.Colors.cardRose) {
             ForEach(events) { event in
                 NavigationLink(value: event) {
                     HStack(alignment: .top, spacing: 12) {
@@ -335,19 +331,44 @@ struct PoGoHubView: View {
     }
 
     private var keyMissingSection: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "gamecontroller")
-                .font(.title2)
-                .foregroundStyle(Theme.Colors.cardRose)
-            Text("No raid data available")
-                .font(Theme.Fonts.manrope(14, weight: .semibold))
-                .foregroundStyle(Theme.Colors.cardRose)
-            Text("Check back later for updates")
-                .font(Theme.Fonts.manrope(12))
-                .foregroundStyle(Theme.Colors.textMuted)
+        GlanceEmptyView(
+            icon: "gamecontroller",
+            title: "No raid data available",
+            message: "Check back later for updates",
+            accentColor: Theme.Colors.cardRose
+        )
+    }
+
+    // MARK: - Type Color Helper
+
+    private func pokeTypeColor(_ type: String) -> Color {
+        switch type.lowercased() {
+        case "fire": Color(red: 0.98, green: 0.58, blue: 0.20)
+        case "water": Color(red: 0.39, green: 0.65, blue: 0.95)
+        case "grass": Color(red: 0.47, green: 0.78, blue: 0.33)
+        case "electric": Color(red: 0.98, green: 0.82, blue: 0.17)
+        case "ice": Color(red: 0.59, green: 0.85, blue: 0.84)
+        case "fighting": Color(red: 0.76, green: 0.18, blue: 0.16)
+        case "poison": Color(red: 0.64, green: 0.24, blue: 0.63)
+        case "ground": Color(red: 0.88, green: 0.75, blue: 0.40)
+        case "flying": Color(red: 0.66, green: 0.56, blue: 0.95)
+        case "psychic": Color(red: 0.98, green: 0.33, blue: 0.53)
+        case "bug": Color(red: 0.65, green: 0.72, blue: 0.10)
+        case "rock": Color(red: 0.71, green: 0.63, blue: 0.21)
+        case "ghost": Color(red: 0.45, green: 0.34, blue: 0.60)
+        case "dragon": Color(red: 0.44, green: 0.21, blue: 0.99)
+        case "dark": Color(red: 0.44, green: 0.34, blue: 0.28)
+        case "steel": Color(red: 0.72, green: 0.72, blue: 0.82)
+        case "fairy": Color(red: 0.84, green: 0.52, blue: 0.68)
+        default: Theme.Colors.textMuted
         }
-        .frame(maxWidth: .infinity)
-        .padding(40)
+    }
+
+    private func formatCP(_ value: Int?) -> String {
+        guard let v = value else { return "???" }
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        return formatter.string(from: NSNumber(value: v)) ?? "\(v)"
     }
 }
 
