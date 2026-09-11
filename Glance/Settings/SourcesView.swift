@@ -33,6 +33,12 @@ struct SourcesView: View {
                     link: "https://aistudio.google.com/apikey"
                 )
 
+                // API-Sports (thesportsdb.com) — free tier, key "123" implicit
+                infoSection(
+                    title: "FOOTBALL DATA",
+                    subtitle: "Powered by thesportsdb.com free tier — no key required"
+                )
+
                 // Gemini Model Picker
                 modelPickerSection
 
@@ -81,6 +87,9 @@ struct SourcesView: View {
                         }
                         if let geminiURL = URL(string: "https://aistudio.google.com/apikey") {
                             Link("Get Gemini key →", destination: geminiURL)
+                        }
+                        if let footballURL = URL(string: "https://dashboard.api-football.com/register") {
+                            Link("Get Football key →", destination: footballURL)
                         }
                     }
                     .font(Theme.Fonts.manrope(12))
@@ -149,6 +158,28 @@ struct SourcesView: View {
                     .font(Theme.Fonts.manrope(11))
                     .foregroundStyle(Theme.Colors.textMuted)
             }
+        }
+    }
+
+    // MARK: - Info Section (no key required)
+
+    private func infoSection(title: String, subtitle: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(title)
+                    .font(Theme.Fonts.manrope(10, weight: .bold))
+                    .foregroundStyle(Theme.Colors.textMuted)
+                    .tracking(1.2)
+                Spacer()
+                statusBadge(.configured)
+            }
+
+            Text(subtitle)
+                .font(Theme.Fonts.manrope(13))
+                .foregroundStyle(Theme.Colors.textSecondary)
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Theme.Colors.canvasDeep, in: RoundedRectangle(cornerRadius: 10))
         }
     }
 

@@ -27,7 +27,12 @@ final class SettingsStore {
     }
 
     func existingKey(for service: String) -> String? {
-        let key = service == "Exa" ? "keys_exa" : "keys_gemini"
+        let key: String
+        switch service {
+        case "Exa": key = "keys_exa"
+        case "Gemini": key = "keys_gemini"
+        default: return nil
+        }
         guard let value = keychain.load(forKey: key) else { return nil }
         if value.count <= 8 { return "••••••••" }
         let prefix = String(value.prefix(4))

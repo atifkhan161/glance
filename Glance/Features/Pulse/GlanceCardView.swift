@@ -137,25 +137,44 @@ struct GlanceCardView: View {
 
                     HStack(alignment: .center, spacing: 16) {
                         // Real Madrid crest
-                        CachedAsyncImage(url: URL(string: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg")) { image in
-                            image.resizable().scaledToFit()
-                        } placeholder: {
-                            Text("RM")
-                                .font(Theme.Fonts.manrope(20, weight: .bold))
-                                .foregroundStyle(Theme.Colors.textPrimary)
+                        VStack(spacing: 4) {
+                            CachedAsyncImage(url: URL(string: fixture.rmBadge ?? "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg")) { image in
+                                image.resizable().scaledToFit()
+                            } placeholder: {
+                                Text("RM")
+                                    .font(Theme.Fonts.manrope(20, weight: .bold))
+                                    .foregroundStyle(Theme.Colors.textPrimary)
+                            }
+                            .frame(width: 56, height: 56)
+
+                            Text("Real Madrid")
+                                .font(Theme.Fonts.manrope(10))
+                                .foregroundStyle(Theme.Colors.textSecondary)
+                                .lineLimit(1)
                         }
-                        .frame(width: 56, height: 56)
 
                         Text("vs")
                             .font(Theme.Fonts.manrope(14))
                             .foregroundStyle(Theme.Colors.textMuted)
 
-                        // Opponent
-                        Text(String(fixture.opponent.prefix(3)).uppercased())
-                            .font(Theme.Fonts.manrope(28, weight: .bold))
-                            .foregroundStyle(Theme.Colors.textPrimary)
+                        // Opponent crest
+                        VStack(spacing: 4) {
+                            CachedAsyncImage(url: URL(string: fixture.opponentBadge ?? "")) { image in
+                                image.resizable().scaledToFit()
+                            } placeholder: {
+                                Text(String(fixture.opponent.prefix(3)).uppercased())
+                                    .font(Theme.Fonts.manrope(28, weight: .bold))
+                                    .foregroundStyle(Theme.Colors.textPrimary)
+                                    .frame(width: 56, height: 56)
+                                    .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: 12))
+                            }
                             .frame(width: 56, height: 56)
-                            .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: 12))
+
+                            Text(fixture.opponent)
+                                .font(Theme.Fonts.manrope(10))
+                                .foregroundStyle(Theme.Colors.textSecondary)
+                                .lineLimit(1)
+                        }
                     }
 
                     if let date = MadridPipeline.looseDateParse(fixture.datetime) {
@@ -184,6 +203,83 @@ struct GlanceCardView: View {
                     }
                 }
                 .padding(Theme.cardPadding)
+            } else if let lastMatch = data.lastMatch {
+                // Last match (when no upcoming fixture)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("LAST MATCH · \(lastMatch.competition)")
+                        .font(Theme.Fonts.manrope(10, weight: .bold))
+                        .foregroundStyle(Theme.Colors.cardAmber)
+                        .tracking(1.2)
+
+                    HStack(alignment: .center, spacing: 16) {
+                        VStack(spacing: 4) {
+                            CachedAsyncImage(url: URL(string: lastMatch.rmBadge ?? "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg")) { image in
+                                image.resizable().scaledToFit()
+                            } placeholder: {
+                                Text("RM")
+                                    .font(Theme.Fonts.manrope(20, weight: .bold))
+                                    .foregroundStyle(Theme.Colors.textPrimary)
+                            }
+                            .frame(width: 56, height: 56)
+
+                            Text("Real Madrid")
+                                .font(Theme.Fonts.manrope(10))
+                                .foregroundStyle(Theme.Colors.textSecondary)
+                                .lineLimit(1)
+                        }
+
+                        Text("\(lastMatch.score.home) - \(lastMatch.score.away)")
+                            .font(Theme.Fonts.manrope(24, weight: .bold))
+                            .foregroundStyle(Theme.Colors.textPrimary)
+
+                        VStack(spacing: 4) {
+                            CachedAsyncImage(url: URL(string: lastMatch.opponentBadge ?? "")) { image in
+                                image.resizable().scaledToFit()
+                            } placeholder: {
+                                Text(String(lastMatch.opponent.prefix(3)).uppercased())
+                                    .font(Theme.Fonts.manrope(28, weight: .bold))
+                                    .foregroundStyle(Theme.Colors.textPrimary)
+                                    .frame(width: 56, height: 56)
+                                    .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: 12))
+                            }
+                            .frame(width: 56, height: 56)
+
+                            Text(lastMatch.opponent)
+                                .font(Theme.Fonts.manrope(10))
+                                .foregroundStyle(Theme.Colors.textSecondary)
+                                .lineLimit(1)
+                        }
+                    }
+
+                    // Kickoff time (IST)
+                    if let date = MadridPipeline.looseDateParse(lastMatch.datetime) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "calendar")
+                            Text(TimeFormat.istDate(date))
+                        }
+                        .font(Theme.Fonts.manrope(12))
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                    }
+
+                    // Scorers
+                    let rmScorers = lastMatch.scorers.filter { $0.team == (lastMatch.score.home >= lastMatch.score.away ? "home" : "away") }
+                    if !rmScorers.isEmpty {
+                        HStack(spacing: 4) {
+                            Image(systemName: "sportscourt")
+                            Text(rmScorers.map { "\($0.player) \($0.minute)'" }.joined(separator: ", "))
+                        }
+                        .font(Theme.Fonts.manrope(12))
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                    }
+
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle")
+                        Text(lastMatch.status)
+                    }
+                    .font(Theme.Fonts.manrope(12))
+                    .foregroundStyle(Theme.Colors.textMuted)
+                }
+                .padding(Theme.cardPadding)
             }
 
             if !data.form.isEmpty {
@@ -194,20 +290,30 @@ struct GlanceCardView: View {
                         .tracking(1.2)
                     HStack(spacing: 6) {
                         ForEach(data.form, id: \.self) { result in
-                            Text(result)
-                                .font(Theme.Fonts.manrope(12, weight: .semibold))
-                                .foregroundStyle(formColor(result))
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 3)
-                                .background(formColor(result).opacity(0.15), in: .capsule)
+                            let letter = String(result.prefix(1)).uppercased()
+                            let score = result.count > 1 ? String(result.dropFirst()).trimmingCharacters(in: .whitespaces) : ""
+
+                            VStack(spacing: 2) {
+                                Text(letter)
+                                    .font(Theme.Fonts.manrope(12, weight: .semibold))
+                                    .foregroundStyle(formColor(letter))
+                                if !score.isEmpty {
+                                    Text(score)
+                                        .font(Theme.Fonts.manrope(9))
+                                        .foregroundStyle(Theme.Colors.textMuted)
+                                }
+                            }
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 3)
+                            .background(formColor(letter).opacity(0.15), in: .capsule)
                         }
                     }
                 }
                 .padding(.horizontal, Theme.cardPadding)
             }
 
-            if !data.standing.isEmpty {
-                Text(data.standing)
+            if !data.standingText.isEmpty {
+                Text(data.standingText)
                     .font(Theme.Fonts.manrope(13))
                     .foregroundStyle(Theme.Colors.textSecondary)
                     .padding(.horizontal, Theme.cardPadding)
@@ -222,7 +328,7 @@ struct GlanceCardView: View {
             }
 
             // MM Articles preview
-            ForEach(data.mmArticles.prefix(5)) { article in
+            ForEach(data.mmArticles.prefix(3)) { article in
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(article.title)

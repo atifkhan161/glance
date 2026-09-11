@@ -91,6 +91,8 @@ struct GitHubRepo: Codable, Sendable, Identifiable, Hashable {
         case hasPages = "has_pages"
         case hasDiscussions = "has_discussions"
         case topics, license, owner
+        case ownerLogin = "owner_login"
+        case ownerAvatar = "owner_avatar"
         case htmlUrl = "html_url"
         case homepage
     }
@@ -117,9 +119,14 @@ struct GitHubRepo: Codable, Sendable, Identifiable, Hashable {
         license = try container.decodeIfPresent(LicenseInfo.self, forKey: .license)
         htmlUrl = try container.decode(String.self, forKey: .htmlUrl)
         homepage = try container.decodeIfPresent(String.self, forKey: .homepage)
-        let ownerContainer = try container.nestedContainer(keyedBy: OwnerKeys.self, forKey: .owner)
-        ownerLogin = try ownerContainer.decode(String.self, forKey: .login)
-        ownerAvatar = try ownerContainer.decode(String.self, forKey: .avatarUrl)
+        // Owner: nested object (GitHub API) or flat keys (tests / cached format)
+        if let ownerContainer = try? container.nestedContainer(keyedBy: OwnerKeys.self, forKey: .owner) {
+            ownerLogin = try ownerContainer.decode(String.self, forKey: .login)
+            ownerAvatar = try ownerContainer.decodeIfPresent(String.self, forKey: .avatarUrl) ?? ""
+        } else {
+            ownerLogin = try container.decodeIfPresent(String.self, forKey: .ownerLogin) ?? ""
+            ownerAvatar = try container.decodeIfPresent(String.self, forKey: .ownerAvatar) ?? ""
+        }
     }
 
     func encode(to encoder: any Encoder) throws {

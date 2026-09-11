@@ -41,7 +41,9 @@ extension MadridPipeline {
             stadium: stadium,
             competition: competition,
             venue: stadium,
-            scores: scores
+            scores: scores,
+            rmBadge: nil,
+            opponentBadge: nil
         )
     }
 

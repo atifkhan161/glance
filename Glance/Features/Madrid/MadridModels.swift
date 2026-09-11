@@ -2,9 +2,11 @@ import Foundation
 
 struct MadridData: Codable, Sendable, Equatable {
     let fixture: Fixture?
+    let lastMatch: LastMatch?
     let schedule: [ScheduleItem]
     let form: [String]
-    let standing: String
+    let standing: StandingInfo?
+    let standingText: String
     let intel: String
     let headToHead: String?
     let articles: [ExaArticle]
@@ -20,6 +22,8 @@ struct Fixture: Codable, Sendable, Equatable {
     let competition: String
     let venue: String
     let scores: Score?
+    let rmBadge: String?
+    let opponentBadge: String?
 
     struct Score: Codable, Sendable, Equatable {
         let home: Int
@@ -27,11 +31,51 @@ struct Fixture: Codable, Sendable, Equatable {
     }
 }
 
+struct LastMatch: Codable, Sendable, Equatable {
+    let opponent: String
+    let score: LastMatchScore
+    let competition: String
+    let venue: String
+    let datetime: String
+    let status: String
+    let scorers: [MatchEvent]
+    let cards: [MatchEvent]
+    let round: String?
+    let rmBadge: String?
+    let opponentBadge: String?
+
+    struct LastMatchScore: Codable, Sendable, Equatable {
+        let home: Int
+        let away: Int
+    }
+}
+
+struct MatchEvent: Codable, Sendable, Equatable {
+    let minute: Int
+    let player: String
+    let type: String
+    let detail: String
+    let team: String
+}
+
 struct ScheduleItem: Codable, Sendable, Equatable {
     let opponent: String
     let datetime: String
     let competition: String
     let venue: String
+}
+
+struct StandingInfo: Codable, Sendable, Equatable {
+    let rank: Int
+    let points: Int
+    let played: Int
+    let won: Int
+    let drawn: Int
+    let lost: Int
+    let goalsFor: Int
+    let goalsAgainst: Int
+    let goalDifference: Int
+    let badge: String?
 }
 
 struct ExaArticle: Codable, Sendable, Identifiable, Equatable {

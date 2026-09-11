@@ -10,6 +10,7 @@
 		0293474C8BAA89D4AD8F170F /* TimeFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0F51D16A6D39FCFAB1EE51 /* TimeFormat.swift */; };
 		05D69E71AEAF0796329FCB70 /* EventDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 274E1FF781DE1E99CE883CB1 /* EventDetailView.swift */; };
 		096DB724932563428E9C79B3 /* ExaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032774EA8666009381F3C760 /* ExaClient.swift */; };
+		AA11BB22CC33DD44EE55FF77 /* SportsDBClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22CC33DD44EE55FF660077 /* SportsDBClient.swift */; };
 		0BE13B387270F4520E4FC24E /* Glance.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FE51DADF51E57ECD0B40BE8F /* Glance.xcassets */; };
 		0DA71C7319CF6FEF3DDAF056 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DDB5287486413A1BC7A95B1 /* SettingsView.swift */; };
 		1085346A0AD944BC6DFF3E16 /* MadridPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61CCC1E587C8D063447BE25C /* MadridPipelineTests.swift */; };
@@ -101,6 +102,7 @@
 /* Begin PBXFileReference section */
 		0062F9E61C96E727A4D59E9C /* HankenGrotesk-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = file; path = "HankenGrotesk-SemiBold.ttf"; sourceTree = "<group>"; };
 		032774EA8666009381F3C760 /* ExaClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ExaClient.swift; sourceTree = "<group>"; };
+		BB22CC33DD44EE55FF660077 /* SportsDBClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SportsDBClient.swift; sourceTree = "<group>"; };
 		06B010D9C40163AF882E9554 /* PulseStore.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = PulseStore.swift; sourceTree = "<group>"; };
 		0C95DCBE3D848BDB6C254116 /* Models.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		0DDB5287486413A1BC7A95B1 /* SettingsView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -232,6 +234,7 @@
 			isa = PBXGroup;
 			children = (
 				032774EA8666009381F3C760 /* ExaClient.swift */,
+				BB22CC33DD44EE55FF660077 /* SportsDBClient.swift */,
 				8432ADC86D8071C0A729DC28 /* GeminiClient.swift */,
 				76BA268209C52E00B0FB8062 /* GitHubClient.swift */,
 				7AC5FEA17B8577E4EB10A0AB /* ScrapedDuckClient.swift */,
@@ -631,6 +634,7 @@
 				A96986B8A8C94414ED991F21 /* CacheStore.swift in Sources */,
 				CB04AF25B8072EB1C93103FF /* KeychainStore.swift in Sources */,
 				096DB724932563428E9C79B3 /* ExaClient.swift in Sources */,
+				AA11BB22CC33DD44EE55FF77 /* SportsDBClient.swift in Sources */,
 				E78A461D3A5B0A1F140AF378 /* GeminiClient.swift in Sources */,
 				B77B36E6CC1DE6610C3101A3 /* GitHubClient.swift in Sources */,
 				5BA02C670F37712948EB23B7 /* ScrapedDuckClient.swift in Sources */,
