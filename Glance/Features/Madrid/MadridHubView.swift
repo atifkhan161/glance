@@ -416,39 +416,35 @@ struct MadridHubView: View {
     private func mmArticlesSection(_ articles: [MMArticle]) -> some View {
         HubSectionCard(title: "LATEST FROM MANAGING MADRID", titleColor: Theme.Colors.cardAmber) {
             ForEach(articles.prefix(10)) { article in
-                if let url = URL(string: "https://www.managingmadrid.com") {
-                    Link(destination: url.appendingPathComponent(article.url.isEmpty ? "" : article.url)) {
-                        HStack(alignment: .top, spacing: 12) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(article.title)
-                                    .font(Theme.Fonts.manrope(14, weight: .semibold))
-                                    .foregroundStyle(Theme.Colors.textPrimary)
-                                    .lineLimit(2)
-                                    .multilineTextAlignment(.leading)
-
-                                HStack(spacing: 6) {
-                                    Text(article.author)
-                                    Text("·")
-                                    Text(article.category)
-                                    Text("·")
-                                    Text(article.published)
-                                }
-                                .font(Theme.Fonts.manrope(11))
-                                .foregroundStyle(Theme.Colors.textMuted)
-                                .lineLimit(1)
+                NavigationLink(value: article) {
+                    HStack(alignment: .top, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(article.title)
+                                .font(Theme.Fonts.manrope(14, weight: .semibold))
+                                .foregroundStyle(Theme.Colors.textPrimary)
+                                .lineLimit(2)
+                                .multilineTextAlignment(.leading)
+                            HStack(spacing: 6) {
+                                Text(article.author)
+                                Text("·")
+                                Text(article.category)
+                                Text("·")
+                                Text(article.published)
                             }
-
-                            Spacer()
-
-                            Image(systemName: "arrow.up.right")
-                                .font(.caption)
-                                .foregroundStyle(Theme.Colors.textMuted)
-                                .padding(.top, 4)
+                            .font(Theme.Fonts.manrope(11))
+                            .foregroundStyle(Theme.Colors.textMuted)
+                            .lineLimit(1)
                         }
-                        .padding(.vertical, 8)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(Theme.Colors.textMuted)
+                            .padding(.top, 4)
                     }
-                    .accessibilityLabel("Read \(article.title) on Managing Madrid")
+                    .padding(.vertical, 8)
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Read \(article.title)")
             }
         }
     }
