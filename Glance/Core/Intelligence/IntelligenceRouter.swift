@@ -20,6 +20,7 @@ actor IntelligenceRouter {
            let result = try? await foundationModels.processRealMadrid(snippets: snippets) {
             return (result, "apple")
         }
+        #if !targetEnvironment(simulator)
         if let key = keychain.load(forKey: "keys_gemini"),
            let model = keychain.load(forKey: "gemini_model") {
             let prompt = "Extract Real Madrid match information as JSON {form:[...], standing, intel, head_to_head}. Snippets: \(truncate(snippets))"
@@ -29,6 +30,7 @@ actor IntelligenceRouter {
                 return (decoded, "gemini")
             }
         }
+        #endif
         return (nil, "none")
     }
 
@@ -37,6 +39,7 @@ actor IntelligenceRouter {
            let result = try? await foundationModels.processPoGo(snippets: snippets) {
             return (result.priority, "apple")
         }
+        #if !targetEnvironment(simulator)
         if let key = keychain.load(forKey: "keys_gemini"),
            let model = keychain.load(forKey: "gemini_model") {
             let prompt = "Based on current Pokemon GO raids and events, suggest the top priority target. Return JSON {priority}. Snippets: \(truncate(snippets))"
@@ -46,6 +49,7 @@ actor IntelligenceRouter {
                 return (decoded.priority, "gemini")
             }
         }
+        #endif
         return ("", "none")
     }
 
@@ -54,6 +58,7 @@ actor IntelligenceRouter {
            let result = try? await foundationModels.processAiIntel(snippets: snippets) {
             return result
         }
+        #if !targetEnvironment(simulator)
         if let key = keychain.load(forKey: "keys_gemini"),
            let model = keychain.load(forKey: "gemini_model") {
             let prompt = "Read these technology news summaries and classify each. Return 2-3 items with tag (FRONTIER LABS or OPEN WEIGHTS), headline, bullets, benchmarks optional. Snippets: \(truncate(snippets))"
@@ -63,6 +68,7 @@ actor IntelligenceRouter {
                 return decoded
             }
         }
+        #endif
         return nil
     }
 

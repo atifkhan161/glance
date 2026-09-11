@@ -74,12 +74,10 @@ final class PulseStore {
     }
 
     func refreshAll() async {
-        await withTaskGroup(of: Void.self) { group in
-            group.addTask { await self.refresh(.madrid) }
-            group.addTask { await self.refresh(.pogo) }
-            group.addTask { await self.refresh(.github) }
-            group.addTask { await self.refresh(.aiIntel) }
-        }
+        await refresh(.madrid)
+        await refresh(.pogo)
+        await refresh(.github)
+        await refresh(.aiIntel)
     }
 
     func refreshCard(_ card: CardID) async {
@@ -109,12 +107,16 @@ final class PulseStore {
             pogo = .ready(data: data, age: TimeFormat.age(from: data.timestamp))
         case .github:
             if case .ready(let data, let age) = github { github = .stale(data: data, age: age) }
-            if let data = try? await githubPipeline.refresh() {
+            do {
+                let data = try await githubPipeline.refresh()
                 github = .ready(data: data, age: TimeFormat.age(from: data.timestamp))
-            } else if case .stale(let data, _) = github {
-                github = .offline(data: data, age: TimeFormat.age(from: data.timestamp))
-            } else {
-                github = .error(message: "GitHub refresh failed")
+            } catch {
+                print("[PulseStore] GitHub refresh failed: \(error)")
+                if case .stale(let data, _) = github {
+                    github = .offline(data: data, age: TimeFormat.age(from: data.timestamp))
+                } else {
+                    github = .error(message: "GitHub refresh failed: \(error.localizedDescription)")
+                }
             }
         case .aiIntel:
             if case .ready(let data, let age) = aiIntel { aiIntel = .stale(data: data, age: age) }
