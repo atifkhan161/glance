@@ -4,17 +4,27 @@ import SwiftUI
 struct GlanceApp: App {
     @State private var appState = AppState()
     @State private var networkMonitor = NetworkMonitor.shared
+    @AppStorage("colorScheme") private var colorScheme = "dark"
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(appState)
+                .preferredColorScheme(resolvedColorScheme)
                 .overlay(alignment: .top) {
                     offlineBanner
                 }
                 .task {
                     networkMonitor.start()
                 }
+        }
+    }
+
+    private var resolvedColorScheme: ColorScheme? {
+        switch colorScheme {
+        case "light": .light
+        case "dark": .dark
+        default: nil // system
         }
     }
 

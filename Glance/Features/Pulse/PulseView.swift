@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PulseView: View {
     let store: PulseStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         @Bindable var bindable = store
@@ -18,6 +19,14 @@ struct PulseView: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .background(Theme.canvas)
+            .gesture(
+                DragGesture(minimumDistance: 30, coordinateSpace: .local)
+                    .onEnded { value in
+                        if value.translation.height < -50 {
+                            navigateToCurrentHub()
+                        }
+                    }
+            )
 
             // Page indicator dots
             pageIndicator
@@ -26,6 +35,11 @@ struct PulseView: View {
         .navigationTitle("Glance")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                PulseDot(color: Theme.Colors.cardEmerald)
+                    .accessibilityHidden(true)
+            }
+
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
@@ -45,6 +59,13 @@ struct PulseView: View {
             await store.loadFromCache()
             await store.refreshAll()
         }
+    }
+
+    // MARK: - Swipe-up Hub Navigation
+
+    private func navigateToCurrentHub() {
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
     }
 
     // MARK: - Page Indicator Dots
