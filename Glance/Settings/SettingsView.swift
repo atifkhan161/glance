@@ -8,6 +8,9 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                // Branding header
+                brandingHeader
+
                 // Cache section
                 cacheSection
 
@@ -28,14 +31,50 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Branding Header
+
+    private var brandingHeader: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(Theme.Colors.cardEmerald.opacity(0.15))
+                Image(systemName: "bolt.fill")
+                    .font(.title2)
+                    .foregroundStyle(Theme.Colors.cardEmerald)
+            }
+            .frame(width: 48, height: 48)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Glance")
+                    .font(Theme.Fonts.manrope(20, weight: .bold))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                Text("Personal Intelligence Dashboard")
+                    .font(Theme.Fonts.manrope(12))
+                    .foregroundStyle(Theme.Colors.textMuted)
+            }
+
+            Spacer()
+
+            Text(versionString)
+                .font(Theme.Fonts.manrope(11))
+                .foregroundStyle(Theme.Colors.textMuted)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Theme.Colors.surface2, in: .capsule)
+        }
+        .padding(Theme.cardPadding)
+        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+    }
+
+    private var versionString: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+    }
+
     // MARK: - Cache Section
 
     private var cacheSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("CACHE")
-                .font(Theme.Fonts.manrope(10, weight: .bold))
-                .foregroundStyle(Theme.Colors.textMuted)
-                .tracking(1.2)
+            SectionHeader("CACHE")
 
             VStack(spacing: 8) {
                 cacheRow("Real Madrid", key: "cache_madrid")
@@ -87,22 +126,9 @@ struct SettingsView: View {
 
     private var aboutSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("ABOUT")
-                .font(Theme.Fonts.manrope(10, weight: .bold))
-                .foregroundStyle(Theme.Colors.textMuted)
-                .tracking(1.2)
+            SectionHeader("ABOUT")
 
             VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("Glance")
-                        .font(Theme.Fonts.manrope(18, weight: .bold))
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                    Spacer()
-                    Text("v0.1.0")
-                        .font(Theme.Fonts.manrope(12))
-                        .foregroundStyle(Theme.Colors.textMuted)
-                }
-
                 Text("A zero-backend personal intelligence dashboard. Aggregates four data streams into one home screen.")
                     .font(Theme.Fonts.manrope(13))
                     .foregroundStyle(Theme.Colors.textSecondary)
@@ -137,7 +163,10 @@ struct SettingsView: View {
 
     private func clearCache() async {
         await cacheStore.clearAll()
-        cacheAges = [:]
+        // Refresh ages immediately after clearing
+        cacheAges = ["cache_madrid": "Cleared", "cache_pogo": "Cleared", "cache_github": "Cleared", "cache_aiintel": "Cleared"]
+        try? await Task.sleep(for: .seconds(2))
+        await loadCacheAges()
     }
 }
 

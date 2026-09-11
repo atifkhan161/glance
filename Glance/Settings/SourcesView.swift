@@ -5,6 +5,8 @@ struct SourcesView: View {
     @State private var showExaKey = false
     @State private var showGeminiKey = false
     @State private var saveSuccess = false
+    @State private var isSaving = false
+    @State private var aiAvailable: Bool?
 
     var body: some View {
         ScrollView {
@@ -41,13 +43,20 @@ struct SourcesView: View {
                 Button {
                     saveKeys()
                 } label: {
-                    Text("Save Keys")
-                        .font(Theme.Fonts.manrope(14, weight: .semibold))
-                        .foregroundStyle(Theme.Colors.canvas)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(Theme.Colors.accent, in: RoundedRectangle(cornerRadius: 12))
+                    HStack {
+                        if isSaving {
+                            ProgressView()
+                                .tint(Theme.Colors.canvas)
+                        }
+                        Text(isSaving ? "Saving..." : "Save Keys")
+                            .font(Theme.Fonts.manrope(14, weight: .semibold))
+                    }
+                    .foregroundStyle(Theme.Colors.canvas)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(isSaving ? Theme.Colors.textMuted : Theme.Colors.accent, in: RoundedRectangle(cornerRadius: 12))
                 }
+                .disabled(isSaving)
 
                 if saveSuccess {
                     HStack(spacing: 6) {
@@ -57,6 +66,7 @@ struct SourcesView: View {
                     .font(Theme.Fonts.manrope(12))
                     .foregroundStyle(.green)
                     .frame(maxWidth: .infinity, alignment: .center)
+                    .transition(.opacity)
                 }
 
                 // Footer
@@ -83,7 +93,7 @@ struct SourcesView: View {
         .background(Theme.canvas)
         .navigationTitle("Sources")
         .navigationBarTitleDisplayMode(.large)
-        .onAppear {
+        .task {
             store.loadFromKeychain()
         }
     }
@@ -257,14 +267,14 @@ struct SourcesView: View {
 
             HStack {
                 Circle()
-                    .fill(.green)
+                    .fill(aiAvailable == true ? .green : aiAvailable == false ? Theme.Colors.cardAmber : Theme.Colors.textMuted)
                     .frame(width: 8, height: 8)
-                Text("Active")
+                Text(aiAvailable == true ? "Active" : aiAvailable == false ? "Unavailable" : "Checking...")
                     .font(Theme.Fonts.manrope(13, weight: .medium))
-                    .foregroundStyle(.green)
+                    .foregroundStyle(aiAvailable == true ? .green : Theme.Colors.textSecondary)
                 Spacer()
                 Button("Re-check") {
-                    // Re-check availability
+                    Task { await checkAIAvailability() }
                 }
                 .font(Theme.Fonts.manrope(12))
                 .foregroundStyle(Theme.Colors.accent)
@@ -278,14 +288,31 @@ struct SourcesView: View {
         }
     }
 
-    // MARK: - Save
+    // MARK: - Helpers
 
     private func saveKeys() {
-        store.saveToKeychain()
-        saveSuccess = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-            saveSuccess = false
+        isSaving = true
+        saveSuccess = false
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            store.saveToKeychain()
+            isSaving = false
+            saveSuccess = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                saveSuccess = false
+            }
         }
+    }
+
+    private func checkAIAvailability() async {
+        aiAvailable = nil
+        // Simulate a brief check delay
+        try? await Task.sleep(for: .seconds(0.5))
+        #if canImport(FoundationModels)
+            aiAvailable = true
+        #else
+            aiAvailable = false
+        #endif
     }
 }
 
