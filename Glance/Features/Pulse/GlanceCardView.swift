@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct GlanceCardView: View {
+    @Environment(AppState.self) private var appState
     let card: CardID
     let store: PulseStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -329,22 +330,28 @@ struct GlanceCardView: View {
 
             // MM Articles preview
             ForEach(data.mmArticles.prefix(3)) { article in
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(article.title)
-                            .font(Theme.Fonts.manrope(13, weight: .semibold))
-                            .foregroundStyle(Theme.Colors.textPrimary)
-                            .lineLimit(2)
-                        Text("\(article.author) · \(article.category)")
-                            .font(Theme.Fonts.manrope(11))
+                Button {
+                    appState.pulsePath.append(article)
+                } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(article.title)
+                                .font(Theme.Fonts.manrope(13, weight: .semibold))
+                                .foregroundStyle(Theme.Colors.textPrimary)
+                                .lineLimit(2)
+                            Text("\(article.author) · \(article.category)")
+                                .font(Theme.Fonts.manrope(11))
+                                .foregroundStyle(Theme.Colors.textMuted)
+                        }
+                        Spacer()
+                        Image(systemName: "arrow.up.right")
+                            .font(.caption)
                             .foregroundStyle(Theme.Colors.textMuted)
                     }
-                    Spacer()
-                    Image(systemName: "arrow.up.right")
-                        .font(.caption)
-                        .foregroundStyle(Theme.Colors.textMuted)
                 }
+                .buttonStyle(.plain)
                 .padding(.horizontal, Theme.cardPadding)
+                .accessibilityLabel("Read \(article.title)")
             }
         }
     }
@@ -398,27 +405,33 @@ struct GlanceCardView: View {
 
             // Events preview
             ForEach(data.events.prefix(4)) { event in
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(event.name)
-                            .font(Theme.Fonts.manrope(13, weight: .semibold))
-                            .foregroundStyle(Theme.Colors.textPrimary)
-                            .lineLimit(1)
-                        if let heading = event.heading {
-                            Text(heading)
-                                .font(Theme.Fonts.manrope(11))
-                                .foregroundStyle(Theme.Colors.textMuted)
+                Button {
+                    appState.pulsePath.append(event)
+                } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(event.name)
+                                .font(Theme.Fonts.manrope(13, weight: .semibold))
+                                .foregroundStyle(Theme.Colors.textPrimary)
                                 .lineLimit(1)
+                            if let heading = event.heading {
+                                Text(heading)
+                                    .font(Theme.Fonts.manrope(11))
+                                    .foregroundStyle(Theme.Colors.textMuted)
+                                    .lineLimit(1)
+                            }
+                        }
+                        Spacer()
+                        if let end = event.end {
+                            Text(TimeFormat.endsIn(ISO8601DateFormatter().date(from: end) ?? Date.now))
+                                .font(Theme.Fonts.manrope(11))
+                                .foregroundStyle(card.accentColor)
                         }
                     }
-                    Spacer()
-                    if let end = event.end {
-                        Text(TimeFormat.endsIn(ISO8601DateFormatter().date(from: end) ?? Date.now))
-                            .font(Theme.Fonts.manrope(11))
-                            .foregroundStyle(card.accentColor)
-                    }
                 }
+                .buttonStyle(.plain)
                 .padding(.horizontal, Theme.cardPadding)
+                .accessibilityLabel("Open \(event.name)")
             }
 
             // Credit
@@ -484,7 +497,13 @@ struct GlanceCardView: View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             VStack(alignment: .leading, spacing: 10) {
                 ForEach(Array(data.repos.prefix(3))) { item in
-                    githubPreviewRow(item)
+                    Button {
+                        appState.pulsePath.append(item)
+                    } label: {
+                        githubPreviewRow(item)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Open \(item.repo.fullName)")
                 }
             }
             .padding(.horizontal, Theme.cardPadding)
@@ -579,7 +598,10 @@ struct GlanceCardView: View {
     private func aiIntelContent(_ data: AiIntelData) -> some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             ForEach(data.items) { item in
-                VStack(alignment: .leading, spacing: 6) {
+                Button {
+                    appState.pulsePath.append(item)
+                } label: {
+                    VStack(alignment: .leading, spacing: 6) {
                     HStack {
                         Text(item.tag)
                             .font(Theme.Fonts.manrope(10, weight: .bold))
@@ -618,8 +640,11 @@ struct GlanceCardView: View {
                             }
                         }
                     }
+                    }
                 }
+                .buttonStyle(.plain)
                 .padding(Theme.cardPadding)
+                .accessibilityLabel("Read \(item.headline)")
             }
         }
     }
@@ -745,4 +770,5 @@ private func ageColor(for age: String) -> Color {
     NavigationStack {
         GlanceCardView(card: .madrid, store: PulseStore())
     }
+    .environment(AppState())
 }

@@ -11,17 +11,17 @@ struct ContentView: View {
             Group {
                 switch bindable.selectedTab {
                 case .pulse:
-                    NavigationStack { PulseView(store: store) }
+                    NavigationStack(path: $bindable.pulsePath) { PulseView(store: store) }
                 case .madrid:
-                    NavigationStack { MadridHubView(store: store) }
+                    NavigationStack(path: $bindable.madridPath) { MadridHubView(store: store) }
                 case .pogo:
-                    NavigationStack { PoGoHubView(store: store) }
+                    NavigationStack(path: $bindable.pogoPath) { PoGoHubView(store: store) }
                 case .github:
-                    NavigationStack { GitHubHubView(store: store) }
+                    NavigationStack(path: $bindable.githubPath) { GitHubHubView(store: store) }
                 case .sources:
-                    NavigationStack { SourcesView() }
+                    NavigationStack(path: $bindable.sourcesPath) { SourcesView() }
                 case .settings:
-                    NavigationStack { SettingsView() }
+                    NavigationStack(path: $bindable.settingsPath) { SettingsView() }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -57,7 +57,7 @@ struct ContentView: View {
 
         return Button {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                selection.wrappedValue = tab
+                appState.selectTab(tab)
             }
         } label: {
             VStack(spacing: 3) {

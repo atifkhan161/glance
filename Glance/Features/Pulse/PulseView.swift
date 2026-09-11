@@ -1,13 +1,19 @@
 import SwiftUI
 
 struct PulseView: View {
+    @Environment(AppState.self) private var appState
     let store: PulseStore
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 16) {
                 ForEach(CardID.allCases, id: \.self) { card in
-                    GlanceCardView(card: card, store: store)
+                    Button {
+                        appState.pulsePath.append(card)
+                    } label: {
+                        GlanceCardView(card: card, store: store)
+                    }
+                    .buttonStyle(.plain)
                         .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: 16))
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
@@ -44,6 +50,21 @@ struct PulseView: View {
         .navigationDestination(for: CardID.self) { card in
             hubView(for: card)
         }
+        .navigationDestination(for: MMArticle.self) { article in
+            MadridArticleView(article: article)
+        }
+        .navigationDestination(for: PoGoRaid.self) { raid in
+            RaidDetailView(raid: raid)
+        }
+        .navigationDestination(for: PoGoEvent.self) { event in
+            EventDetailView(event: event)
+        }
+        .navigationDestination(for: GitHubRepoWithVelocity.self) { repo in
+            RepoDetailView(repository: repo)
+        }
+        .navigationDestination(for: AiIntelArticle.self) { article in
+            AiIntelArticleView(article: article)
+        }
         .task {
             await store.loadFromCache()
             if store.needsRefresh {
@@ -69,4 +90,5 @@ struct PulseView: View {
 
 #Preview {
     NavigationStack { PulseView(store: PulseStore()) }
+        .environment(AppState())
 }
