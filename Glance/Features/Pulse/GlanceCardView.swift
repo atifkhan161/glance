@@ -6,7 +6,7 @@ struct GlanceCardView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        ScrollView {
+        ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
                 cardHeader
                 cardBody
@@ -20,7 +20,6 @@ struct GlanceCardView: View {
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentAge)
         }
         .background(Theme.canvas)
-        .scrollIndicators(.hidden)
     }
 
     // MARK: - Header

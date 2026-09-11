@@ -6,31 +6,37 @@ struct PulseView: View {
 
     var body: some View {
         @Bindable var bindable = store
-        ZStack(alignment: .bottom) {
-            TabView(selection: $bindable.currentCard) {
-                GlanceCardView(card: .madrid, store: store)
-                    .tag(CardID.madrid)
-                GlanceCardView(card: .pogo, store: store)
-                    .tag(CardID.pogo)
-                GlanceCardView(card: .github, store: store)
-                    .tag(CardID.github)
-                GlanceCardView(card: .aiIntel, store: store)
-                    .tag(CardID.aiIntel)
-            }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .background(Theme.canvas)
-            .gesture(
-                DragGesture(minimumDistance: 30, coordinateSpace: .local)
-                    .onEnded { value in
-                        if value.translation.height < -50 {
-                            navigateToCurrentHub()
+        GeometryReader { geo in
+            ZStack(alignment: .bottom) {
+                ScrollView(.vertical, showsIndicators: false) {
+                    LazyVStack(spacing: 0) {
+                        ForEach(CardID.allCases, id: \.self) { card in
+                            GlanceCardView(card: card, store: store)
+                                .frame(width: geo.size.width, height: geo.size.height)
+                                .id(card)
                         }
                     }
-            )
+                    .scrollTargetLayout()
+                }
+                .scrollPosition(id: Binding<CardID?>(
+                    get: { bindable.currentCard },
+                    set: { if let newCard = $0 { bindable.currentCard = newCard } }
+                ))
+                .scrollTargetBehavior(.paging)
+                .background(Theme.canvas)
 
-            // Page indicator dots
-            pageIndicator
+                VStack(spacing: 6) {
+                    if bindable.currentCard != CardID.allCases.last {
+                        Image(systemName: "chevron.up")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Theme.Colors.textMuted.opacity(0.6))
+                            .transition(.opacity)
+                    }
+
+                    pageIndicator
+                }
                 .padding(.bottom, 12)
+            }
         }
         .navigationTitle("Glance")
         .navigationBarTitleDisplayMode(.inline)
@@ -59,13 +65,6 @@ struct PulseView: View {
             await store.loadFromCache()
             await store.refreshAll()
         }
-    }
-
-    // MARK: - Swipe-up Hub Navigation
-
-    private func navigateToCurrentHub() {
-        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-        impactFeedback.impactOccurred()
     }
 
     // MARK: - Page Indicator Dots
