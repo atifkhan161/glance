@@ -7,44 +7,24 @@ struct ContentView: View {
     var body: some View {
         @Bindable var bindable = appState
         ZStack(alignment: .bottom) {
-            // Tab content
-            TabView(selection: $bindable.selectedTab) {
-                Tab(value: GlanceTab.pulse) {
-                    NavigationStack {
-                        PulseView(store: store)
-                    }
-                }
-
-                Tab(value: GlanceTab.madrid) {
-                    NavigationStack {
-                        MadridHubView(store: store)
-                    }
-                }
-
-                Tab(value: GlanceTab.pogo) {
-                    NavigationStack {
-                        PoGoHubView(store: store)
-                    }
-                }
-
-                Tab(value: GlanceTab.github) {
-                    NavigationStack {
-                        GitHubHubView(store: store)
-                    }
-                }
-
-                Tab(value: GlanceTab.sources) {
-                    NavigationStack {
-                        SourcesView()
-                    }
-                }
-
-                Tab(value: GlanceTab.settings) {
-                    NavigationStack {
-                        SettingsView()
-                    }
+            // Tab content (no TabView — avoids system tab bar)
+            Group {
+                switch bindable.selectedTab {
+                case .pulse:
+                    NavigationStack { PulseView(store: store) }
+                case .madrid:
+                    NavigationStack { MadridHubView(store: store) }
+                case .pogo:
+                    NavigationStack { PoGoHubView(store: store) }
+                case .github:
+                    NavigationStack { GitHubHubView(store: store) }
+                case .sources:
+                    NavigationStack { SourcesView() }
+                case .settings:
+                    NavigationStack { SettingsView() }
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             // Floating pill dock
             floatingDock(selection: $bindable.selectedTab)
