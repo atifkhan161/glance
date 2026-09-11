@@ -70,7 +70,7 @@ struct SourcesView: View {
                         Text("Keys saved successfully")
                     }
                     .font(Theme.Fonts.manrope(12))
-                    .foregroundStyle(.green)
+                    .foregroundStyle(Theme.Colors.success)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .transition(.opacity)
                 }
@@ -99,7 +99,7 @@ struct SourcesView: View {
             .padding(Theme.cardPadding)
             .padding(.bottom, 100)
         }
-        .background(Theme.canvas)
+        .glanceBackground()
         .navigationTitle("Sources")
         .navigationBarTitleDisplayMode(.large)
         .task {
@@ -206,7 +206,7 @@ struct SourcesView: View {
         var color: Color {
             switch self {
             case .missing: Theme.Colors.cardAmber
-            case .configured: .green
+            case .configured: Theme.Colors.success
             case .fromEnv: Theme.Colors.textMuted
             }
         }
@@ -298,11 +298,11 @@ struct SourcesView: View {
 
             HStack {
                 Circle()
-                    .fill(aiAvailable == true ? .green : aiAvailable == false ? Theme.Colors.cardAmber : Theme.Colors.textMuted)
+                    .fill(aiAvailable == true ? Theme.Colors.success : aiAvailable == false ? Theme.Colors.cardAmber : Theme.Colors.textMuted)
                     .frame(width: 8, height: 8)
                 Text(aiAvailable == true ? "Active" : aiAvailable == false ? "Unavailable" : "Checking...")
                     .font(Theme.Fonts.manrope(13, weight: .medium))
-                    .foregroundStyle(aiAvailable == true ? .green : Theme.Colors.textSecondary)
+                    .foregroundStyle(aiAvailable == true ? Theme.Colors.success : Theme.Colors.textSecondary)
                 Spacer()
                 Button("Re-check") {
                     Task { await checkAIAvailability() }

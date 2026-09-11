@@ -57,7 +57,7 @@ struct RepoDetailView: View {
                     GridItem(.flexible()),
                     GridItem(.flexible())
                 ], spacing: 12) {
-                    statCell("Stars", value: "\(repository.repo.stars)", icon: "star.fill", color: .yellow)
+                    statCell("Stars", value: "\(repository.repo.stars)", icon: "star.fill", color: Theme.Colors.starGold)
                     statCell("Forks", value: "\(repository.repo.forks)", icon: "tuningfork", color: Theme.Colors.cardEmerald)
                     statCell("Issues", value: "\(repository.repo.openIssues)", icon: "exclamationmark.circle", color: Theme.Colors.cardAmber)
                     statCell("Watchers", value: "\(repository.repo.watchers)", icon: "eye", color: Theme.Colors.cardCyan)
@@ -140,7 +140,7 @@ struct RepoDetailView: View {
             .padding(Theme.cardPadding)
             .padding(.bottom, 100)
         }
-        .background(Theme.canvas)
+        .glanceBackground()
         .navigationTitle(repository.repo.fullName)
         .navigationBarTitleDisplayMode(.inline)
     }

@@ -27,7 +27,7 @@ struct SettingsView: View {
             .padding(Theme.cardPadding)
             .padding(.bottom, 100)
         }
-        .background(Theme.canvas)
+        .glanceBackground()
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.large)
         .task {

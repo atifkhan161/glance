@@ -7,15 +7,15 @@ struct SkeletonView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             RoundedRectangle(cornerRadius: 4)
-                .fill(.gray.opacity(0.2))
+                .fill(Theme.Colors.textMuted.opacity(0.2))
                 .frame(height: 20)
                 .frame(maxWidth: .infinity, alignment: .leading)
             RoundedRectangle(cornerRadius: 4)
-                .fill(.gray.opacity(0.2))
+                .fill(Theme.Colors.textMuted.opacity(0.2))
                 .frame(height: 16)
                 .frame(maxWidth: 200)
             RoundedRectangle(cornerRadius: 4)
-                .fill(.gray.opacity(0.2))
+                .fill(Theme.Colors.textMuted.opacity(0.2))
                 .frame(height: 16)
                 .frame(maxWidth: 160)
         }

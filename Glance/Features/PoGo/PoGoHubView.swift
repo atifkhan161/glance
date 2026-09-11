@@ -23,7 +23,7 @@ struct PoGoHubView: View {
             }
             .padding(.bottom, 100)
         }
-        .background(Theme.canvas)
+        .glanceBackground()
         .navigationTitle("Pokémon GO")
         .navigationBarTitleDisplayMode(.large)
         .refreshable {
@@ -236,8 +236,8 @@ struct PoGoHubView: View {
     }
 
     private func tierBadgeColor(_ raid: PoGoRaid) -> Color {
-        if raid.isMega { return .purple }
-        if raid.isShadow { return .red }
+        if raid.isMega { return Theme.Colors.tierPurple }
+        if raid.isShadow { return Theme.Colors.error }
         if raid.isFiveStar { return Theme.Colors.cardRose }
         return Theme.Colors.textMuted
     }

@@ -70,7 +70,7 @@ struct MadridArticleView: View {
             .padding(Theme.cardPadding)
             .padding(.bottom, 100)
         }
-        .background(Theme.canvas)
+        .glanceBackground()
         .navigationTitle("Article")
         .navigationBarTitleDisplayMode(.inline)
     }

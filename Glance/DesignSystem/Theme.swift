@@ -22,7 +22,11 @@ enum Theme {
 
     enum Colors {
         static let canvas = Color("Canvas")
-        static let canvasDeep = Color(red: 0.04, green: 0.055, blue: 0.094) // #0A0E18
+        static let canvasDeep = Color(uiColor: UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(red: 0.04, green: 0.055, blue: 0.094, alpha: 1)
+                : UIColor(red: 0.929, green: 0.941, blue: 0.957, alpha: 1)
+        })
         static let surface1 = Color("Surface1")
         static let surface2 = Color("Surface2")
         static let surface3 = Color("Surface3")
@@ -36,6 +40,26 @@ enum Theme {
         static let cardEmerald = Color("CardEmerald")
         static let cardCyan = Color("CardCyan")
         static let error = Color("Error")
+        static let success = Color(uiColor: UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(red: 0.204, green: 0.827, blue: 0.600, alpha: 1)
+                : UIColor(red: 0.024, green: 0.588, blue: 0.412, alpha: 1)
+        })
+        static let warning = Color(uiColor: UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(red: 0.961, green: 0.651, blue: 0.137, alpha: 1)
+                : UIColor(red: 0.706, green: 0.325, blue: 0.035, alpha: 1)
+        })
+        static let starGold = Color(uiColor: UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(red: 0.98, green: 0.80, blue: 0.20, alpha: 1)
+                : UIColor(red: 0.72, green: 0.45, blue: 0.02, alpha: 1)
+        })
+        static let tierPurple = Color(uiColor: UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(red: 0.66, green: 0.48, blue: 1.0, alpha: 1)
+                : UIColor(red: 0.42, green: 0.24, blue: 0.80, alpha: 1)
+        })
     }
 
     enum Fonts {
@@ -152,6 +176,24 @@ struct CardEntranceModifier: ViewModifier {
                     : .opacity.combined(with: .move(edge: .trailing).combined(with: .scale(scale: 0.95))),
                 removal: .opacity
             ))
+    }
+}
+
+extension Theme {
+    /// Paints both the view and the scroll-view / nav-bar backdrop so
+    /// NavigationStack screens use the themed canvas in light + dark.
+    static func themedBackground() -> some View {
+        Theme.canvas.ignoresSafeArea()
+    }
+}
+
+extension View {
+    func glanceBackground() -> some View {
+        self
+            .scrollContentBackground(.hidden)
+            .toolbarBackground(Theme.canvas, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .background(Theme.canvas.ignoresSafeArea())
     }
 }
 

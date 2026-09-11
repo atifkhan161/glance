@@ -676,9 +676,9 @@ struct GlanceCardView: View {
     }
 
     private func formColor(_ result: String) -> Color {
-        if result.hasPrefix("W") { return .green }
-        if result.hasPrefix("D") { return .yellow }
-        return .red
+        if result.hasPrefix("W") { return Theme.Colors.success }
+        if result.hasPrefix("D") { return Theme.Colors.warning }
+        return Theme.Colors.error
     }
 }
 
@@ -719,8 +719,8 @@ private func ageColor(for age: String) -> Color {
     let lower = age.lowercased()
     if lower.contains("just now") || lower.contains("min") {
         let minutes = Int(lower.components(separatedBy: " ").first ?? "0") ?? 0
-        if minutes < 5 { return .green }
-        if minutes < 30 { return Theme.Colors.cardAmber }
+        if minutes < 5 { return Theme.Colors.success }
+        if minutes < 30 { return Theme.Colors.warning }
     }
     return Theme.Colors.error
 }

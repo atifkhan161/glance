@@ -153,7 +153,7 @@ struct AiIntelArticleView: View {
             .padding(Theme.cardPadding)
             .padding(.bottom, 100)
         }
-        .background(Theme.canvas)
+        .glanceBackground()
         .navigationTitle("AI Intel")
         .navigationBarTitleDisplayMode(.inline)
     }

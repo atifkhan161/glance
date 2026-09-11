@@ -19,7 +19,7 @@ struct MadridHubView: View {
             }
             .padding(.bottom, 100)
         }
-        .background(Theme.canvas)
+        .glanceBackground()
         .navigationTitle("Real Madrid")
         .navigationBarTitleDisplayMode(.large)
         .refreshable {
@@ -184,7 +184,7 @@ struct MadridHubView: View {
                         ForEach(match.cards, id: \.minute) { card in
                             HStack(spacing: 2) {
                                 Circle()
-                                    .fill(card.type == "yellowCard" ? Color.yellow : Color.red)
+                                    .fill(card.type == "yellowCard" ? Theme.Colors.warning : Theme.Colors.error)
                                     .frame(width: 8, height: 8)
                                 Text("\(card.player) \(card.minute)'")
                             }
@@ -506,9 +506,9 @@ struct MadridHubView: View {
     }
 
     private func formColor(_ result: String) -> Color {
-        if result.hasPrefix("W") { return .green }
-        if result.hasPrefix("D") { return .yellow }
-        return .red
+        if result.hasPrefix("W") { return Theme.Colors.success }
+        if result.hasPrefix("D") { return Theme.Colors.warning }
+        return Theme.Colors.error
     }
 }
 

@@ -137,7 +137,7 @@ struct RaidDetailView: View {
             .padding(Theme.cardPadding)
             .padding(.bottom, 100)
         }
-        .background(Theme.canvas)
+        .glanceBackground()
         .navigationTitle(raid.name)
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -152,8 +152,8 @@ struct RaidDetailView: View {
     }
 
     private var tierColor: Color {
-        if raid.isMega { return .purple }
-        if raid.isShadow { return .red }
+        if raid.isMega { return Theme.Colors.tierPurple }
+        if raid.isShadow { return Theme.Colors.error }
         if raid.isFiveStar { return Theme.Colors.cardRose }
         return Theme.Colors.textMuted
     }

@@ -68,7 +68,7 @@ struct EventDetailView: View {
             .padding(Theme.cardPadding)
             .padding(.bottom, 100)
         }
-        .background(Theme.canvas)
+        .glanceBackground()
         .navigationTitle(event.name)
         .navigationBarTitleDisplayMode(.inline)
     }

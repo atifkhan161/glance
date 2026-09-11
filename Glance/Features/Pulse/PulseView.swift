@@ -15,7 +15,7 @@ struct PulseView: View {
             .padding(.vertical, 8)
             .padding(.bottom, 100)
         }
-        .background(Theme.canvas)
+        .glanceBackground()
         .navigationTitle("Glance")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

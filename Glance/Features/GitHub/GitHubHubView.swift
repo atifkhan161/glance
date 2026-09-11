@@ -27,7 +27,7 @@ struct GitHubHubView: View {
             }
             .padding(.bottom, 100)
         }
-        .background(Theme.canvas)
+        .glanceBackground()
         .navigationTitle("GitHub Trending")
         .navigationBarTitleDisplayMode(.large)
         .refreshable {
@@ -149,7 +149,7 @@ struct GitHubHubView: View {
                     // Stars
                     HStack(spacing: 3) {
                         Image(systemName: "star.fill")
-                            .foregroundStyle(.yellow)
+                            .foregroundStyle(Theme.Colors.starGold)
                         Text(TimeFormat.stars(item.repo.stars))
                     }
                     .font(Theme.Fonts.manrope(12))

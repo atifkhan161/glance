@@ -19,7 +19,7 @@ struct AiIntelHubView: View {
             }
             .padding(.bottom, 100)
         }
-        .background(Theme.canvas)
+        .glanceBackground()
         .navigationTitle("AI Intel")
         .navigationBarTitleDisplayMode(.large)
         .refreshable {
