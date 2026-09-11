@@ -2,42 +2,19 @@ import SwiftUI
 
 struct PulseView: View {
     let store: PulseStore
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        @Bindable var bindable = store
-        GeometryReader { geo in
-            ZStack(alignment: .bottom) {
-                ScrollView(.vertical, showsIndicators: false) {
-                    LazyVStack(spacing: 0) {
-                        ForEach(CardID.allCases, id: \.self) { card in
-                            GlanceCardView(card: card, store: store)
-                                .frame(width: geo.size.width, height: geo.size.height)
-                                .id(card)
-                        }
-                    }
-                    .scrollTargetLayout()
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: 16) {
+                ForEach(CardID.allCases, id: \.self) { card in
+                    GlanceCardView(card: card, store: store)
+                        .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: 16))
+                        .padding(.horizontal, 12)
                 }
-                .scrollPosition(id: Binding<CardID?>(
-                    get: { bindable.currentCard },
-                    set: { if let newCard = $0 { bindable.currentCard = newCard } }
-                ))
-                .scrollTargetBehavior(.paging)
-                .background(Theme.canvas)
-
-                VStack(spacing: 6) {
-                    if bindable.currentCard != CardID.allCases.last {
-                        Image(systemName: "chevron.up")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(Theme.Colors.textMuted.opacity(0.6))
-                            .transition(.opacity)
-                    }
-
-                    pageIndicator
-                }
-                .padding(.bottom, 12)
             }
+            .padding(.vertical, 8)
         }
+        .background(Theme.canvas)
         .navigationTitle("Glance")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -65,21 +42,6 @@ struct PulseView: View {
             await store.loadFromCache()
             await store.refreshAll()
         }
-    }
-
-    // MARK: - Page Indicator Dots
-
-    private var pageIndicator: some View {
-        HStack(spacing: 8) {
-            ForEach(CardID.allCases, id: \.self) { card in
-                Circle()
-                    .fill(store.currentCard == card ? card.accentColor : Theme.Colors.textMuted.opacity(0.4))
-                    .frame(width: store.currentCard == card ? 8 : 6, height: store.currentCard == card ? 8 : 6)
-                    .animation(.spring(response: 0.3), value: store.currentCard)
-            }
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Page \(CardID.allCases.firstIndex(of: store.currentCard)! + 1) of \(CardID.allCases.count)")
     }
 
     @ViewBuilder

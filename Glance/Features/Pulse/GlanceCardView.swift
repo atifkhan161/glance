@@ -6,20 +6,17 @@ struct GlanceCardView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 0) {
-                cardHeader
-                cardBody
-                    .transition(reduceMotion ? .opacity : .asymmetric(
-                        insertion: .opacity.combined(with: .move(edge: .trailing)),
-                        removal: .opacity
-                    ))
-                cardFooter
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentAge)
+        VStack(alignment: .leading, spacing: 0) {
+            cardHeader
+            cardBody
+                .transition(reduceMotion ? .opacity : .asymmetric(
+                    insertion: .opacity.combined(with: .move(edge: .trailing)),
+                    removal: .opacity
+                ))
+            cardFooter
         }
-        .background(Theme.canvas)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentAge)
     }
 
     // MARK: - Header
@@ -225,7 +222,7 @@ struct GlanceCardView: View {
             }
 
             // MM Articles preview
-            ForEach(data.mmArticles.prefix(3)) { article in
+            ForEach(data.mmArticles.prefix(5)) { article in
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(article.title)
@@ -294,7 +291,7 @@ struct GlanceCardView: View {
             }
 
             // Events preview
-            ForEach(data.events.prefix(2)) { event in
+            ForEach(data.events.prefix(4)) { event in
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(event.name)
@@ -379,7 +376,7 @@ struct GlanceCardView: View {
 
     private func githubContent(_ data: GitHubData) -> some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
-            ForEach(data.repos.prefix(5)) { item in
+            ForEach(data.repos.prefix(7)) { item in
                 HStack(spacing: 10) {
                     CachedAsyncImage(url: URL(string: item.repo.ownerAvatar)) { image in
                         image.resizable().scaledToFit()

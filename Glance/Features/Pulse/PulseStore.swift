@@ -28,7 +28,6 @@ final class PulseStore {
     var pogo: CardState<PoGoData> = .loading
     var github: CardState<GitHubData> = .loading
     var aiIntel: CardState<AiIntelData> = .loading
-    var currentCard: CardID = .madrid
 
     var freshestCacheAge: String {
         [madridAge, pogoAge, githubAge, aiIntelAge]
