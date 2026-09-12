@@ -54,8 +54,16 @@ struct PulseView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                PulseDot(color: Theme.Colors.cardEmerald)
-                    .accessibilityHidden(true)
+                if let appIcon = UIApplication.shared.appIcon {
+                    Image(uiImage: appIcon)
+                        .resizable()
+                        .frame(width: 32, height: 32)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .accessibilityHidden(true)
+                } else {
+                    PulseDot(color: Theme.Colors.cardEmerald)
+                        .accessibilityHidden(true)
+                }
             }
 
             ToolbarItem(placement: .topBarTrailing) {

@@ -42,17 +42,30 @@ struct MadridHubView: View {
                     .padding(Theme.cardPadding)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                    if let badgeURL = standing.badge, let url = URL(string: badgeURL) {
-                        CachedAsyncImage(url: url) { image in
-                            image.resizable().scaledToFit()
-                        } placeholder: {
-                            EmptyView()
+                    HStack {
+                        Spacer()
+
+                        if let rmBadgeURL = data.fixture?.rmBadge ?? data.lastMatch?.rmBadge,
+                           let url = URL(string: rmBadgeURL) {
+                            CachedAsyncImage(url: url) { image in
+                                image.resizable().scaledToFit()
+                            } placeholder: {
+                                EmptyView()
+                            }
+                            .frame(width: 80, height: 80)
                         }
-                        .frame(width: 64, height: 64)
-                        .padding(Theme.cardPadding)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                        .padding(.top, Theme.cardPadding)
+
+                        if let badgeURL = standing.badge, let url = URL(string: badgeURL) {
+                            CachedAsyncImage(url: url) { image in
+                                image.resizable().scaledToFit()
+                            } placeholder: {
+                                EmptyView()
+                            }
+                            .frame(width: 48, height: 48)
+                        }
                     }
+                    .padding(Theme.cardPadding)
+                    .padding(.top, Theme.cardPadding)
                 }
                 .padding(.horizontal, Theme.cardPadding)
             }

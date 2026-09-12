@@ -31,16 +31,25 @@ struct PoGoHubView: View {
                             .font(Theme.Fonts.scale(.title1))
                             .foregroundStyle(Theme.Colors.cardRose)
 
-                        if let spriteURL = priority.image, let url = URL(string: spriteURL) {
-                            CachedAsyncImage(url: url) { image in
-                                image.resizable().scaledToFit()
-                            } placeholder: {
-                                EmptyView()
+                        HStack(alignment: .bottom, spacing: 16) {
+                            if let spriteURL = priority.image, let url = URL(string: spriteURL) {
+                                CachedAsyncImage(url: url) { image in
+                                    image.resizable().scaledToFit()
+                                } placeholder: {
+                                    EmptyView()
+                                }
+                                .frame(width: 140, height: 140)
                             }
-                            .frame(width: 100, height: 100)
-                        }
 
-                        BadgePill(text: tierBadgeText(priority), color: Theme.Colors.cardRose)
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(priority.name)
+                                    .font(Theme.Fonts.scale(.title3))
+                                    .foregroundStyle(Theme.Colors.textPrimary)
+                                    .lineLimit(2)
+
+                                BadgePill(text: tierBadgeText(priority), color: Theme.Colors.cardRose)
+                            }
+                        }
 
                         if let cp = priority.combatPower,
                            let normal = cp.normal,
