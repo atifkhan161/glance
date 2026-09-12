@@ -3,6 +3,8 @@ import SwiftUI
 struct ContentView: View {
     @Environment(AppState.self) private var appState
     @State private var store = PulseStore()
+    @State private var scrollCoordinator = ScrollCoordinator()
+    @Namespace private var dockNamespace
 
     var body: some View {
         @Bindable var bindable = appState
@@ -12,16 +14,22 @@ struct ContentView: View {
                 switch bindable.selectedTab {
                 case .pulse:
                     NavigationStack(path: $bindable.pulsePath) { PulseView(store: store) }
+                        .tint(Theme.Colors.accent)
                 case .madrid:
                     NavigationStack(path: $bindable.madridPath) { MadridHubView(store: store) }
+                        .tint(Theme.Colors.accent)
                 case .pogo:
                     NavigationStack(path: $bindable.pogoPath) { PoGoHubView(store: store) }
+                        .tint(Theme.Colors.accent)
                 case .github:
                     NavigationStack(path: $bindable.githubPath) { GitHubHubView(store: store) }
+                        .tint(Theme.Colors.accent)
                 case .sources:
                     NavigationStack(path: $bindable.sourcesPath) { SourcesView() }
+                        .tint(Theme.Colors.accent)
                 case .settings:
                     NavigationStack(path: $bindable.settingsPath) { SettingsView() }
+                        .tint(Theme.Colors.accent)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -29,8 +37,12 @@ struct ContentView: View {
             // Floating pill dock
             floatingDock(selection: $bindable.selectedTab)
                 .padding(.bottom, 8)
+                .offset(y: scrollCoordinator.dockHidden ? 80 : 0)
+                .opacity(scrollCoordinator.dockHidden ? 0 : 1)
+                .animation(.easeInOut(duration: 0.3), value: scrollCoordinator.dockHidden)
         }
         .ignoresSafeArea(.keyboard)
+        .environment(scrollCoordinator)
     }
 
     // MARK: - Floating Pill Dock
@@ -43,12 +55,22 @@ struct ContentView: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 10)
-        .background(.ultraThinMaterial, in: Capsule())
+        .background(
+            Group {
+                if #available(iOS 26, *) {
+                    Capsule()
+                        .glassEffect()
+                } else {
+                    Capsule()
+                        .fill(.ultraThinMaterial)
+                }
+            }
+        )
         .overlay(
             Capsule()
                 .stroke(Theme.Colors.borderSubtle.opacity(0.3), lineWidth: 1)
         )
-        .shadow(color: Theme.Colors.cardEmerald.opacity(selection.wrappedValue == .pulse ? 0.3 : 0), radius: 12, y: 4)
+        .shadow(color: selection.wrappedValue.accentColor.opacity(0.3), radius: 12, y: 4)
         .padding(.horizontal, 40)
     }
 
@@ -56,6 +78,7 @@ struct ContentView: View {
         let isSelected = selection.wrappedValue == tab
 
         return Button {
+            scrollCoordinator.onDockTapped()
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 appState.selectTab(tab)
             }
@@ -63,16 +86,21 @@ struct ContentView: View {
             VStack(spacing: 3) {
                 Image(systemName: tab.icon)
                     .font(.system(size: 18, weight: isSelected ? .bold : .medium))
-                    .foregroundStyle(isSelected ? tab.accentColor : Theme.Colors.textMuted)
+                    .foregroundStyle(isSelected ? tab.accentColor : Theme.Colors.textSecondary)
                     .frame(width: 48, height: 32)
                     .background(
-                        isSelected ? tab.accentColor.opacity(0.15) : .clear,
-                        in: Capsule()
+                        Group {
+                            if isSelected {
+                                Capsule()
+                                    .fill(tab.accentColor.opacity(0.15))
+                                    .matchedGeometryEffect(id: "dockPill", in: dockNamespace)
+                            }
+                        }
                     )
 
                 Text(tab.shortLabel)
-                    .font(Theme.Fonts.manrope(10, weight: isSelected ? .bold : .medium))
-                    .foregroundStyle(isSelected ? tab.accentColor : Theme.Colors.textMuted)
+                    .font(Theme.Fonts.manrope(isSelected ? 11 : 9, weight: isSelected ? .bold : .medium))
+                    .foregroundStyle(isSelected ? tab.accentColor : Theme.Colors.textSecondary)
             }
         }
         .accessibilityLabel(tab.accessibilityLabel)

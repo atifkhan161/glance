@@ -1,10 +1,62 @@
 import SwiftUI
 
 struct MadridHubView: View {
+    @Environment(ScrollCoordinator.self) private var scrollCoordinator
     let store: PulseStore
 
     var body: some View {
         ScrollView {
+            // Hero section
+            if case .ready(let data, _) = store.madrid, let standing = data.standing {
+                ZStack(alignment: .topLeading) {
+                    LinearGradient(
+                        colors: [Theme.Colors.cardAmber.opacity(0.3), Theme.Colors.canvas],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .frame(minHeight: 220)
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.hero))
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("REAL MADRID")
+                            .font(Theme.Fonts.scale(.title1))
+                            .foregroundStyle(Theme.Colors.cardAmber)
+
+                        Text(standing.badge != nil ? "La Liga" : "")
+                            .font(Theme.Fonts.scale(.callout))
+                            .foregroundStyle(Theme.Colors.textMuted)
+
+                        if let fixture = data.fixture,
+                           let scores = fixture.scores {
+                            Text("\(scores.home) - \(scores.away)")
+                                .font(Theme.Fonts.scale(.display))
+                                .foregroundStyle(Theme.Colors.textPrimary)
+                        }
+
+                        HStack(spacing: 16) {
+                            statItem(label: "PTS", value: "\(standing.points)")
+                            statItem(label: "W", value: "\(standing.won)")
+                            statItem(label: "L", value: "\(standing.lost)")
+                        }
+                    }
+                    .padding(Theme.cardPadding)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    if let badgeURL = standing.badge, let url = URL(string: badgeURL) {
+                        CachedAsyncImage(url: url) { image in
+                            image.resizable().scaledToFit()
+                        } placeholder: {
+                            EmptyView()
+                        }
+                        .frame(width: 64, height: 64)
+                        .padding(Theme.cardPadding)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .padding(.top, Theme.cardPadding)
+                    }
+                }
+                .padding(.horizontal, Theme.cardPadding)
+            }
+
             VStack(alignment: .leading, spacing: 20) {
                 switch store.madrid {
                 case .loading:
@@ -22,11 +74,18 @@ struct MadridHubView: View {
         .glanceBackground()
         .navigationTitle("Real Madrid")
         .navigationBarTitleDisplayMode(.large)
+        .overlay(alignment: .top) {
+            RefreshOverlay(
+                accentColor: Theme.Colors.cardAmber,
+                isActive: store.madrid == .loading
+            )
+            .padding(.top, 12)
+        }
         .refreshable {
             await store.refreshCard(.madrid)
         }
-        .navigationDestination(for: MMArticle.self) { article in
-            MadridArticleView(article: article)
+        .onScrollPhaseChange { _, newPhase in
+            scrollCoordinator.onScrollPhaseChanged(to: newPhase)
         }
     }
 
@@ -445,6 +504,26 @@ struct MadridHubView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Read \(article.title)")
+                .contextMenu {
+                    Button {
+                        if let url = URL(string: article.url) {
+                            UIPasteboard.general.string = url.absoluteString
+                        }
+                    } label: {
+                        Label("Copy Link", systemImage: "doc.on.doc")
+                    }
+                    Button {
+                        if let url = URL(string: article.url) {
+                            let avc = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+                            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                               let root = scene.windows.first?.rootViewController {
+                                root.present(avc, animated: true)
+                            }
+                        }
+                    } label: {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                    }
+                }
             }
         }
     }
@@ -476,6 +555,26 @@ struct MadridHubView: View {
                                 .foregroundStyle(Theme.Colors.textMuted)
                         }
                     }
+                    .contextMenu {
+                        Button {
+                            if let url = URL(string: article.url) {
+                                UIPasteboard.general.string = url.absoluteString
+                            }
+                        } label: {
+                            Label("Copy Link", systemImage: "doc.on.doc")
+                        }
+                        Button {
+                            if let url = URL(string: article.url) {
+                                let avc = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+                                if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                                   let root = scene.windows.first?.rootViewController {
+                                    root.present(avc, animated: true)
+                                }
+                            }
+                        } label: {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                        }
+                    }
                 }
             }
         }
@@ -485,8 +584,8 @@ struct MadridHubView: View {
 
     private var loadingSection: some View {
         VStack(spacing: 16) {
-            SkeletonView()
-            SkeletonView()
+            MadridSkeletonView()
+            MadridSkeletonView()
         }
     }
 

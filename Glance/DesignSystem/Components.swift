@@ -11,8 +11,7 @@ struct GlanceLoadingView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            ProgressView()
-                .tint(Theme.Colors.accent)
+            RefreshOverlay(accentColor: Theme.Colors.accent, isActive: true)
             if let message {
                 Text(message)
                     .font(Theme.Fonts.manrope(13))
@@ -119,6 +118,43 @@ struct GlanceEmptyView: View {
     }
 }
 
+// MARK: - Refresh Overlay
+
+struct RefreshOverlay: View {
+    let accentColor: Color
+    let isActive: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var pulsing = false
+
+    var body: some View {
+        if isActive {
+            ZStack {
+                Circle()
+                    .stroke(accentColor.opacity(0.3), lineWidth: 2)
+                    .frame(width: 20, height: 20)
+                Circle()
+                    .trim(from: 0, to: 0.7)
+                    .stroke(accentColor, lineWidth: 2)
+                    .frame(width: 20, height: 20)
+                    .rotationEffect(.degrees(pulsing ? 360 : 0))
+                    .animation(
+                        reduceMotion ? .none : .linear(duration: 1).repeatForever(autoreverses: false),
+                        value: pulsing
+                    )
+            }
+            .transition(.opacity.combined(with: .scale))
+            .onAppear {
+                guard !reduceMotion else { return }
+                pulsing = true
+            }
+            .onDisappear {
+                pulsing = false
+            }
+            .accessibilityLabel("Refreshing")
+        }
+    }
+}
+
 // MARK: - Hub Section Card
 
 struct HubSectionCard<Content: View>: View {
@@ -144,7 +180,7 @@ struct HubSectionCard<Content: View>: View {
         }
         .padding(Theme.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
         .accessibilityElement(children: .contain)
     }
 }
@@ -187,6 +223,94 @@ struct SectionHeader: View {
     }
 }
 
+// MARK: - Status Dot
+
+struct StatusDot: View {
+    let freshness: Freshness
+    let showLabel: Bool
+
+    enum Freshness {
+        case fresh
+        case recent
+        case stale
+        case offline
+
+        var color: Color {
+            switch self {
+            case .fresh: Theme.Colors.success
+            case .recent: Theme.Colors.warning
+            case .stale: Theme.Colors.error
+            case .offline: Theme.Colors.textMuted
+            }
+        }
+
+        var label: String {
+            switch self {
+            case .fresh: "Fresh"
+            case .recent: "Recent"
+            case .stale: "Stale"
+            case .offline: "Offline"
+            }
+        }
+    }
+
+    init(freshness: Freshness, showLabel: Bool = true) {
+        self.freshness = freshness
+        self.showLabel = showLabel
+    }
+
+    init(ageText: String, showLabel: Bool = true) {
+        self.freshness = Freshness(from: ageText)
+        self.showLabel = showLabel
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(freshness.color)
+                .frame(width: 6, height: 6)
+
+            if showLabel {
+                Text(freshness.label)
+                    .font(Theme.Fonts.manrope(10, weight: .medium))
+                    .foregroundStyle(Theme.Colors.textMuted)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(freshness.label)
+    }
+}
+
+private extension StatusDot.Freshness {
+    init(from ageText: String) {
+        let lowercased = ageText.lowercased()
+        if lowercased.contains("s") || (lowercased.contains("m") && !lowercased.contains("h")) {
+            let minutes = Self.parseMinutes(from: lowercased)
+            if minutes < 5 {
+                self = .fresh
+            } else if minutes < 30 {
+                self = .recent
+            } else {
+                self = .stale
+            }
+        } else if lowercased.contains("h") {
+            self = .stale
+        } else if lowercased.contains("d") {
+            self = .stale
+        } else {
+            self = .recent
+        }
+    }
+
+    static func parseMinutes(from text: String) -> Int {
+        let numbers = text.filter(\.isNumber)
+        guard let value = Int(numbers) else { return 0 }
+        if text.contains("h") { return value * 60 }
+        if text.contains("d") { return value * 1440 }
+        return value
+    }
+}
+
 #Preview {
     VStack(spacing: 20) {
         GlanceLoadingView(message: "Loading...")
@@ -194,6 +318,10 @@ struct SectionHeader: View {
         GlanceEmptyView(icon: "tray", title: "No data")
         BadgePill(text: "LIVE", color: Theme.Colors.cardEmerald)
         SectionHeader("TACTICAL INTEL", color: Theme.Colors.cardAmber)
+        StatusDot(freshness: .fresh)
+        StatusDot(freshness: .recent)
+        StatusDot(freshness: .stale)
+        StatusDot(freshness: .offline)
     }
     .padding()
     .background(Theme.canvas)

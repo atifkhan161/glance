@@ -1,27 +1,24 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @Environment(ScrollCoordinator.self) private var scrollCoordinator
     @State private var cacheStore = CacheStore.shared
     @State private var showClearConfirm = false
     @State private var cacheAges: [String: String] = [:]
+    @State private var settingsStore = SettingsStore()
     @AppStorage("colorScheme") private var colorScheme = "dark"
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                // Branding header
                 brandingHeader
-
-                // Appearance section
                 appearanceSection
-
-                // Cache section
+                displaySection
                 cacheSection
 
                 Divider()
                     .background(Theme.Colors.borderSubtle)
 
-                // About section
                 aboutSection
             }
             .padding(Theme.cardPadding)
@@ -30,6 +27,9 @@ struct SettingsView: View {
         .glanceBackground()
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.large)
+        .onScrollPhaseChange { _, newPhase in
+            scrollCoordinator.onScrollPhaseChanged(to: newPhase)
+        }
         .task {
             await loadCacheAges()
         }
@@ -64,10 +64,10 @@ struct SettingsView: View {
             .padding(.vertical, 12)
             .background(
                 colorScheme == value ? Theme.Colors.accent.opacity(0.15) : Theme.Colors.surface1,
-                in: RoundedRectangle(cornerRadius: 12)
+                in: RoundedRectangle(cornerRadius: Theme.Radius.small)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: Theme.Radius.small)
                     .stroke(colorScheme == value ? Theme.Colors.accent : .clear, lineWidth: 1.5)
             )
         }
@@ -80,7 +80,7 @@ struct SettingsView: View {
     private var brandingHeader: some View {
         HStack(spacing: 12) {
             ZStack {
-                RoundedRectangle(cornerRadius: 14)
+                RoundedRectangle(cornerRadius: Theme.Radius.small)
                     .fill(Theme.Colors.cardEmerald.opacity(0.15))
                 Image(systemName: "bolt.fill")
                     .font(.title2)
@@ -107,11 +107,47 @@ struct SettingsView: View {
                 .background(Theme.Colors.surface2, in: .capsule)
         }
         .padding(Theme.cardPadding)
-        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
     }
 
     private var versionString: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+    }
+
+    // MARK: - Display Section
+
+    private var displaySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader("DISPLAY")
+
+            VStack(spacing: 8) {
+                HStack {
+                    Text("Lead Card")
+                        .font(Theme.Fonts.manrope(14))
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                    Spacer()
+                    Text(settingsStore.leadCard.isEmpty ? "None" : settingsStore.leadCard)
+                        .font(Theme.Fonts.manrope(12))
+                        .foregroundStyle(Theme.Colors.textMuted)
+                }
+                .padding(12)
+                .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
+
+                HStack {
+                    Text("Compact Mode")
+                        .font(Theme.Fonts.manrope(14))
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                    Spacer()
+                    Toggle("", isOn: Binding(
+                        get: { settingsStore.compactMode },
+                        set: { settingsStore.compactMode = $0 }
+                    ))
+                    .labelsHidden()
+                }
+                .padding(12)
+                .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
+            }
+        }
     }
 
     // MARK: - Cache Section
@@ -138,7 +174,7 @@ struct SettingsView: View {
                 .foregroundStyle(Theme.Colors.error)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
-                .background(Theme.Colors.error.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                .background(Theme.Colors.error.opacity(0.1), in: RoundedRectangle(cornerRadius: Theme.Radius.small))
             }
             .accessibilityLabel("Clear all cache data")
         }
@@ -158,12 +194,14 @@ struct SettingsView: View {
                 .font(Theme.Fonts.manrope(14))
                 .foregroundStyle(Theme.Colors.textPrimary)
             Spacer()
-            Text(cacheAges[key] ?? "No data")
-                .font(Theme.Fonts.manrope(12))
-                .foregroundStyle(Theme.Colors.textMuted)
+            if let age = cacheAges[key] {
+                StatusDot(ageText: age)
+            } else {
+                StatusDot(freshness: .offline)
+            }
         }
         .padding(12)
-        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: 10))
+        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
     }
 
     // MARK: - About Section
@@ -187,7 +225,7 @@ struct SettingsView: View {
                 .foregroundStyle(Theme.Colors.accent)
             }
             .padding(Theme.cardPadding)
-            .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+            .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
         }
     }
 

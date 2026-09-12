@@ -34,6 +34,7 @@
 		4C7EB67886D3ADF0ACBF5FFF /* SourcesFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10BA754B5EC93CFFE1B72319 /* SourcesFlowUITests.swift */; };
 		5185E73DD56F4829173AC42B /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD625D7030DB8620C6D1D522 /* AppState.swift */; };
 		58B6F4CDB81BADC61AB95F87 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD92B9173DCB62561A3E085A /* ContentView.swift */; };
+		A1B2C3D400010001SC0001A1 /* ScrollCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D400010001SC0001A2 /* ScrollCoordinator.swift */; };
 		5BA02C670F37712948EB23B7 /* ScrapedDuckClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AC5FEA17B8577E4EB10A0AB /* ScrapedDuckClient.swift */; };
 		5FD49C9004AF5858C3D6E7D3 /* HankenGrotesk-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0062F9E61C96E727A4D59E9C /* HankenGrotesk-SemiBold.ttf */; };
 		622E00ADE396D949220F11FB /* IntelligenceRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17C08A5A5D210A84D8CB68D9 /* IntelligenceRouter.swift */; };
@@ -150,6 +151,7 @@
 		A6263EFE1565E274CD9BBE16 /* GitHubModels.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubModels.swift; sourceTree = "<group>"; };
 		AD625D7030DB8620C6D1D522 /* AppState.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		AD92B9173DCB62561A3E085A /* ContentView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A1B2C3D400010001SC0001A2 /* ScrollCoordinator.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ScrollCoordinator.swift; sourceTree = "<group>"; };
 		AEA5067D2AF7AAD2149798EB /* AiIntelModels.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AiIntelModels.swift; sourceTree = "<group>"; };
 		AF278D7F7927A581FE6FFF2F /* Glance.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = Glance.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B5FB95C1730B6F97CC7F7701 /* PoGoPipelineTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = PoGoPipelineTests.swift; sourceTree = "<group>"; };
@@ -325,6 +327,7 @@
 				E5C520B3259951583C6815C6 /* GlanceApp.swift */,
 				AD625D7030DB8620C6D1D522 /* AppState.swift */,
 				AD92B9173DCB62561A3E085A /* ContentView.swift */,
+				A1B2C3D400010001SC0001A2 /* ScrollCoordinator.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -630,6 +633,7 @@
 				2EA56F63353461298074E76E /* GlanceApp.swift in Sources */,
 				5185E73DD56F4829173AC42B /* AppState.swift in Sources */,
 				58B6F4CDB81BADC61AB95F87 /* ContentView.swift in Sources */,
+				A1B2C3D400010001SC0001A1 /* ScrollCoordinator.swift in Sources */,
 				95B09C900F96840CD565BDF2 /* CacheEnvelope.swift in Sources */,
 				A96986B8A8C94414ED991F21 /* CacheStore.swift in Sources */,
 				CB04AF25B8072EB1C93103FF /* KeychainStore.swift in Sources */,

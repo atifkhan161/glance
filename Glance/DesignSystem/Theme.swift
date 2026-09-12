@@ -6,6 +6,7 @@ enum Theme {
     static let surface2 = Colors.surface2
     static let surface3 = Colors.surface3
     static let borderSubtle = Colors.borderSubtle
+    static let borderStrong = Colors.borderStrong
     static let textPrimary = Colors.textPrimary
     static let textSecondary = Colors.textSecondary
     static let textMuted = Colors.textMuted
@@ -20,6 +21,14 @@ enum Theme {
     static let cardPadding: CGFloat = 16
     static let spacing: CGFloat = 12
 
+    enum Radius {
+        static let small: CGFloat = 8
+        static let medium: CGFloat = 12
+        static let card: CGFloat = 20
+        static let hero: CGFloat = 28
+        static let sheet: CGFloat = 32
+    }
+
     enum Colors {
         static let canvas = Color("Canvas")
         static let canvasDeep = Color(uiColor: UIColor { traits in
@@ -31,6 +40,7 @@ enum Theme {
         static let surface2 = Color("Surface2")
         static let surface3 = Color("Surface3")
         static let borderSubtle = Color("BorderSubtle")
+        static let borderStrong = Color("BorderStrong")
         static let textPrimary = Color("TextPrimary")
         static let textSecondary = Color("TextSecondary")
         static let textMuted = Color("TextMuted")
@@ -63,6 +73,36 @@ enum Theme {
     }
 
     enum Fonts {
+        enum FontRole {
+            case display
+            case title1
+            case title2
+            case title3
+            case headline
+            case body
+            case callout
+            case footnote
+            case caption1
+            case caption2
+            case badge
+        }
+
+        static func scale(_ role: FontRole) -> Font {
+            switch role {
+            case .display:  manrope(40, weight: .black)
+            case .title1:   manrope(28, weight: .bold)
+            case .title2:   manrope(22, weight: .bold)
+            case .title3:   manrope(18, weight: .semibold)
+            case .headline: manrope(16, weight: .semibold)
+            case .body:     manrope(14, weight: .regular)
+            case .callout:  manrope(13, weight: .medium)
+            case .footnote: manrope(12, weight: .regular)
+            case .caption1: manrope(11, weight: .medium)
+            case .caption2: manrope(10, weight: .bold)
+            case .badge:    manrope(10, weight: .black)
+            }
+        }
+
         static func manrope(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
             Font.custom("Manrope", size: scaledSize(size)).weight(weight)
         }

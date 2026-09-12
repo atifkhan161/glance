@@ -21,9 +21,10 @@ struct AiIntelArticleView: View {
                             }
                             .shimmer()
                     }
-                    .frame(height: 200)
+                    .frame(height: 220)
                     .frame(maxWidth: .infinity)
                     .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius))
+                    .overlay(LinearGradient(colors: [Theme.Colors.surface1.opacity(0.8), .clear], startPoint: .bottom, endPoint: .top).frame(height: 60), alignment: .bottom)
                     .accessibilityLabel("Article hero image")
                 }
 
@@ -32,36 +33,43 @@ struct AiIntelArticleView: View {
 
                 // Headline
                 Text(article.headline)
-                    .font(Theme.Fonts.manrope(22, weight: .bold))
+                    .font(Theme.Fonts.manrope(26, weight: .heavy))
                     .foregroundStyle(Theme.Colors.textPrimary)
+                    .lineSpacing(3)
+                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
 
                 // Source, author, date
-                HStack(spacing: 12) {
-                    if !article.source.isEmpty {
-                        HStack(spacing: 4) {
-                            Image(systemName: "globe")
-                            Text(article.source)
-                        }
-                    }
-                    if !article.author.isEmpty {
-                        HStack(spacing: 4) {
-                            Image(systemName: "person")
-                            Text(article.author)
-                        }
-                    }
-                    if let date = article.publishedDate {
-                        HStack(spacing: 4) {
-                            Image(systemName: "calendar")
-                            Text(date)
-                        }
-                    }
+                if !metadataText.isEmpty {
+                    Text(metadataText)
+                        .font(Theme.Fonts.manrope(13))
+                        .foregroundStyle(Theme.Colors.textMuted)
                 }
-                .font(Theme.Fonts.manrope(12))
-                .foregroundStyle(Theme.Colors.textMuted)
 
                 Divider()
                     .background(Theme.Colors.borderSubtle)
+
+                // Key points
+                if !article.bullets.isEmpty {
+                    VStack(alignment: .leading, spacing: 14) {
+                        SectionHeader("KEY POINTS")
+
+                        ForEach(article.bullets, id: \.self) { bullet in
+                            HStack(alignment: .top, spacing: 10) {
+                                Circle()
+                                    .fill(Theme.Colors.cardCyan)
+                                    .frame(width: 6, height: 6)
+                                    .padding(.top, 6)
+
+                                Text(bullet)
+                                    .font(Theme.Fonts.manrope(16))
+                                    .foregroundStyle(Theme.Colors.textPrimary)
+                                    .lineSpacing(4)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                    }
+                }
 
                 // Benchmarks
                 if !article.benchmarks.isEmpty {
@@ -76,27 +84,7 @@ struct AiIntelArticleView: View {
                                     .padding(.horizontal, 10)
                                     .padding(.vertical, 5)
                                     .background(Theme.Colors.cardCyan.opacity(0.1), in: .capsule)
-                            }
-                        }
-                    }
-                }
-
-                // Key points
-                if !article.bullets.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        SectionHeader("KEY POINTS")
-
-                        ForEach(Array(article.bullets.enumerated()), id: \.offset) { index, bullet in
-                            HStack(alignment: .top, spacing: 10) {
-                                Text("\(index + 1)")
-                                    .font(Theme.Fonts.manrope(12, weight: .bold))
-                                    .foregroundStyle(Theme.Colors.cardCyan)
-                                    .frame(width: 20)
-
-                                Text(bullet)
-                                    .font(Theme.Fonts.manrope(14))
-                                    .foregroundStyle(Theme.Colors.textSecondary)
-                                    .fixedSize(horizontal: false, vertical: true)
+                                    .accessibilityLabel("Benchmark: \(bench)")
                             }
                         }
                     }
@@ -108,15 +96,12 @@ struct AiIntelArticleView: View {
                         Button {
                             withAnimation { showFullCoverage.toggle() }
                         } label: {
-                            HStack {
-                                Text("FULL COVERAGE")
-                                    .font(Theme.Fonts.manrope(10, weight: .bold))
-                                    .foregroundStyle(Theme.Colors.cardCyan)
-                                    .tracking(1.2)
-                                Image(systemName: showFullCoverage ? "chevron.up" : "chevron.down")
-                                    .font(.caption2)
-                                    .foregroundStyle(Theme.Colors.cardCyan)
-                            }
+                            Text(showFullCoverage ? "Hide  ▴" : "Show full coverage  ▾")
+                                .font(Theme.Fonts.manrope(13, weight: .semibold))
+                                .foregroundStyle(Theme.Colors.accent)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 44)
+                                .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: 12))
                         }
                         .accessibilityLabel(showFullCoverage ? "Collapse full coverage" : "Expand full coverage")
                         .accessibilityHint("Double tap to \(showFullCoverage ? "collapse" : "expand") additional coverage details")
@@ -136,29 +121,35 @@ struct AiIntelArticleView: View {
                 // Read original button
                 if let url = URL(string: article.url), !article.url.isEmpty {
                     Link(destination: url) {
-                        HStack {
-                            Text("Read original article")
-                                .font(Theme.Fonts.manrope(14, weight: .semibold))
-                            Image(systemName: "arrow.up.right")
-                                .font(.caption)
-                        }
-                        .foregroundStyle(Theme.Colors.cardCyan)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(Theme.Colors.cardCyan.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                        Text("Read original  ↗")
+                            .font(Theme.Fonts.manrope(14, weight: .semibold))
+                            .foregroundStyle(Theme.Colors.cardCyan)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(Theme.Colors.cardCyan.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
                     }
                     .accessibilityLabel("Read original article on \(article.source)")
+                    .padding(.top, 24)
                 }
             }
-            .padding(Theme.cardPadding)
+            .padding(20)
             .padding(.bottom, 100)
         }
+        .scrollIndicators(.hidden)
         .glanceBackground()
         .navigationTitle("AI Intel")
         .navigationBarTitleDisplayMode(.inline)
     }
 
     // MARK: - Tag Color
+
+    private var metadataText: String {
+        var parts: [String] = []
+        if !article.source.isEmpty { parts.append(article.source) }
+        if !article.author.isEmpty { parts.append(article.author) }
+        if let date = article.publishedDate { parts.append(date) }
+        return parts.joined(separator: " · ")
+    }
 
     private func tagColor(_ tag: String) -> Color {
         switch tag.uppercased() {

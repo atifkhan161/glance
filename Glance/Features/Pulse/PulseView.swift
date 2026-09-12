@@ -2,29 +2,52 @@ import SwiftUI
 
 struct PulseView: View {
     @Environment(AppState.self) private var appState
+    @Environment(ScrollCoordinator.self) private var scrollCoordinator
     let store: PulseStore
+    @State private var settingsStore = SettingsStore()
+
+    private var sortedCards: [CardID] {
+        let all = CardID.allCases
+        guard let lead = CardID(rawValue: settingsStore.leadCard) else { return all }
+        return [lead] + all.filter { $0 != lead }
+    }
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 16) {
-                ForEach(CardID.allCases, id: \.self) { card in
+            VStack(spacing: 10) {
+                ForEach(sortedCards, id: \.self) { card in
+                    let isLead = card.rawValue == settingsStore.leadCard
                     Button {
                         appState.pulsePath.append(card)
                     } label: {
                         GlanceCardView(card: card, store: store)
                     }
                     .buttonStyle(.plain)
-                        .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: 16))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Theme.Colors.borderSubtle.opacity(0.6), lineWidth: 1)
-                        )
-                        .shadow(color: Color(uiColor: UIColor { traits in traits.userInterfaceStyle == .dark ? UIColor.black.withAlphaComponent(0.35) : UIColor.black.withAlphaComponent(0.06) }), radius: 8, y: 2)
-                        .padding(.horizontal, 12)
+                    .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.Radius.card)
+                            .stroke(Theme.Colors.borderSubtle.opacity(0.6), lineWidth: 1)
+                    )
+                    .shadow(color: isLead ? card.accentColor.opacity(0.25) : Color(uiColor: UIColor { traits in traits.userInterfaceStyle == .dark ? UIColor.black.withAlphaComponent(0.35) : UIColor.black.withAlphaComponent(0.06) }), radius: isLead ? 14 : 8, y: isLead ? 4 : 2)
+                    .scaleEffect(isLead ? 1.02 : 1.0)
+                    .padding(.horizontal, Theme.cardPadding)
                 }
             }
             .padding(.vertical, 8)
             .padding(.bottom, 100)
+        }
+        .refreshable {
+            await store.refreshAll()
+        }
+        .overlay(alignment: .top) {
+            RefreshOverlay(
+                accentColor: Theme.Colors.cardEmerald,
+                isActive: store.madrid == .loading || store.pogo == .loading || store.github == .loading || store.aiIntel == .loading
+            )
+            .padding(.top, 12)
+        }
+        .onScrollPhaseChange { _, newPhase in
+            scrollCoordinator.onScrollPhaseChanged(to: newPhase)
         }
         .glanceBackground()
         .navigationTitle("Glance")

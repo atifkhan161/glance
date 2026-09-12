@@ -9,67 +9,99 @@ struct EventDetailView: View {
                 // Hero image
                 if let imageURL = event.image {
                     AsyncImage(url: URL(string: imageURL)) { image in
-                        image.resizable().scaledToFit()
+                        image.resizable().scaledToFill()
                     } placeholder: {
                         Rectangle()
                             .fill(Theme.Colors.surface2)
-                            .frame(height: 200)
+                            .frame(height: 220)
                     }
+                    .frame(height: 220)
                     .frame(maxWidth: .infinity)
-                    .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius))
+                    .clipped()
+                    .overlay(
+                        LinearGradient(
+                            colors: [Theme.Colors.surface1, .clear],
+                            startPoint: .bottom,
+                            endPoint: .top
+                        )
+                        .frame(height: 80),
+                        alignment: .bottom
+                    )
+                } else {
+                    Rectangle()
+                        .fill(Theme.Colors.surface1)
+                        .frame(height: 100)
+                        .frame(maxWidth: .infinity)
+                        .overlay(
+                            Text(event.eventType)
+                                .font(Theme.Fonts.manrope(14, weight: .semibold))
+                                .foregroundStyle(Theme.Colors.textMuted)
+                        )
                 }
 
-                // Title + type
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(event.name)
-                        .font(Theme.Fonts.manrope(22, weight: .bold))
-                        .foregroundStyle(Theme.Colors.textPrimary)
+                // Event name
+                Text(event.name)
+                    .font(Theme.Fonts.manrope(26, weight: .heavy))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .lineSpacing(3)
+                    .fixedSize(horizontal: false, vertical: true)
 
-                    HStack(spacing: 8) {
-                        Text(event.eventType)
-                            .font(Theme.Fonts.manrope(11, weight: .bold))
-                            .foregroundStyle(Theme.Colors.cardRose)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Theme.Colors.cardRose.opacity(0.15), in: .capsule)
+                // Meta row
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(event.eventType)
+                        .font(Theme.Fonts.manrope(11, weight: .bold))
+                        .foregroundStyle(Theme.Colors.cardRose)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Theme.Colors.cardRose.opacity(0.15), in: .capsule)
 
-                        if let start = event.start, let end = event.end {
-                            Text("\(start) → \(end)")
-                                .font(Theme.Fonts.manrope(12))
-                                .foregroundStyle(Theme.Colors.textMuted)
+                    if let start = event.start, let end = event.end {
+                        HStack(spacing: 4) {
+                            Image(systemName: "calendar")
+                            Text("\(start)  →  \(end)")
                         }
+                        .font(Theme.Fonts.manrope(14, weight: .regular))
+                        .foregroundStyle(Theme.Colors.textMuted)
                     }
                 }
 
-                // Heading
+                // Description
                 if let heading = event.heading {
-                    Text(heading)
-                        .font(Theme.Fonts.manrope(14))
-                        .foregroundStyle(Theme.Colors.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                    VStack(alignment: .leading, spacing: 0) {
+                        Divider()
+                            .foregroundStyle(Theme.Colors.borderSubtle)
+
+                        Text(heading)
+                            .font(Theme.Fonts.manrope(17, weight: .regular))
+                            .foregroundStyle(Theme.Colors.textPrimary)
+                            .lineSpacing(5)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.top, 20)
+                    }
                 }
 
-                // Source link
+                // CTA
                 if let link = event.link, let url = URL(string: link) {
                     Link(destination: url) {
                         HStack {
                             Text("View on LeekDuck")
-                                .font(Theme.Fonts.manrope(13, weight: .semibold))
                             Image(systemName: "arrow.up.right")
-                                .font(.caption)
                         }
+                        .font(Theme.Fonts.manrope(15, weight: .semibold))
                         .foregroundStyle(Theme.Colors.cardRose)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(Theme.Colors.cardRose.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                        .padding(.vertical, 14)
+                        .background(Theme.Colors.cardRose.opacity(0.12), in: RoundedRectangle(cornerRadius: Theme.Radius.medium))
                     }
+                    .padding(.top, 24)
                 }
             }
-            .padding(Theme.cardPadding)
+            .padding(.horizontal, 20)
             .padding(.bottom, 100)
         }
+        .scrollIndicators(.hidden)
         .glanceBackground()
-        .navigationTitle(event.name)
+        .navigationTitle(event.eventType)
         .navigationBarTitleDisplayMode(.inline)
     }
 }

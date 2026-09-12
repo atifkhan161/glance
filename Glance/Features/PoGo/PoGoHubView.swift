@@ -1,18 +1,66 @@
 import SwiftUI
 
 struct PoGoHubView: View {
+    @Environment(ScrollCoordinator.self) private var scrollCoordinator
     let store: PulseStore
     @State private var selectedTier: String = "All"
+    @State private var completedRaids: Set<String> = []
 
     private let tiers = ["All", "1★", "3★", "5★", "Mega", "Shadow"]
 
+    private var priorityRaid: PoGoRaid? {
+        guard case .ready(let data, _) = store.pogo else { return nil }
+        return data.mega ?? data.fiveStar ?? data.shadow
+    }
+
     var body: some View {
         ScrollView {
+            // Hero section
+            if let priority = priorityRaid {
+                ZStack(alignment: .topLeading) {
+                    LinearGradient(
+                        colors: [Theme.Colors.cardRose.opacity(0.3), Theme.Colors.canvas],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .frame(minHeight: 200)
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.hero))
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("POKÉMON GO")
+                            .font(Theme.Fonts.scale(.title1))
+                            .foregroundStyle(Theme.Colors.cardRose)
+
+                        if let spriteURL = priority.image, let url = URL(string: spriteURL) {
+                            CachedAsyncImage(url: url) { image in
+                                image.resizable().scaledToFit()
+                            } placeholder: {
+                                EmptyView()
+                            }
+                            .frame(width: 100, height: 100)
+                        }
+
+                        BadgePill(text: tierBadgeText(priority), color: Theme.Colors.cardRose)
+
+                        if let cp = priority.combatPower,
+                           let normal = cp.normal,
+                           let min = normal.min, let max = normal.max {
+                            Text("CP \(formatCP(min)) – \(formatCP(max))")
+                                .font(Theme.Fonts.scale(.display))
+                                .foregroundStyle(Theme.Colors.textPrimary)
+                        }
+                    }
+                    .padding(Theme.cardPadding)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(.horizontal, Theme.cardPadding)
+            }
+
             VStack(alignment: .leading, spacing: 20) {
                 switch store.pogo {
                 case .loading:
-                    SkeletonView()
-                    SkeletonView()
+                    PoGoSkeletonView()
+                    PoGoSkeletonView()
                 case .ready(let data, _), .stale(let data, _), .offline(let data, _), .degraded(let data, _, _):
                     pogoContent(data)
                 case .error(let message):
@@ -26,14 +74,18 @@ struct PoGoHubView: View {
         .glanceBackground()
         .navigationTitle("Pokémon GO")
         .navigationBarTitleDisplayMode(.large)
+        .overlay(alignment: .top) {
+            RefreshOverlay(
+                accentColor: Theme.Colors.cardRose,
+                isActive: store.pogo == .loading
+            )
+            .padding(.top, 12)
+        }
         .refreshable {
             await store.refreshCard(.pogo)
         }
-        .navigationDestination(for: PoGoRaid.self) { raid in
-            RaidDetailView(raid: raid)
-        }
-        .navigationDestination(for: PoGoEvent.self) { event in
-            EventDetailView(event: event)
+        .onScrollPhaseChange { _, newPhase in
+            scrollCoordinator.onScrollPhaseChanged(to: newPhase)
         }
     }
 
@@ -112,26 +164,28 @@ struct PoGoHubView: View {
     }
 
     private func tierCount(_ tier: String, raids: [PoGoRaid]) -> Int {
+        let available = raids.filter { !completedRaids.contains($0.id) }
         switch tier {
-        case "All": raids.count
-        case "1★": raids.filter { $0.tier.contains("1-Star") }.count
-        case "3★": raids.filter { $0.tier.contains("3-Star") }.count
-        case "5★": raids.filter { $0.isFiveStar && !$0.isShadow }.count
-        case "Mega": raids.filter { $0.isMega }.count
-        case "Shadow": raids.filter { $0.isShadow }.count
-        default: 0
+        case "All": return available.count
+        case "1★": return available.filter { $0.tier.contains("1-Star") }.count
+        case "3★": return available.filter { $0.tier.contains("3-Star") }.count
+        case "5★": return available.filter { $0.isFiveStar && !$0.isShadow }.count
+        case "Mega": return available.filter { $0.isMega }.count
+        case "Shadow": return available.filter { $0.isShadow }.count
+        default: return 0
         }
     }
 
     private func filteredRaids(_ raids: [PoGoRaid]) -> [PoGoRaid] {
+        let available = raids.filter { !completedRaids.contains($0.id) }
         switch selectedTier {
-        case "All": raids
-        case "1★": raids.filter { $0.tier.contains("1-Star") }
-        case "3★": raids.filter { $0.tier.contains("3-Star") }
-        case "5★": raids.filter { $0.isFiveStar && !$0.isShadow }
-        case "Mega": raids.filter { $0.isMega }
-        case "Shadow": raids.filter { $0.isShadow }
-        default: raids
+        case "All": return available
+        case "1★": return available.filter { $0.tier.contains("1-Star") }
+        case "3★": return available.filter { $0.tier.contains("3-Star") }
+        case "5★": return available.filter { $0.isFiveStar && !$0.isShadow }
+        case "Mega": return available.filter { $0.isMega }
+        case "Shadow": return available.filter { $0.isShadow }
+        default: return available
         }
     }
 
@@ -140,8 +194,30 @@ struct PoGoHubView: View {
     private func raidList(_ raids: [PoGoRaid]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             ForEach(raids) { raid in
-                NavigationLink(value: raid) {
-                    raidRow(raid)
+                Group {
+                    NavigationLink(value: raid) {
+                        raidRow(raid)
+                    }
+                }
+                .swipeActions(edge: .leading) {
+                    Button {
+                        withAnimation {
+                            _ = completedRaids.insert(raid.id)
+                        }
+                    } label: {
+                        Label("Done", systemImage: "checkmark.circle.fill")
+                    }
+                    .tint(Theme.Colors.success)
+                }
+                .contextMenu {
+                    Button {
+                        withAnimation { _ = completedRaids.insert(raid.id) }
+                    } label: {
+                        Label("Mark as Done", systemImage: "checkmark.circle")
+                    }
+                    if let url = URL(string: "https://leekduck.com") {
+                        Link("View on LeekDuck", destination: url)
+                    }
                 }
             }
         }

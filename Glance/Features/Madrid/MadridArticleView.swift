@@ -6,72 +6,70 @@ struct MadridArticleView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // Category pill
-                if !article.category.isEmpty {
-                    Text(article.category)
-                        .font(Theme.Fonts.manrope(10, weight: .bold))
-                        .foregroundStyle(Theme.Colors.cardAmber)
-                        .tracking(1.2)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Theme.Colors.cardAmber.opacity(0.15), in: .capsule)
-                }
-
                 // Title
                 Text(article.title)
-                    .font(Theme.Fonts.manrope(22, weight: .bold))
+                    .font(Theme.Fonts.manrope(26, weight: .black))
                     .foregroundStyle(Theme.Colors.textPrimary)
+                    .lineSpacing(3)
+                    .fixedSize(horizontal: false, vertical: true)
 
-                // Author + Date
-                HStack(spacing: 8) {
+                // Author · Date
+                HStack(spacing: 0) {
                     if !article.author.isEmpty {
-                        HStack(spacing: 4) {
-                            Image(systemName: "person")
-                            Text(article.author)
-                        }
+                        Text(article.author)
                     }
-
+                    if !article.author.isEmpty && !article.published.isEmpty {
+                        Text(" · ")
+                    }
                     if !article.published.isEmpty {
-                        HStack(spacing: 4) {
-                            Image(systemName: "calendar")
-                            Text(article.published)
-                        }
+                        Text(article.published)
                     }
                 }
-                .font(Theme.Fonts.manrope(12))
+                .font(Theme.Fonts.manrope(13, weight: .regular))
                 .foregroundStyle(Theme.Colors.textMuted)
+                .accessibilityElement(children: .combine)
 
-                Divider()
-                    .background(Theme.Colors.borderSubtle)
+                // Hairline divider
+                Rectangle()
+                    .fill(Theme.Colors.borderSubtle)
+                    .frame(height: 1)
+                    .padding(.vertical, 4)
 
                 // Article body (stripped of media)
                 let stripped = stripMedia(from: article.content)
-                Text(stripped)
-                    .font(Theme.Fonts.manrope(15))
-                    .foregroundStyle(Theme.Colors.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                let paragraphs = stripped.components(separatedBy: "\n\n").filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+                VStack(alignment: .leading, spacing: 14) {
+                    ForEach(Array(paragraphs.enumerated()), id: \.offset) { _, paragraph in
+                        Text(paragraph)
+                            .font(Theme.Fonts.manrope(17, weight: .regular))
+                            .foregroundStyle(Theme.Colors.textPrimary)
+                            .lineSpacing(5)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .textSelection(.enabled)
 
                 // Open on Managing Madrid button
                 if let url = URL(string: article.url) {
                     Link(destination: url) {
                         HStack {
-                            Text("Open on Managing Madrid")
+                            Text("Read on Managing Madrid  ↗")
                                 .font(Theme.Fonts.manrope(14, weight: .semibold))
-                            Image(systemName: "arrow.up.right")
-                                .font(.caption)
                         }
                         .foregroundStyle(Theme.Colors.cardAmber)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                         .background(Theme.Colors.cardAmber.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
                     }
+                    .padding(.top, 24)
                 }
             }
-            .padding(Theme.cardPadding)
+            .padding(.horizontal, 20)
             .padding(.bottom, 100)
         }
         .glanceBackground()
-        .navigationTitle("Article")
+        .scrollIndicators(.hidden)
+        .navigationTitle("Managing Madrid")
         .navigationBarTitleDisplayMode(.inline)
     }
 

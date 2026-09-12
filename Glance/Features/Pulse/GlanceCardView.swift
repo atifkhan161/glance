@@ -5,57 +5,44 @@ struct GlanceCardView: View {
     let card: CardID
     let store: PulseStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isPulsing = false
+
+    private var isStaleOrDegraded: Bool {
+        switch card {
+        case .madrid: if case .stale = store.madrid { return true }; if case .degraded = store.madrid { return true }
+        case .pogo: if case .stale = store.pogo { return true }; if case .degraded = store.pogo { return true }
+        case .github: if case .stale = store.github { return true }; if case .degraded = store.github { return true }
+        case .aiIntel: if case .stale = store.aiIntel { return true }; if case .degraded = store.aiIntel { return true }
+        }
+        return false
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            cardHeader
+            CardHeaderView(card: card, store: store)
             cardBody
                 .transition(reduceMotion ? .opacity : .asymmetric(
                     insertion: .opacity.combined(with: .move(edge: .trailing)),
                     removal: .opacity
                 ))
-            cardFooter
+            CardFooterView(card: card)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentAge)
-    }
-
-    // MARK: - Header
-
-    private var cardHeader: some View {
-        HStack {
-            Image(systemName: card.icon)
-                .font(.title2)
-                .foregroundStyle(card.accentColor)
-                .accessibilityHidden(true)
-
-            GlanceBadge(text: card.badgeLabel, color: card.accentColor)
-
-            Spacer()
-
-            if let age = currentAge {
-                Text(age)
-                    .font(Theme.Fonts.manrope(12))
-                    .foregroundStyle(ageColor(for: age))
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 3)
-                    .background(ageColor(for: age).opacity(0.15), in: .capsule)
+        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.card))
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.Radius.card)
+                .stroke(isStaleOrDegraded ? card.accentColor.opacity(isPulsing ? 0.5 : 0.1) : Theme.Colors.borderSubtle, lineWidth: 1)
+                .animation(.easeInOut(duration: 1.2).repeatForever(), value: isPulsing)
+        )
+        .onAppear {
+            if isStaleOrDegraded && !reduceMotion {
+                withAnimation(.easeInOut(duration: 1.2).repeatForever()) {
+                    isPulsing = true
+                }
             }
-
-            Button {
-                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                impactFeedback.impactOccurred()
-                Task { await store.refresh(card) }
-            } label: {
-                Image(systemName: "arrow.clockwise")
-                    .font(.subheadline)
-                    .foregroundStyle(Theme.Colors.textSecondary)
-            }
-            .accessibilityLabel("Refresh \(card.badgeLabel)")
         }
-        .padding(.horizontal, Theme.cardPadding)
-        .padding(.top, Theme.cardPadding)
-        .padding(.bottom, 8)
+        .onDisappear { isPulsing = false }
     }
 
     // MARK: - Body
@@ -74,47 +61,13 @@ struct GlanceCardView: View {
         }
     }
 
-    // MARK: - Footer
-
-    private var cardFooter: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Divider()
-                .background(Theme.Colors.borderSubtle)
-
-            HStack {
-                if let source = currentSource {
-                    Label(source, systemImage: sourceIcon(source))
-                        .font(Theme.Fonts.manrope(11))
-                        .foregroundStyle(sourceColor(source))
-                }
-
-                Spacer()
-
-                if hasHub {
-                    NavigationLink(value: card) {
-                        HStack(spacing: 4) {
-                            Text("View hub")
-                                .font(Theme.Fonts.manrope(12, weight: .semibold))
-                            Image(systemName: "chevron.right")
-                                .font(.caption2)
-                        }
-                        .foregroundStyle(card.accentColor)
-                    }
-                    .accessibilityLabel("Open \(card.badgeLabel) hub")
-                }
-            }
-        }
-        .padding(.horizontal, Theme.cardPadding)
-        .padding(.bottom, Theme.cardPadding)
-    }
-
     // MARK: - Madrid Body
 
     private var madridBody: some View {
         Group {
             switch store.madrid {
             case .loading:
-                SkeletonView()
+                MadridSkeletonView()
             case .ready(let data, _), .stale(let data, _), .offline(let data, _):
                 madridContent(data)
             case .degraded(let data, _, _):
@@ -130,14 +83,12 @@ struct GlanceCardView: View {
     private func madridContent(_ data: MadridData) -> some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             if let fixture = data.fixture {
-                // Fixture hero
                 VStack(alignment: .leading, spacing: 8) {
                     Text(fixture.competition)
                         .font(Theme.Fonts.manrope(12))
                         .foregroundStyle(Theme.Colors.textMuted)
 
                     HStack(alignment: .center, spacing: 16) {
-                        // Real Madrid crest
                         VStack(spacing: 4) {
                             CachedAsyncImage(url: URL(string: fixture.rmBadge ?? "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg")) { image in
                                 image.resizable().scaledToFit()
@@ -158,7 +109,6 @@ struct GlanceCardView: View {
                             .font(Theme.Fonts.manrope(14))
                             .foregroundStyle(Theme.Colors.textMuted)
 
-                        // Opponent crest
                         VStack(spacing: 4) {
                             CachedAsyncImage(url: URL(string: fixture.opponentBadge ?? "")) { image in
                                 image.resizable().scaledToFit()
@@ -205,7 +155,6 @@ struct GlanceCardView: View {
                 }
                 .padding(Theme.cardPadding)
             } else if let lastMatch = data.lastMatch {
-                // Last match (when no upcoming fixture)
                 VStack(alignment: .leading, spacing: 8) {
                     Text("LAST MATCH · \(lastMatch.competition)")
                         .font(Theme.Fonts.manrope(10, weight: .bold))
@@ -252,7 +201,6 @@ struct GlanceCardView: View {
                         }
                     }
 
-                    // Kickoff time (IST)
                     if let date = MadridPipeline.looseDateParse(lastMatch.datetime) {
                         HStack(spacing: 6) {
                             Image(systemName: "calendar")
@@ -262,7 +210,6 @@ struct GlanceCardView: View {
                         .foregroundStyle(Theme.Colors.textSecondary)
                     }
 
-                    // Scorers
                     let rmScorers = lastMatch.scorers.filter { $0.team == (lastMatch.score.home >= lastMatch.score.away ? "home" : "away") }
                     if !rmScorers.isEmpty {
                         HStack(spacing: 4) {
@@ -328,7 +275,6 @@ struct GlanceCardView: View {
                     .padding(.horizontal, Theme.cardPadding)
             }
 
-            // MM Articles preview
             ForEach(data.mmArticles.prefix(3)) { article in
                 Button {
                     appState.pulsePath.append(article)
@@ -362,7 +308,7 @@ struct GlanceCardView: View {
         Group {
             switch store.pogo {
             case .loading:
-                SkeletonView()
+                PoGoSkeletonView()
             case .ready(let data, _), .stale(let data, _), .offline(let data, _):
                 pogoContent(data)
             case .degraded(let data, _, _):
@@ -377,7 +323,6 @@ struct GlanceCardView: View {
 
     private func pogoContent(_ data: PoGoData) -> some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
-            // 5★ + Shadow dual tiles
             HStack(spacing: 12) {
                 if let fiveStar = data.fiveStar {
                     raidTile(raid: fiveStar, label: "5★")
@@ -388,7 +333,6 @@ struct GlanceCardView: View {
             }
             .padding(.horizontal, Theme.cardPadding)
 
-            // Priority callout
             if !data.targetPriority.isEmpty {
                 HStack(spacing: 8) {
                     Text("🎯")
@@ -403,7 +347,6 @@ struct GlanceCardView: View {
                 .padding(.horizontal, Theme.cardPadding)
             }
 
-            // Events preview
             ForEach(data.events.prefix(4)) { event in
                 Button {
                     appState.pulsePath.append(event)
@@ -434,7 +377,6 @@ struct GlanceCardView: View {
                 .accessibilityLabel("Open \(event.name)")
             }
 
-            // Credit
             Text(data.credit)
                 .font(Theme.Fonts.manrope(10))
                 .foregroundStyle(Theme.Colors.textMuted)
@@ -480,7 +422,7 @@ struct GlanceCardView: View {
         Group {
             switch store.github {
             case .loading:
-                SkeletonView()
+                GitHubSkeletonView()
             case .ready(let data, _), .stale(let data, _), .offline(let data, _):
                 githubContent(data)
             case .degraded(let data, _, _):
@@ -582,7 +524,7 @@ struct GlanceCardView: View {
         Group {
             switch store.aiIntel {
             case .loading:
-                SkeletonView()
+                AIIntelSkeletonView()
             case .ready(let data, _), .stale(let data, _), .offline(let data, _):
                 aiIntelContent(data)
             case .degraded(let data, _, _):
@@ -675,51 +617,104 @@ struct GlanceCardView: View {
         }
     }
 
-    private var currentSource: String? {
-        switch card {
-        case .madrid:
-            if case .ready(let data, _) = store.madrid { return data.source }
-            if case .degraded(let data, _, _) = store.madrid { return data.source }
-            return nil
-        case .pogo:
-            if case .ready(let data, _) = store.pogo { return data.source }
-            if case .degraded(let data, _, _) = store.pogo { return data.source }
-            return nil
-        case .github:
-            if case .ready(let data, _) = store.github { return data.source ?? "github" }
-            return nil
-        case .aiIntel:
-            if case .ready(let data, _) = store.aiIntel { return data.source }
-            if case .degraded(let data, _, _) = store.aiIntel { return data.source }
-            return nil
-        }
-    }
-
-    private var hasHub: Bool {
-        true
-    }
-
-    private func sourceIcon(_ source: String) -> String {
-        switch source {
-        case "apple": "cpu"
-        case "gemini": "cloud"
-        case "github": "chevron.left.forwardslash.chevron.right"
-        default: "bolt"
-        }
-    }
-
-    private func sourceColor(_ source: String) -> Color {
-        switch source {
-        case "apple": Theme.Colors.cardEmerald
-        case "gemini": Theme.Colors.cardCyan
-        default: Theme.Colors.textMuted
-        }
-    }
-
     private func formColor(_ result: String) -> Color {
         if result.hasPrefix("W") { return Theme.Colors.success }
         if result.hasPrefix("D") { return Theme.Colors.warning }
         return Theme.Colors.error
+    }
+}
+
+// MARK: - Card Header View (Extracted)
+
+struct CardHeaderView: View {
+    let card: CardID
+    let store: PulseStore
+
+    private var currentAge: String? {
+        switch card {
+        case .madrid: store.madrid.age
+        case .pogo: store.pogo.age
+        case .github: store.github.age
+        case .aiIntel: store.aiIntel.age
+        }
+    }
+
+    var body: some View {
+        HStack {
+            Circle()
+                .fill(card.accentColor)
+                .frame(width: 8, height: 8)
+                .accessibilityHidden(true)
+
+            GlanceBadge(text: card.badgeLabel, color: card.accentColor)
+
+            Spacer()
+
+            if let age = currentAge {
+                StatusDot(ageText: age, showLabel: false)
+            }
+
+            Button {
+                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                impactFeedback.impactOccurred()
+                Task { await store.refresh(card) }
+            } label: {
+                Image(systemName: "arrow.clockwise")
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+            }
+            .accessibilityLabel("Refresh \(card.badgeLabel)")
+        }
+        .padding(.horizontal, Theme.cardPadding)
+        .padding(.top, Theme.cardPadding)
+        .padding(.bottom, 8)
+    }
+}
+
+// MARK: - Card Footer View (Extracted)
+
+struct CardFooterView: View {
+    let card: CardID
+
+    private var currentSource: String? {
+        switch card {
+        case .madrid: nil
+        case .pogo: nil
+        case .github: nil
+        case .aiIntel: nil
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Divider()
+                .overlay(Theme.Colors.borderSubtle)
+
+            HStack {
+                if let source = currentSource {
+                    Text("via \(source)")
+                        .font(Theme.Fonts.manrope(11))
+                        .foregroundStyle(Theme.Colors.textMuted)
+                } else {
+                    Text("via apple")
+                        .font(Theme.Fonts.manrope(11))
+                        .foregroundStyle(Theme.Colors.textMuted)
+                }
+
+                Spacer()
+
+                Text("View hub")
+                    .font(Theme.Fonts.manrope(12, weight: .semibold))
+                    .foregroundStyle(card.accentColor)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(card.accentColor)
+            }
+            .padding(.horizontal, Theme.cardPadding)
+            .padding(.vertical, 10)
+        }
+        .contentShape(Rectangle())
     }
 }
 

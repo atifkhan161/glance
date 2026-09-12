@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SourcesView: View {
+    @Environment(ScrollCoordinator.self) private var scrollCoordinator
     @State private var store = SettingsStore()
     @State private var showExaKey = false
     @State private var showGeminiKey = false
@@ -11,9 +12,14 @@ struct SourcesView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                // Exa API Key
+                // MARK: - On-Device AI
+                SectionHeader("ON-DEVICE AI")
+                aiStatusSection
+
+                // MARK: - Exa Search
+                SectionHeader("EXA SEARCH")
                 keySection(
-                    title: "EXA API KEY",
+                    title: "API KEY",
                     key: "Exa",
                     value: $store.exaAPIKey,
                     isSecure: !showExaKey,
@@ -22,9 +28,10 @@ struct SourcesView: View {
                     link: "https://exa.ai"
                 )
 
-                // Gemini API Key
+                // MARK: - Gemini
+                SectionHeader("GEMINI")
                 keySection(
-                    title: "GEMINI API KEY",
+                    title: "API KEY",
                     key: "Gemini",
                     value: $store.geminiAPIKey,
                     isSecure: !showGeminiKey,
@@ -32,6 +39,7 @@ struct SourcesView: View {
                     status: geminiStatus,
                     link: "https://aistudio.google.com/apikey"
                 )
+                modelPickerSection
 
                 // API-Sports (thesportsdb.com) — free tier, key "123" implicit
                 infoSection(
@@ -39,37 +47,32 @@ struct SourcesView: View {
                     subtitle: "Powered by thesportsdb.com free tier — no key required"
                 )
 
-                // Gemini Model Picker
-                modelPickerSection
-
-                // On-device AI Status
-                aiStatusSection
-
-                // Save button
+                // Save CTA
                 Button {
                     saveKeys()
                 } label: {
                     HStack {
                         if isSaving {
                             ProgressView()
-                                .tint(Theme.Colors.canvas)
+                                .tint(.white)
                         }
                         Text(isSaving ? "Saving..." : "Save Keys")
-                            .font(Theme.Fonts.manrope(14, weight: .semibold))
+                            .font(Theme.Fonts.scale(.callout).weight(.semibold))
                     }
-                    .foregroundStyle(Theme.Colors.canvas)
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(isSaving ? Theme.Colors.textMuted : Theme.Colors.accent, in: RoundedRectangle(cornerRadius: 12))
+                    .padding(.vertical, 14)
+                    .background(Theme.Colors.cardEmerald, in: RoundedRectangle(cornerRadius: Theme.Radius.medium))
                 }
                 .disabled(isSaving)
+                .padding(.top, 16)
 
                 if saveSuccess {
                     HStack(spacing: 6) {
                         Image(systemName: "checkmark.circle.fill")
                         Text("Keys saved successfully")
                     }
-                    .font(Theme.Fonts.manrope(12))
+                    .font(Theme.Fonts.scale(.caption2))
                     .foregroundStyle(Theme.Colors.success)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .transition(.opacity)
@@ -78,7 +81,7 @@ struct SourcesView: View {
                 // Footer
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Keys are stored locally on your device. Never committed to git.")
-                        .font(Theme.Fonts.manrope(12))
+                        .font(Theme.Fonts.scale(.caption2))
                         .foregroundStyle(Theme.Colors.textMuted)
 
                     HStack(spacing: 16) {
@@ -92,7 +95,7 @@ struct SourcesView: View {
                             Link("Get Football key →", destination: footballURL)
                         }
                     }
-                    .font(Theme.Fonts.manrope(12))
+                    .font(Theme.Fonts.scale(.caption2))
                     .foregroundStyle(Theme.Colors.accent)
                 }
             }
@@ -102,6 +105,9 @@ struct SourcesView: View {
         .glanceBackground()
         .navigationTitle("Sources")
         .navigationBarTitleDisplayMode(.large)
+        .onScrollPhaseChange { _, newPhase in
+            scrollCoordinator.onScrollPhaseChanged(to: newPhase)
+        }
         .task {
             store.loadFromKeychain()
         }
@@ -146,9 +152,9 @@ struct SourcesView: View {
                 .accessibilityLabel(isSecure ? "Show \(key) key" : "Hide \(key) key")
             }
             .padding(12)
-            .background(Theme.Colors.canvasDeep, in: RoundedRectangle(cornerRadius: 10))
+            .background(Theme.Colors.canvasDeep, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
             .overlay(
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: Theme.Radius.small)
                     .stroke(Theme.Colors.borderSubtle, lineWidth: 1)
             )
 
@@ -179,7 +185,7 @@ struct SourcesView: View {
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Theme.Colors.canvasDeep, in: RoundedRectangle(cornerRadius: 10))
+                .background(Theme.Colors.canvasDeep, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
         }
     }
 
@@ -229,92 +235,43 @@ struct SourcesView: View {
     // MARK: - Model Picker
 
     private var modelPickerSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("GEMINI MODEL")
-                .font(Theme.Fonts.manrope(10, weight: .bold))
+        VStack(alignment: .leading, spacing: 8) {
+            Text("MODEL")
+                .font(Theme.Fonts.scale(.caption1))
                 .foregroundStyle(Theme.Colors.textMuted)
-                .tracking(1.2)
 
-            VStack(spacing: 8) {
-                modelOption(
-                    id: "gemini-3.6-flash",
-                    title: "Gemini 3.6 Flash",
-                    subtitle: "Stable, free tier"
-                )
-                modelOption(
-                    id: "gemini-3.7-flash",
-                    title: "Gemini 3.7 Flash",
-                    subtitle: "Stable, newer"
-                )
-                modelOption(
-                    id: "gemini-3.8-flash",
-                    title: "Gemini 3.8 Flash",
-                    subtitle: "Latest (intro pricing)"
-                )
+            Picker("Gemini Model", selection: $store.selectedModel) {
+                Text("3.6 Flash").tag("gemini-3.6-flash")
+                Text("3.7 Flash").tag("gemini-3.7-flash")
+                Text("3.8 Flash").tag("gemini-3.8-flash")
             }
+            .pickerStyle(.segmented)
         }
-    }
-
-    private func modelOption(id: String, title: String, subtitle: String) -> some View {
-        Button {
-            store.selectedModel = id
-        } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(Theme.Fonts.manrope(14, weight: .medium))
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                    Text(subtitle)
-                        .font(Theme.Fonts.manrope(12))
-                        .foregroundStyle(Theme.Colors.textMuted)
-                }
-                Spacer()
-                if store.selectedModel == id {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(Theme.Colors.accent)
-                } else {
-                    Image(systemName: "circle")
-                        .foregroundStyle(Theme.Colors.textMuted)
-                }
-            }
-            .padding(12)
-            .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: 10))
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(store.selectedModel == id ? Theme.Colors.accent : Theme.Colors.borderSubtle, lineWidth: 1)
-            )
-        }
-        .accessibilityLabel("\(title), \(subtitle)")
     }
 
     // MARK: - AI Status
 
     private var aiStatusSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("ON-DEVICE AI")
-                .font(Theme.Fonts.manrope(10, weight: .bold))
-                .foregroundStyle(Theme.Colors.textMuted)
-                .tracking(1.2)
-
             HStack {
                 Circle()
                     .fill(aiAvailable == true ? Theme.Colors.success : aiAvailable == false ? Theme.Colors.cardAmber : Theme.Colors.textMuted)
                     .frame(width: 8, height: 8)
                 Text(aiAvailable == true ? "Active" : aiAvailable == false ? "Unavailable" : "Checking...")
-                    .font(Theme.Fonts.manrope(13, weight: .medium))
+                    .font(Theme.Fonts.scale(.body).weight(.medium))
                     .foregroundStyle(aiAvailable == true ? Theme.Colors.success : Theme.Colors.textSecondary)
                 Spacer()
                 Button("Re-check") {
                     Task { await checkAIAvailability() }
                 }
-                .font(Theme.Fonts.manrope(12))
+                .font(Theme.Fonts.scale(.caption1))
                 .foregroundStyle(Theme.Colors.accent)
             }
             .padding(12)
-            .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: 10))
+            .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
 
             Text("Apple Foundation Models — zero cost, offline, private")
-                .font(Theme.Fonts.manrope(11))
+                .font(Theme.Fonts.scale(.caption2))
                 .foregroundStyle(Theme.Colors.textMuted)
         }
     }

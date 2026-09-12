@@ -1,32 +1,170 @@
 import SwiftUI
 
-struct SkeletonView: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var phase: Bool = false
+// MARK: - Madrid Skeleton
 
+struct MadridSkeletonView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            RoundedRectangle(cornerRadius: 4)
-                .fill(Theme.Colors.textMuted.opacity(0.2))
-                .frame(height: 20)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            RoundedRectangle(cornerRadius: 4)
-                .fill(Theme.Colors.textMuted.opacity(0.2))
-                .frame(height: 16)
-                .frame(maxWidth: 200)
-            RoundedRectangle(cornerRadius: 4)
-                .fill(Theme.Colors.textMuted.opacity(0.2))
-                .frame(height: 16)
-                .frame(maxWidth: 160)
+            Rectangle()
+                .fill(Theme.Colors.surface2)
+                .frame(height: 28)
+                .frame(maxWidth: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+
+            HStack(spacing: 8) {
+                Rectangle()
+                    .fill(Theme.Colors.surface2)
+                    .frame(height: 20)
+                    .frame(maxWidth: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                Rectangle()
+                    .fill(Theme.Colors.surface2)
+                    .frame(height: 20)
+                    .frame(maxWidth: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Rectangle()
+                    .fill(Theme.Colors.surface2)
+                    .frame(height: 14)
+                    .frame(maxWidth: 220)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                Rectangle()
+                    .fill(Theme.Colors.surface2)
+                    .frame(height: 14)
+                    .frame(maxWidth: 180)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                Rectangle()
+                    .fill(Theme.Colors.surface2)
+                    .frame(height: 14)
+                    .frame(maxWidth: 200)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+            }
+
+            HStack(spacing: 6) {
+                ForEach(0..<5, id: \.self) { _ in
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Theme.Colors.surface2)
+                        .frame(width: 32, height: 32)
+                }
+            }
         }
-        .padding()
+        .padding(Theme.cardPadding)
+        .shimmer()
+        .accessibilityHidden(true)
+    }
+}
+
+// MARK: - PoGo Skeleton
+
+struct PoGoSkeletonView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Theme.Colors.surface2)
+                .frame(height: 120)
+
+            ForEach(0..<5, id: \.self) { _ in
+                Rectangle()
+                    .fill(Theme.Colors.surface2)
+                    .frame(height: 16)
+                    .frame(maxWidth: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+            }
+        }
+        .padding(Theme.cardPadding)
+        .shimmer()
+        .accessibilityHidden(true)
+    }
+}
+
+// MARK: - GitHub Skeleton
+
+struct GitHubSkeletonView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                ForEach(0..<3, id: \.self) { _ in
+                    Rectangle()
+                        .fill(Theme.Colors.surface2)
+                        .frame(height: 16)
+                        .frame(maxWidth: .infinity)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                }
+            }
+
+            ForEach(0..<6, id: \.self) { _ in
+                HStack(alignment: .top, spacing: 10) {
+                    Circle()
+                        .fill(Theme.Colors.surface2)
+                        .frame(width: 36, height: 36)
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Rectangle()
+                            .fill(Theme.Colors.surface2)
+                            .frame(height: 14)
+                            .frame(maxWidth: 180)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                        Rectangle()
+                            .fill(Theme.Colors.surface2)
+                            .frame(height: 12)
+                            .frame(maxWidth: 240)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                    }
+                }
+            }
+        }
+        .padding(Theme.cardPadding)
+        .shimmer()
+        .accessibilityHidden(true)
+    }
+}
+
+// MARK: - AI Intel Skeleton
+
+struct AIIntelSkeletonView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            ForEach(0..<3, id: \.self) { _ in
+                VStack(alignment: .leading, spacing: 8) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Theme.Colors.surface2)
+                        .frame(width: 60, height: 18)
+
+                    Rectangle()
+                        .fill(Theme.Colors.surface2)
+                        .frame(height: 16)
+                        .frame(maxWidth: .infinity)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+
+                    Rectangle()
+                        .fill(Theme.Colors.surface2)
+                        .frame(height: 12)
+                        .frame(maxWidth: 200)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+
+                    Rectangle()
+                        .fill(Theme.Colors.surface2)
+                        .frame(height: 12)
+                        .frame(maxWidth: 160)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                }
+            }
+        }
+        .padding(Theme.cardPadding)
         .shimmer()
         .accessibilityHidden(true)
     }
 }
 
 #Preview {
-    SkeletonView()
-        .padding()
-        .background(Theme.Colors.canvas)
+    VStack(spacing: 24) {
+        MadridSkeletonView()
+        PoGoSkeletonView()
+        GitHubSkeletonView()
+        AIIntelSkeletonView()
+    }
+    .padding()
+    .background(Theme.canvas)
 }

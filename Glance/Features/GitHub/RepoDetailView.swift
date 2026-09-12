@@ -18,32 +18,33 @@ struct RepoDetailView: View {
                         .clipShape(.circle)
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(repository.repo.fullName)
-                                .font(Theme.Fonts.manrope(18, weight: .bold))
+                            Text(repository.repo.ownerLogin)
+                                .font(Theme.Fonts.manrope(13))
+                                .foregroundStyle(Theme.Colors.textMuted)
+
+                            Text(repository.repo.fullName.components(separatedBy: "/").last ?? repository.repo.fullName)
+                                .font(Theme.Fonts.manrope(20, weight: .bold))
                                 .foregroundStyle(Theme.Colors.textPrimary)
 
                             if let desc = repository.repo.description {
                                 Text(desc)
-                                    .font(Theme.Fonts.manrope(13))
+                                    .font(Theme.Fonts.manrope(15))
                                     .foregroundStyle(Theme.Colors.textSecondary)
-                                    .lineLimit(3)
+                                    .lineSpacing(4)
                             }
                         }
                     }
 
                     // Dates
-                    HStack(spacing: 12) {
+                    HStack(spacing: 0) {
                         if let pushed = repository.repo.pushedAt {
-                            HStack(spacing: 4) {
-                                Image(systemName: "arrow.triangle.2.circlepath")
-                                Text("Pushed \(TimeFormat.relativeTime(from: pushed))")
-                            }
+                            Text("Pushed \(TimeFormat.relativeTime(from: pushed))")
+                        }
+                        if let pushed = repository.repo.pushedAt, repository.repo.createdAt != nil {
+                            Text("  ·  ")
                         }
                         if let created = repository.repo.createdAt {
-                            HStack(spacing: 4) {
-                                Image(systemName: "calendar")
-                                Text("Created \(TimeFormat.formatDate(from: created))")
-                            }
+                            Text("Created \(TimeFormat.formatDate(from: created))")
                         }
                     }
                     .font(Theme.Fonts.manrope(12))
@@ -76,28 +77,33 @@ struct RepoDetailView: View {
                     .background(Theme.Colors.cardEmerald.opacity(0.15), in: .capsule)
                 }
 
-                // Pills
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        if let lang = repository.repo.language {
-                            pill(icon: "chevron.left.forwardslash.chevron.right", text: lang, color: Theme.languageColor(for: lang))
-                        }
-                        if let license = repository.repo.license?.name {
-                            pill(icon: "document", text: license, color: Theme.Colors.textSecondary)
-                        }
-                        if repository.repo.hasWiki {
-                            pill(icon: "book", text: "Wiki", color: Theme.Colors.textMuted)
-                        }
-                        if repository.repo.hasPages {
-                            pill(icon: "globe", text: "Pages", color: Theme.Colors.textMuted)
-                        }
-                        if repository.repo.hasDiscussions {
-                            pill(icon: "bubble.right", text: "Discussions", color: Theme.Colors.textMuted)
-                        }
-                        if let homepage = repository.repo.homepage, !homepage.isEmpty {
-                            pill(icon: "link", text: "Homepage", color: Theme.Colors.cardCyan)
-                        }
+                // Attributes
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("ATTRIBUTES")
+                        .font(Theme.Fonts.manrope(10, weight: .bold))
+                        .foregroundStyle(Theme.Colors.textMuted)
+                        .tracking(1.2)
+
+                    FlowLayout(spacing: 8) {
+                    if let lang = repository.repo.language {
+                        pill(icon: "chevron.left.forwardslash.chevron.right", text: lang, color: Theme.languageColor(for: lang))
                     }
+                    if let license = repository.repo.license?.name {
+                        pill(icon: "document", text: license, color: Theme.Colors.textSecondary)
+                    }
+                    if repository.repo.hasWiki {
+                        pill(icon: "book", text: "Wiki", color: Theme.Colors.textMuted)
+                    }
+                    if repository.repo.hasPages {
+                        pill(icon: "globe", text: "Pages", color: Theme.Colors.textMuted)
+                    }
+                    if repository.repo.hasDiscussions {
+                        pill(icon: "bubble.right", text: "Discussions", color: Theme.Colors.textMuted)
+                    }
+                    if let homepage = repository.repo.homepage, !homepage.isEmpty {
+                        pill(icon: "link", text: "Homepage", color: Theme.Colors.cardCyan)
+                    }
+                }
                 }
 
                 // Topics
@@ -135,11 +141,13 @@ struct RepoDetailView: View {
                         .padding(.vertical, 12)
                         .background(Theme.Colors.cardEmerald.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
                     }
+                    .padding(.top, 24)
                 }
             }
-            .padding(Theme.cardPadding)
+            .padding(20)
             .padding(.bottom, 100)
         }
+        .scrollIndicators(.hidden)
         .glanceBackground()
         .navigationTitle(repository.repo.fullName)
         .navigationBarTitleDisplayMode(.inline)
@@ -150,6 +158,7 @@ struct RepoDetailView: View {
     private func statCell(_ label: String, value: String, icon: String, color: Color) -> some View {
         VStack(spacing: 6) {
             Image(systemName: icon)
+                .font(.system(size: 14))
                 .foregroundStyle(color)
             Text(value)
                 .font(Theme.Fonts.manrope(16, weight: .bold).monospacedDigit())
@@ -159,7 +168,7 @@ struct RepoDetailView: View {
                 .foregroundStyle(Theme.Colors.textMuted)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
+        .padding(.vertical, 16)
         .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: 12))
     }
 

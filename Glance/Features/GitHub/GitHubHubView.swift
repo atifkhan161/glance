@@ -1,8 +1,10 @@
 import SwiftUI
 
 struct GitHubHubView: View {
+    @Environment(ScrollCoordinator.self) private var scrollCoordinator
     let store: PulseStore
     @State private var sortBy: SortOption = .stars
+    @Namespace private var sortNamespace
 
     enum SortOption: String, CaseIterable {
         case stars = "Stars"
@@ -15,8 +17,8 @@ struct GitHubHubView: View {
             VStack(alignment: .leading, spacing: 20) {
                 switch store.github {
                 case .loading:
-                    SkeletonView()
-                    SkeletonView()
+                    GitHubSkeletonView()
+                    GitHubSkeletonView()
                 case .ready(let data, _), .stale(let data, _), .offline(let data, _), .degraded(let data, _, _):
                     githubContent(data)
                 case .error(let message):
@@ -30,11 +32,18 @@ struct GitHubHubView: View {
         .glanceBackground()
         .navigationTitle("GitHub Trending")
         .navigationBarTitleDisplayMode(.large)
+        .overlay(alignment: .top) {
+            RefreshOverlay(
+                accentColor: Theme.Colors.cardEmerald,
+                isActive: store.github == .loading
+            )
+            .padding(.top, 12)
+        }
         .refreshable {
             await store.refreshCard(.github)
         }
-        .navigationDestination(for: GitHubRepoWithVelocity.self) { repo in
-            RepoDetailView(repository: repo)
+        .onScrollPhaseChange { _, newPhase in
+            scrollCoordinator.onScrollPhaseChanged(to: newPhase)
         }
     }
 
@@ -42,14 +51,32 @@ struct GitHubHubView: View {
 
     private func githubContent(_ data: GitHubData) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Header
-            HStack {
-                Text("\(data.totalCount) repos this week")
-                    .font(Theme.Fonts.manrope(14, weight: .semibold))
-                    .foregroundStyle(Theme.Colors.textPrimary)
-                Spacer()
+            // Stat strip
+            let topVelocity = data.repos.compactMap(\.velocity).max() ?? 0
+            let lastUpdated = TimeFormat.relativeTime(data.timestamp)
+            HStack(spacing: 0) {
+                Text("\(data.repos.count) repos")
+                    .font(Theme.Fonts.scale(.caption1))
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                Text("·")
+                    .font(Theme.Fonts.scale(.badge))
+                    .foregroundStyle(Theme.Colors.textMuted)
+                    .padding(.horizontal, 12)
+                Text("Hot: +\(topVelocity) ⭐ this week")
+                    .font(Theme.Fonts.scale(.caption1))
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                Text("·")
+                    .font(Theme.Fonts.scale(.badge))
+                    .foregroundStyle(Theme.Colors.textMuted)
+                    .padding(.horizontal, 12)
+                Text(lastUpdated)
+                    .font(Theme.Fonts.scale(.caption1))
+                    .foregroundStyle(Theme.Colors.textSecondary)
             }
             .padding(.horizontal, Theme.cardPadding)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity)
+            .background(Theme.Colors.surface2.opacity(0.8), in: Capsule())
 
             // Sort control
             sortControl
@@ -59,6 +86,36 @@ struct GitHubHubView: View {
                 ForEach(sortedRepos(data.repos)) { item in
                     NavigationLink(value: item) {
                         repoRow(item)
+                    }
+                    .swipeActions(edge: .trailing) {
+                        Button {
+                            if let url = URL(string: "https://github.com/\(item.repo.fullName)") {
+                                UIApplication.shared.open(url)
+                            }
+                        } label: {
+                            Label("Open in Browser", systemImage: "safari")
+                        }
+                        .tint(Theme.Colors.cardEmerald)
+                    }
+                    .contextMenu {
+                        Button {
+                            if let url = URL(string: "https://github.com/\(item.repo.fullName)") {
+                                UIPasteboard.general.string = url.absoluteString
+                            }
+                        } label: {
+                            Label("Copy URL", systemImage: "doc.on.doc")
+                        }
+                        Button {
+                            if let url = URL(string: "https://github.com/\(item.repo.fullName)") {
+                                let avc = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+                                if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                                   let root = scene.windows.first?.rootViewController {
+                                    root.present(avc, animated: true)
+                                }
+                            }
+                        } label: {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                        }
                     }
                 }
             }
@@ -81,16 +138,23 @@ struct GitHubHubView: View {
         HStack(spacing: 0) {
             ForEach(SortOption.allCases, id: \.self) { option in
                 Button {
-                    withAnimation { sortBy = option }
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                        sortBy = option
+                    }
                 } label: {
                     Text(option.rawValue)
-                        .font(Theme.Fonts.manrope(13, weight: sortBy == option ? .bold : .medium))
-                        .foregroundStyle(sortBy == option ? Theme.Colors.canvas : Theme.Colors.textSecondary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                        .font(Theme.Fonts.scale(.caption1))
+                        .foregroundStyle(sortBy == option ? Theme.Colors.textPrimary : Theme.Colors.textMuted)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
                         .background(
-                            sortBy == option ? Theme.Colors.cardEmerald : Theme.Colors.surface2,
-                            in: RoundedRectangle(cornerRadius: 8)
+                            Group {
+                                if sortBy == option {
+                                    Capsule()
+                                        .fill(Theme.Colors.surface3)
+                                        .matchedGeometryEffect(id: "sortIndicator", in: sortNamespace)
+                                }
+                            }
                         )
                 }
             }

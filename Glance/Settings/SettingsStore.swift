@@ -7,6 +7,16 @@ final class SettingsStore {
     var geminiAPIKey: String = ""
     var selectedModel: String = "gemini-3.6-flash"
 
+    var leadCard: String {
+        get { defaults.string(forKey: "leadCard") ?? "" }
+        set { defaults.set(newValue, forKey: "leadCard") }
+    }
+
+    var compactMode: Bool {
+        get { defaults.bool(forKey: "compactMode") }
+        set { defaults.set(newValue, forKey: "compactMode") }
+    }
+
     private let keychain = KeychainStore()
     private let defaults = UserDefaults.standard
 

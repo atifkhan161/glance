@@ -6,8 +6,12 @@ struct RaidDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                // Hero
-                VStack(alignment: .leading, spacing: 12) {
+                // Hero panel
+                ZStack(alignment: .topLeading) {
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Theme.Colors.surface1)
+                        .frame(height: 240)
+
                     AsyncImage(url: URL(string: raid.image ?? "")) { image in
                         image.resizable().scaledToFit()
                     } placeholder: {
@@ -16,37 +20,41 @@ struct RaidDetailView: View {
                             .foregroundStyle(Theme.Colors.textPrimary)
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 200)
-                    .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+                    .frame(maxHeight: 160)
+                    .scaledToFit()
+                    .position(x: UIScreen.main.bounds.width / 2, y: 120)
 
-                    HStack {
-                        Text(raid.name)
-                            .font(Theme.Fonts.manrope(22, weight: .bold))
-                            .foregroundStyle(Theme.Colors.textPrimary)
-
-                        if raid.canBeShiny {
-                            Text("✨ Shiny")
-                                .font(Theme.Fonts.manrope(11, weight: .medium))
-                                .foregroundStyle(Theme.Colors.cardRose)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Theme.Colors.cardRose.opacity(0.15), in: .capsule)
-                        }
-                    }
-
-                    // Tier badge
+                    // Tier badge top-left
                     Text(tierText)
                         .font(Theme.Fonts.manrope(12, weight: .bold))
                         .foregroundStyle(tierColor)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)
                         .background(tierColor.opacity(0.15), in: .capsule)
+                        .padding(12)
+
+                    // Shiny badge top-right
+                    if raid.canBeShiny {
+                        Text("Shiny")
+                            .font(Theme.Fonts.manrope(11, weight: .medium))
+                            .foregroundStyle(Theme.Colors.cardRose)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Theme.Colors.cardRose.opacity(0.15), in: .capsule)
+                            .padding(12)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
+                    }
                 }
+
+                // Name
+                Text(raid.name)
+                    .font(Theme.Fonts.manrope(26, weight: .heavy))
+                    .foregroundStyle(Theme.Colors.textPrimary)
 
                 // Types
                 if !raid.types.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("TYPES")
+                        Text("TYPE")
                             .font(Theme.Fonts.manrope(10, weight: .bold))
                             .foregroundStyle(Theme.Colors.textMuted)
                             .tracking(1.2)
@@ -66,7 +74,7 @@ struct RaidDetailView: View {
                                         .foregroundStyle(Theme.Colors.textSecondary)
                                 }
                                 .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
+                                .padding(.vertical, 6)
                                 .background(Theme.Colors.surface2, in: .capsule)
                             }
                         }
@@ -81,16 +89,23 @@ struct RaidDetailView: View {
                             .foregroundStyle(Theme.Colors.textMuted)
                             .tracking(1.2)
 
-                        HStack(spacing: 20) {
+                        HStack(spacing: 0) {
                             if let normal = cp.normal {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("Normal")
                                         .font(Theme.Fonts.manrope(12))
                                         .foregroundStyle(Theme.Colors.textMuted)
                                     Text("\(normal.min ?? 0) – \(normal.max ?? 0)")
-                                        .font(Theme.Fonts.manrope(18, weight: .bold))
+                                        .font(Theme.Fonts.manrope(24, weight: .bold))
                                         .foregroundStyle(Theme.Colors.textPrimary)
                                 }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+
+                            if let _ = cp.boosted {
+                                Rectangle()
+                                    .fill(Theme.Colors.borderSubtle)
+                                    .frame(width: 1, height: 40)
                             }
 
                             if let boosted = cp.boosted {
@@ -99,11 +114,14 @@ struct RaidDetailView: View {
                                         .font(Theme.Fonts.manrope(12))
                                         .foregroundStyle(Theme.Colors.textMuted)
                                     Text("\(boosted.min ?? 0) – \(boosted.max ?? 0)")
-                                        .font(Theme.Fonts.manrope(18, weight: .bold))
+                                        .font(Theme.Fonts.manrope(24, weight: .bold))
                                         .foregroundStyle(Theme.Colors.cardRose)
                                 }
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             }
                         }
+                        .padding(12)
+                        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: 12))
                     }
                 }
 
@@ -134,9 +152,10 @@ struct RaidDetailView: View {
                     }
                 }
             }
-            .padding(Theme.cardPadding)
+            .padding(20)
             .padding(.bottom, 100)
         }
+        .scrollIndicators(.hidden)
         .glanceBackground()
         .navigationTitle(raid.name)
         .navigationBarTitleDisplayMode(.inline)
