@@ -9,7 +9,12 @@ struct PoGoHubView: View {
     private let tiers = ["All", "1★", "3★", "5★", "Mega", "Shadow"]
 
     private var priorityRaid: PoGoRaid? {
-        guard case .ready(let data, _) = store.pogo else { return nil }
+        let data: PoGoData? = {
+            if case .ready(let d, _) = store.pogo { return d }
+            if case .stale(let d, _) = store.pogo { return d }
+            return nil
+        }()
+        guard let data else { return nil }
         return data.mega ?? data.fiveStar ?? data.shadow
     }
 
@@ -26,37 +31,35 @@ struct PoGoHubView: View {
                     .frame(minHeight: 200)
                     .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.hero))
 
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("POKÉMON GO")
-                            .font(Theme.Fonts.scale(.title1))
-                            .foregroundStyle(Theme.Colors.cardRose)
-
-                        HStack(alignment: .bottom, spacing: 16) {
-                            if let spriteURL = priority.image, let url = URL(string: spriteURL) {
-                                CachedAsyncImage(url: url) { image in
-                                    image.resizable().scaledToFit()
-                                } placeholder: {
-                                    EmptyView()
-                                }
-                                .frame(width: 140, height: 140)
+                    HStack(alignment: .top, spacing: 16) {
+                        if let spriteURL = priority.image, let url = URL(string: spriteURL) {
+                            CachedAsyncImage(url: url) { image in
+                                image.resizable().scaledToFit()
+                            } placeholder: {
+                                EmptyView()
                             }
-
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(priority.name)
-                                    .font(Theme.Fonts.scale(.title3))
-                                    .foregroundStyle(Theme.Colors.textPrimary)
-                                    .lineLimit(2)
-
-                                BadgePill(text: tierBadgeText(priority), color: Theme.Colors.cardRose)
-                            }
+                            .frame(width: 140, height: 140)
                         }
 
-                        if let cp = priority.combatPower,
-                           let normal = cp.normal,
-                           let min = normal.min, let max = normal.max {
-                            Text("CP \(formatCP(min)) – \(formatCP(max))")
-                                .font(Theme.Fonts.scale(.display))
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("POKÉMON GO")
+                                .font(Theme.Fonts.scale(.title1))
+                                .foregroundStyle(Theme.Colors.cardRose)
+
+                            Text(priority.name)
+                                .font(Theme.Fonts.scale(.title3))
                                 .foregroundStyle(Theme.Colors.textPrimary)
+                                .lineLimit(2)
+
+                            BadgePill(text: tierBadgeText(priority), color: Theme.Colors.cardRose)
+
+                            if let cp = priority.combatPower,
+                               let normal = cp.normal,
+                               let min = normal.min, let max = normal.max {
+                                Text("CP \(formatCP(min)) – \(formatCP(max))")
+                                    .font(Theme.Fonts.scale(.display))
+                                    .foregroundStyle(Theme.Colors.textPrimary)
+                            }
                         }
                     }
                     .padding(Theme.cardPadding)

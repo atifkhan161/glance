@@ -7,7 +7,12 @@ struct MadridHubView: View {
     var body: some View {
         ScrollView {
             // Hero section
-            if case .ready(let data, _) = store.madrid, let standing = data.standing {
+            let heroData: MadridData? = {
+                if case .ready(let data, _) = store.madrid { return data }
+                if case .stale(let data, _) = store.madrid { return data }
+                return nil
+            }()
+            if let heroData, let standing = heroData.standing {
                 ZStack(alignment: .topLeading) {
                     LinearGradient(
                         colors: [Theme.Colors.cardAmber.opacity(0.3), Theme.Colors.canvas],
@@ -17,55 +22,55 @@ struct MadridHubView: View {
                     .frame(minHeight: 220)
                     .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.hero))
 
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("REAL MADRID")
-                            .font(Theme.Fonts.scale(.title1))
-                            .foregroundStyle(Theme.Colors.cardAmber)
+                    HStack(alignment: .top, spacing: 16) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("REAL MADRID")
+                                .font(Theme.Fonts.scale(.title1))
+                                .foregroundStyle(Theme.Colors.cardAmber)
 
-                        Text(standing.badge != nil ? "La Liga" : "")
-                            .font(Theme.Fonts.scale(.callout))
-                            .foregroundStyle(Theme.Colors.textMuted)
+                            Text(standing.badge != nil ? "La Liga" : "")
+                                .font(Theme.Fonts.scale(.callout))
+                                .foregroundStyle(Theme.Colors.textMuted)
 
-                        if let fixture = data.fixture,
-                           let scores = fixture.scores {
-                            Text("\(scores.home) - \(scores.away)")
-                                .font(Theme.Fonts.scale(.display))
-                                .foregroundStyle(Theme.Colors.textPrimary)
+                            if let fixture = heroData.fixture,
+                               let scores = fixture.scores {
+                                Text("\(scores.home) - \(scores.away)")
+                                    .font(Theme.Fonts.scale(.display))
+                                    .foregroundStyle(Theme.Colors.textPrimary)
+                            }
+
+                            HStack(spacing: 16) {
+                                statItem(label: "PTS", value: "\(standing.points)")
+                                statItem(label: "W", value: "\(standing.won)")
+                                statItem(label: "L", value: "\(standing.lost)")
+                            }
                         }
 
-                        HStack(spacing: 16) {
-                            statItem(label: "PTS", value: "\(standing.points)")
-                            statItem(label: "W", value: "\(standing.won)")
-                            statItem(label: "L", value: "\(standing.lost)")
+                        Spacer()
+
+                        VStack(spacing: 8) {
+                            if let rmBadgeURL = heroData.fixture?.rmBadge ?? heroData.lastMatch?.rmBadge,
+                               let url = URL(string: rmBadgeURL) {
+                                CachedAsyncImage(url: url) { image in
+                                    image.resizable().scaledToFit()
+                                } placeholder: {
+                                    EmptyView()
+                                }
+                                .frame(width: 100, height: 100)
+                            }
+
+                            if let badgeURL = standing.badge, let url = URL(string: badgeURL) {
+                                CachedAsyncImage(url: url) { image in
+                                    image.resizable().scaledToFit()
+                                } placeholder: {
+                                    EmptyView()
+                                }
+                                .frame(width: 36, height: 36)
+                            }
                         }
                     }
                     .padding(Theme.cardPadding)
                     .frame(maxWidth: .infinity, alignment: .leading)
-
-                    HStack {
-                        Spacer()
-
-                        if let rmBadgeURL = data.fixture?.rmBadge ?? data.lastMatch?.rmBadge,
-                           let url = URL(string: rmBadgeURL) {
-                            CachedAsyncImage(url: url) { image in
-                                image.resizable().scaledToFit()
-                            } placeholder: {
-                                EmptyView()
-                            }
-                            .frame(width: 80, height: 80)
-                        }
-
-                        if let badgeURL = standing.badge, let url = URL(string: badgeURL) {
-                            CachedAsyncImage(url: url) { image in
-                                image.resizable().scaledToFit()
-                            } placeholder: {
-                                EmptyView()
-                            }
-                            .frame(width: 48, height: 48)
-                        }
-                    }
-                    .padding(Theme.cardPadding)
-                    .padding(.top, Theme.cardPadding)
                 }
                 .padding(.horizontal, Theme.cardPadding)
             }
