@@ -595,7 +595,7 @@ struct GlanceCardView: View {
 
     private func errorView(_ message: String) -> some View {
         GlanceErrorView(message: message, accentColor: card.accentColor) {
-            Task { await store.refresh(card) }
+            Task { await store.refreshCard(card) }
         }
     }
 
@@ -657,7 +657,7 @@ struct CardHeaderView: View {
             Button {
                 let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
                 impactFeedback.impactOccurred()
-                Task { await store.refresh(card) }
+                Task { await store.refreshCard(card) }
             } label: {
                 Image(systemName: "arrow.clockwise")
                     .font(.subheadline)

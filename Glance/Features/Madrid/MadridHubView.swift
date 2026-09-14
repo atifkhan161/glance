@@ -604,7 +604,7 @@ struct MadridHubView: View {
 
     private func errorSection(_ message: String) -> some View {
         GlanceErrorView(message: message, accentColor: Theme.Colors.cardAmber) {
-            Task { await store.refresh(.madrid) }
+            Task { await store.refreshCard(.madrid) }
         }
     }
 

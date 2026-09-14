@@ -398,7 +398,7 @@ struct PoGoHubView: View {
                 .font(Theme.Fonts.manrope(14))
                 .foregroundStyle(Theme.Colors.textSecondary)
             Button {
-                Task { await store.refresh(.pogo) }
+                Task { await store.refreshCard(.pogo) }
             } label: {
                 HStack {
                     Image(systemName: "arrow.clockwise")
