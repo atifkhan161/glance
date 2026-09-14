@@ -35,6 +35,14 @@ struct GlanceCardView: View {
                 .stroke(isStaleOrDegraded ? card.accentColor.opacity(isPulsing ? 0.5 : 0.1) : Theme.Colors.borderSubtle, lineWidth: 1)
                 .animation(.easeInOut(duration: 1.2).repeatForever(), value: isPulsing)
         )
+        .overlay(alignment: .topTrailing) {
+            if isStaleOrDegraded {
+                ProgressView()
+                    .tint(card.accentColor)
+                    .padding(8)
+                    .transition(.opacity)
+            }
+        }
         .onAppear {
             if isStaleOrDegraded && !reduceMotion {
                 withAnimation(.easeInOut(duration: 1.2).repeatForever()) {
