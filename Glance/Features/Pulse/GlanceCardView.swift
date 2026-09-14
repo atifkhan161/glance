@@ -640,30 +640,38 @@ struct CardHeaderView: View {
     }
 
     var body: some View {
-        HStack {
-            Circle()
-                .fill(card.accentColor)
-                .frame(width: 8, height: 8)
-                .accessibilityHidden(true)
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Circle()
+                    .fill(card.accentColor)
+                    .frame(width: 8, height: 8)
+                    .accessibilityHidden(true)
 
-            GlanceBadge(text: card.badgeLabel, color: card.accentColor)
+                GlanceBadge(text: card.badgeLabel, color: card.accentColor)
 
-            Spacer()
+                Spacer()
+
+                if let age = currentAge {
+                    StatusDot(ageText: age, showLabel: false)
+                }
+
+                Button {
+                    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                    impactFeedback.impactOccurred()
+                    Task { await store.refreshCard(card) }
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.subheadline)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                }
+                .accessibilityLabel("Refresh \(card.badgeLabel)")
+            }
 
             if let age = currentAge {
-                StatusDot(ageText: age, showLabel: false)
+                Text("Updated \(age)")
+                    .font(Theme.Fonts.manrope(11))
+                    .foregroundStyle(Theme.Colors.textMuted)
             }
-
-            Button {
-                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                impactFeedback.impactOccurred()
-                Task { await store.refreshCard(card) }
-            } label: {
-                Image(systemName: "arrow.clockwise")
-                    .font(.subheadline)
-                    .foregroundStyle(Theme.Colors.textSecondary)
-            }
-            .accessibilityLabel("Refresh \(card.badgeLabel)")
         }
         .padding(.horizontal, Theme.cardPadding)
         .padding(.top, Theme.cardPadding)
