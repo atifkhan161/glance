@@ -12,9 +12,24 @@ final class SettingsStore {
         set { defaults.set(newValue, forKey: "leadCard") }
     }
 
-    var compactMode: Bool {
-        get { defaults.bool(forKey: "compactMode") }
-        set { defaults.set(newValue, forKey: "compactMode") }
+    var showMadrid: Bool {
+        get { defaults.object(forKey: "showMadrid") as? Bool ?? true }
+        set { defaults.set(newValue, forKey: "showMadrid") }
+    }
+
+    var showPoGo: Bool {
+        get { defaults.object(forKey: "showPoGo") as? Bool ?? true }
+        set { defaults.set(newValue, forKey: "showPoGo") }
+    }
+
+    var showGithub: Bool {
+        get { defaults.object(forKey: "showGithub") as? Bool ?? true }
+        set { defaults.set(newValue, forKey: "showGithub") }
+    }
+
+    var showAiIntel: Bool {
+        get { defaults.object(forKey: "showAiIntel") as? Bool ?? true }
+        set { defaults.set(newValue, forKey: "showAiIntel") }
     }
 
     private let keychain = KeychainStore()

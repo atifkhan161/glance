@@ -14,6 +14,7 @@ struct SettingsView: View {
                 brandingHeader
                 appearanceSection
                 displaySection
+                cardVisibilitySection
                 cacheSection
 
                 Divider()
@@ -132,22 +133,48 @@ struct SettingsView: View {
                 }
                 .padding(12)
                 .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
-
-                HStack {
-                    Text("Compact Mode")
-                        .font(Theme.Fonts.manrope(14))
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                    Spacer()
-                    Toggle("", isOn: Binding(
-                        get: { settingsStore.compactMode },
-                        set: { settingsStore.compactMode = $0 }
-                    ))
-                    .labelsHidden()
-                }
-                .padding(12)
-                .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
             }
         }
+    }
+
+    // MARK: - Card Visibility Section
+
+    private var cardVisibilitySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader("CARD VISIBILITY")
+
+            VStack(spacing: 8) {
+                cardToggle("Real Madrid", isOn: Binding(
+                    get: { settingsStore.showMadrid },
+                    set: { settingsStore.showMadrid = $0 }
+                ))
+                cardToggle("Pokémon GO", isOn: Binding(
+                    get: { settingsStore.showPoGo },
+                    set: { settingsStore.showPoGo = $0 }
+                ))
+                cardToggle("GitHub Trending", isOn: Binding(
+                    get: { settingsStore.showGithub },
+                    set: { settingsStore.showGithub = $0 }
+                ))
+                cardToggle("AI Intel", isOn: Binding(
+                    get: { settingsStore.showAiIntel },
+                    set: { settingsStore.showAiIntel = $0 }
+                ))
+            }
+        }
+    }
+
+    private func cardToggle(_ label: String, isOn: Binding<Bool>) -> some View {
+        HStack {
+            Text(label)
+                .font(Theme.Fonts.manrope(14))
+                .foregroundStyle(Theme.Colors.textPrimary)
+            Spacer()
+            Toggle("", isOn: isOn)
+                .labelsHidden()
+        }
+        .padding(12)
+        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
     }
 
     // MARK: - Cache Section
