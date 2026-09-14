@@ -7,9 +7,14 @@ struct PulseView: View {
     @State private var settingsStore = SettingsStore()
 
     private var sortedCards: [CardID] {
-        let all = CardID.allCases
-        guard let lead = CardID(rawValue: settingsStore.leadCard) else { return all }
-        return [lead] + all.filter { $0 != lead }
+        var visible: [CardID] = []
+        if settingsStore.showMadrid { visible.append(.madrid) }
+        if settingsStore.showPoGo { visible.append(.pogo) }
+        if settingsStore.showGithub { visible.append(.github) }
+        if settingsStore.showAiIntel { visible.append(.aiIntel) }
+        guard let lead = CardID(rawValue: settingsStore.leadCard),
+              visible.contains(lead) else { return visible }
+        return [lead] + visible.filter { $0 != lead }
     }
 
     var body: some View {
