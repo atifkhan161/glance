@@ -61,6 +61,7 @@ struct ProviderCard: View {
 
 struct ProviderView: View {
     @State private var settingsStore = SettingsStore()
+    @State private var showAddSheet = false
 
     var body: some View {
         ScrollView {
@@ -158,7 +159,7 @@ struct ProviderView: View {
                     }
 
                     Button {
-                        addFeed()
+                        showAddSheet = true
                     } label: {
                         HStack {
                             Image(systemName: "plus.circle.fill")
@@ -178,12 +179,9 @@ struct ProviderView: View {
         .glanceBackground()
         .navigationTitle("Providers")
         .navigationBarTitleDisplayMode(.large)
-    }
-
-    private func addFeed() {
-        var feeds = settingsStore.customRSSFeeds
-        feeds.append(CustomRSSFeed(name: "New Feed", url: ""))
-        settingsStore.customRSSFeeds = feeds
+        .sheet(isPresented: $showAddSheet) {
+            AddRSSFeedSheet(feeds: $settingsStore.customRSSFeeds)
+        }
     }
 
     private func removeFeed(at index: Int) {

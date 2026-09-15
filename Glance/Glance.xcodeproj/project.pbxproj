@@ -32,6 +32,9 @@
 		AA11BB22CC33DD44EE55FF78 /* ProviderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22CC33DD44EE55FF660078 /* ProviderView.swift */; };
 		CC11DD22EE33FF44GG55FF79 /* GenericRSSClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD22EE33FF44GG55FF660079 /* GenericRSSClient.swift */; };
 		EE11FF22GG33HH44II55FF80 /* GenericRSSPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF22GG33HH44II55FF660080 /* GenericRSSPipeline.swift */; };
+		A1B2C3D400010001AB0001B2 /* AddRSSFeedSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D400010001AA0001B1 /* AddRSSFeedSheet.swift */; };
+		A1B2C3D400010001AD0001B4 /* CustomRSSDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D400010001AC0001B3 /* CustomRSSDetailView.swift */; };
+		A1B2C3D400010001AF0001B6 /* CustomRSSFeedRef.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D400010001AE0001B5 /* CustomRSSFeedRef.swift */; };
 		47C63C93AFB93383EBBA3EFC /* CacheStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F65672F62EC7DA587E61CBB6 /* CacheStoreTests.swift */; };
 		4C5A4447575865357AA90C3A /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7858C0D91F95952753F08721 /* Enums.swift */; };
 		4C7EB67886D3ADF0ACBF5FFF /* SourcesFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10BA754B5EC93CFFE1B72319 /* SourcesFlowUITests.swift */; };
@@ -126,6 +129,9 @@
 		BB22CC33DD44EE55FF660078 /* ProviderView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ProviderView.swift; sourceTree = "<group>"; };
 		DD22EE33FF44GG55FF660079 /* GenericRSSClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GenericRSSClient.swift; sourceTree = "<group>"; };
 		FF22GG33HH44II55FF660080 /* GenericRSSPipeline.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GenericRSSPipeline.swift; sourceTree = "<group>"; };
+		A1B2C3D400010001AA0001B1 /* AddRSSFeedSheet.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AddRSSFeedSheet.swift; sourceTree = "<group>"; };
+		A1B2C3D400010001AC0001B3 /* CustomRSSDetailView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CustomRSSDetailView.swift; sourceTree = "<group>"; };
+		A1B2C3D400010001AE0001B5 /* CustomRSSFeedRef.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CustomRSSFeedRef.swift; sourceTree = "<group>"; };
 		44568B552442758133DEF919 /* PoGoHubView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = PoGoHubView.swift; sourceTree = "<group>"; };
 		453DA7F3953B22719544D662 /* GitHubPipelineTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubPipelineTests.swift; sourceTree = "<group>"; };
 		47065905154CC6E47579CB42 /* MadridFixtureParser.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = MadridFixtureParser.swift; sourceTree = "<group>"; };
@@ -358,6 +364,7 @@
 				F393856C854949D7C2FA7B83 /* GitHub */,
 				70D8BCC9BB56E4FDECD0DFAC /* AiIntel */,
 				GG33HH44II55JJ66KK77 /* GenericRSS */,
+				A1B2C3D400010001CA0001C1 /* CustomRSS */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -368,6 +375,15 @@
 				FF22GG33HH44II55FF660080 /* GenericRSSPipeline.swift */,
 			);
 			path = GenericRSS;
+			sourceTree = "<group>";
+		};
+		A1B2C3D400010001CA0001C1 /* CustomRSS */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D400010001AC0001B3 /* CustomRSSDetailView.swift */,
+				A1B2C3D400010001AE0001B5 /* CustomRSSFeedRef.swift */,
+			);
+			path = CustomRSS;
 			sourceTree = "<group>";
 		};
 		C0D6E39BE912DFA452C964E5 /* Madrid */ = {
@@ -389,6 +405,7 @@
 				7D29FA2484914D1C92BFEFEE /* SettingsStore.swift */,
 				0DDB5287486413A1BC7A95B1 /* SettingsView.swift */,
 				BB22CC33DD44EE55FF660078 /* ProviderView.swift */,
+				A1B2C3D400010001AA0001B1 /* AddRSSFeedSheet.swift */,
 				3D44183E20A98B8B4BB01FE8 /* SourcesView.swift */,
 			);
 			path = Settings;
@@ -692,6 +709,9 @@
 				AA11BB22CC33DD44EE55FF78 /* ProviderView.swift in Sources */,
 				CC11DD22EE33FF44GG55FF79 /* GenericRSSClient.swift in Sources */,
 				EE11FF22GG33HH44II55FF80 /* GenericRSSPipeline.swift in Sources */,
+				A1B2C3D400010001AB0001B2 /* AddRSSFeedSheet.swift in Sources */,
+				A1B2C3D400010001AD0001B4 /* CustomRSSDetailView.swift in Sources */,
+				A1B2C3D400010001AF0001B6 /* CustomRSSFeedRef.swift in Sources */,
 				FE86DACADCCAC95C40100576 /* Theme.swift in Sources */,
 				F92EC9784909D6464A009A36 /* GlanceBadge.swift in Sources */,
 				E5CB8D9BFF379C4E8765123A /* SkeletonView.swift in Sources */,

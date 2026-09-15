@@ -41,33 +41,39 @@ struct PulseView: View {
                 ForEach(Array(store.customRSSCards.keys.sorted()), id: \.self) { feedID in
                     if case .ready(let articles, _) = store.customRSSCards[feedID] {
                         let feedName = settingsStore.customRSSFeeds.first(where: { $0.id.uuidString == feedID })?.name ?? "Custom Feed"
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Image(systemName: "rss")
-                                    .foregroundStyle(Theme.Colors.cardAmber)
-                                Text(feedName)
-                                    .font(Theme.Fonts.manrope(14, weight: .bold))
-                                    .foregroundStyle(Theme.Colors.textPrimary)
-                                Spacer()
-                                Text("\(articles.count) articles")
-                                    .font(Theme.Fonts.manrope(11))
-                                    .foregroundStyle(Theme.Colors.textMuted)
-                            }
-
-                            ForEach(articles.prefix(3)) { article in
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(article.title)
-                                        .font(Theme.Fonts.manrope(13, weight: .medium))
+                        Button {
+                            let ref = CustomRSSFeedRef(feedID: feedID, feedName: feedName)
+                            appState.pulsePath.append(ref)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Image(systemName: "rss")
+                                        .foregroundStyle(Theme.Colors.cardAmber)
+                                    Text(feedName)
+                                        .font(Theme.Fonts.manrope(14, weight: .bold))
                                         .foregroundStyle(Theme.Colors.textPrimary)
-                                        .lineLimit(2)
-                                    if !article.author.isEmpty {
-                                        Text(article.author)
-                                            .font(Theme.Fonts.manrope(11))
-                                            .foregroundStyle(Theme.Colors.textMuted)
+                                    Spacer()
+                                    Text("\(articles.count) articles")
+                                        .font(Theme.Fonts.manrope(11))
+                                        .foregroundStyle(Theme.Colors.textMuted)
+                                }
+
+                                ForEach(articles.prefix(3)) { article in
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(article.title)
+                                            .font(Theme.Fonts.manrope(13, weight: .medium))
+                                            .foregroundStyle(Theme.Colors.textPrimary)
+                                            .lineLimit(2)
+                                        if !article.author.isEmpty {
+                                            Text(article.author)
+                                                .font(Theme.Fonts.manrope(11))
+                                                .foregroundStyle(Theme.Colors.textMuted)
+                                        }
                                     }
                                 }
                             }
                         }
+                        .buttonStyle(.plain)
                         .padding(Theme.cardPadding)
                         .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
                         .overlay(
@@ -137,6 +143,15 @@ struct PulseView: View {
         }
         .navigationDestination(for: AiIntelArticle.self) { article in
             AiIntelArticleView(article: article)
+        }
+        .navigationDestination(for: CustomRSSFeedRef.self) { ref in
+            let articles: [MMArticle] = {
+                if case .ready(let data, _) = store.customRSSCards[ref.feedID] {
+                    return data
+                }
+                return []
+            }()
+            CustomRSSDetailView(feedName: ref.feedName, articles: articles)
         }
         .task {
             await store.loadFromCache()
