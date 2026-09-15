@@ -26,6 +26,7 @@ struct GitHubHubView: View {
                     keyMissingSection
                 }
             }
+            .padding(.horizontal, Theme.cardPadding)
             .padding(.bottom, 100)
         }
         .glanceBackground()
