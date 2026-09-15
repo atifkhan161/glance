@@ -83,10 +83,10 @@ final class PulseStore {
     }
 
     func refreshAll() async {
-        await refresh(.madrid)
-        await refresh(.pogo)
-        await refresh(.github)
-        await refresh(.aiIntel)
+        await refresh(.madrid, force: true)
+        await refresh(.pogo, force: true)
+        await refresh(.github, force: true)
+        await refresh(.aiIntel, force: true)
     }
 
     func refreshCard(_ card: CardID) async {

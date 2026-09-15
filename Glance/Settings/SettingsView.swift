@@ -218,7 +218,12 @@ struct SettingsView: View {
                 .foregroundStyle(Theme.Colors.textPrimary)
             Spacer()
             if let age = cacheAges[key] {
-                StatusDot(ageText: age)
+                HStack(spacing: 6) {
+                    StatusDot(ageText: age, showLabel: false)
+                    Text(age)
+                        .font(Theme.Fonts.manrope(12))
+                        .foregroundStyle(Theme.Colors.textMuted)
+                }
             } else {
                 StatusDot(freshness: .offline)
             }
