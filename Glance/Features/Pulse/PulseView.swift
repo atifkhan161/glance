@@ -99,8 +99,21 @@ struct PulseView: View {
         }
         .task {
             await store.loadFromCache()
+            // Refresh any cards whose cache has expired
             if store.needsRefresh {
                 await store.refreshAll()
+            } else {
+                // Check each card's cache validity individually
+                var cardsToRefresh: [CardID] = []
+                for card in CardID.allCases {
+                    let valid = await store.isCacheValid(for: card)
+                    if !valid {
+                        cardsToRefresh.append(card)
+                    }
+                }
+                for card in cardsToRefresh {
+                    await store.refreshCard(card)
+                }
             }
         }
     }

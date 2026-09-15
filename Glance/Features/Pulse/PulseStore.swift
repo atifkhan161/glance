@@ -44,6 +44,17 @@ final class PulseStore {
         return false
     }
 
+    func isCacheValid(for card: CardID) async -> Bool {
+        let cacheKey: String
+        switch card {
+        case .madrid: cacheKey = "cache_madrid"
+        case .pogo: cacheKey = "cache_pogo"
+        case .github: cacheKey = "cache_github"
+        case .aiIntel: cacheKey = "cache_aiintel"
+        }
+        return await cache.isValid(key: cacheKey)
+    }
+
     private var madridAge: String? { madrid.age }
     private var pogoAge: String? { pogo.age }
     private var githubAge: String? { github.age }

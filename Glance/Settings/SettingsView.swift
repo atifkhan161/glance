@@ -262,8 +262,10 @@ struct SettingsView: View {
     private func loadCacheAges() async {
         let keys = ["cache_madrid", "cache_pogo", "cache_github", "cache_aiintel"]
         for key in keys {
-            if let envelope: CacheEnvelope<Data> = await cacheStore.load(key) {
-                let date = Date(timeIntervalSince1970: TimeInterval(envelope.timestampMs) / 1000)
+            if let data = UserDefaults.standard.data(forKey: key),
+               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let timestampMs = json["timestampMs"] as? Int64 {
+                let date = Date(timeIntervalSince1970: TimeInterval(timestampMs) / 1000)
                 cacheAges[key] = TimeFormat.age(from: date)
             } else {
                 cacheAges[key] = "No data"
