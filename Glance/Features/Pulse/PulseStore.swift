@@ -54,6 +54,7 @@ final class PulseStore {
     private let pogoPipeline: PoGoPipeline
     private let githubPipeline: GitHubPipeline
     private let aiIntelPipeline: AiIntelPipeline
+    private var refreshTasks: [CardID: Task<Void, Never>] = [:]
 
     init(
         cache: CacheStore = .shared,
@@ -93,6 +94,9 @@ final class PulseStore {
     }
 
     func refresh(_ card: CardID, force: Bool = false) async {
+        // Cancel any in-flight refresh for this card
+        refreshTasks[card]?.cancel()
+
         let cacheKey: String
         switch card {
         case .madrid: cacheKey = "cache_madrid"

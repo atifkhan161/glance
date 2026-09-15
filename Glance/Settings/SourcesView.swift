@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct SourcesView: View {
-    @Environment(ScrollCoordinator.self) private var scrollCoordinator
     @State private var store = SettingsStore()
     @State private var showExaKey = false
     @State private var showGeminiKey = false
@@ -105,9 +104,6 @@ struct SourcesView: View {
         .glanceBackground()
         .navigationTitle("Sources")
         .navigationBarTitleDisplayMode(.large)
-        .onScrollPhaseChange { _, newPhase in
-            scrollCoordinator.onScrollPhaseChanged(to: newPhase)
-        }
         .task {
             store.loadFromKeychain()
         }

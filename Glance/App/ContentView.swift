@@ -15,15 +15,6 @@ struct ContentView: View {
                 case .pulse:
                     NavigationStack(path: $bindable.pulsePath) { PulseView(store: store) }
                         .tint(Theme.Colors.accent)
-                case .madrid:
-                    NavigationStack(path: $bindable.madridPath) { MadridHubView(store: store) }
-                        .tint(Theme.Colors.accent)
-                case .pogo:
-                    NavigationStack(path: $bindable.pogoPath) { PoGoHubView(store: store) }
-                        .tint(Theme.Colors.accent)
-                case .github:
-                    NavigationStack(path: $bindable.githubPath) { GitHubHubView(store: store) }
-                        .tint(Theme.Colors.accent)
                 case .sources:
                     NavigationStack(path: $bindable.sourcesPath) { SourcesView() }
                         .tint(Theme.Colors.accent)
@@ -37,9 +28,6 @@ struct ContentView: View {
             // Floating pill dock
             floatingDock(selection: $bindable.selectedTab)
                 .padding(.bottom, 8)
-                .offset(y: scrollCoordinator.dockHidden ? 80 : 0)
-                .opacity(scrollCoordinator.dockHidden ? 0 : 1)
-                .animation(.easeInOut(duration: 0.3), value: scrollCoordinator.dockHidden)
         }
         .ignoresSafeArea(.keyboard)
         .environment(scrollCoordinator)
@@ -114,9 +102,6 @@ extension GlanceTab {
     var icon: String {
         switch self {
         case .pulse: "bolt.fill"
-        case .madrid: "sportscourt"
-        case .pogo: "gamecontroller.fill"
-        case .github: "chevron.left.forwardslash.chevron.right"
         case .sources: "key"
         case .settings: "gearshape.fill"
         }
@@ -125,9 +110,6 @@ extension GlanceTab {
     var shortLabel: String {
         switch self {
         case .pulse: "Feed"
-        case .madrid: "Madrid"
-        case .pogo: "PoGo"
-        case .github: "GitHub"
         case .sources: "Keys"
         case .settings: "Settings"
         }
@@ -136,9 +118,6 @@ extension GlanceTab {
     var accentColor: Color {
         switch self {
         case .pulse: Theme.Colors.cardEmerald
-        case .madrid: Theme.Colors.cardAmber
-        case .pogo: Theme.Colors.cardRose
-        case .github: Theme.Colors.cardEmerald
         case .sources: Theme.Colors.textMuted
         case .settings: Theme.Colors.textMuted
         }
@@ -147,9 +126,6 @@ extension GlanceTab {
     var accessibilityLabel: String {
         switch self {
         case .pulse: "Pulse feed"
-        case .madrid: "Real Madrid"
-        case .pogo: "Pokemon Go"
-        case .github: "GitHub trending"
         case .sources: "API sources"
         case .settings: "Settings"
         }

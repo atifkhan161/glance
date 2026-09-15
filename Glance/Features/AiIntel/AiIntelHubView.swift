@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct AiIntelHubView: View {
-    @Environment(ScrollCoordinator.self) private var scrollCoordinator
     let store: PulseStore
 
     var body: some View {
@@ -32,9 +31,6 @@ struct AiIntelHubView: View {
         }
         .refreshable {
             await store.refreshCard(.aiIntel)
-        }
-        .onScrollPhaseChange { _, newPhase in
-            scrollCoordinator.onScrollPhaseChanged(to: newPhase)
         }
     }
 

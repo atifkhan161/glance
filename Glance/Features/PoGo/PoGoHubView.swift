@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct PoGoHubView: View {
-    @Environment(ScrollCoordinator.self) private var scrollCoordinator
     let store: PulseStore
     @State private var selectedTier: String = "All"
     @State private var completedRaids: Set<String> = []
@@ -95,9 +94,6 @@ struct PoGoHubView: View {
         }
         .refreshable {
             await store.refreshCard(.pogo)
-        }
-        .onScrollPhaseChange { _, newPhase in
-            scrollCoordinator.onScrollPhaseChanged(to: newPhase)
         }
     }
 
@@ -310,7 +306,7 @@ struct PoGoHubView: View {
                 .font(.caption)
                 .foregroundStyle(Theme.Colors.textMuted)
         }
-        .padding(12)
+        .padding(Theme.cardPadding)
         .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
     }
 

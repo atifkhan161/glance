@@ -2,7 +2,6 @@ import SwiftUI
 
 struct PulseView: View {
     @Environment(AppState.self) private var appState
-    @Environment(ScrollCoordinator.self) private var scrollCoordinator
     let store: PulseStore
     @State private var settingsStore = SettingsStore()
 
@@ -50,9 +49,6 @@ struct PulseView: View {
                 isActive: store.madrid == .loading || store.pogo == .loading || store.github == .loading || store.aiIntel == .loading
             )
             .padding(.top, 12)
-        }
-        .onScrollPhaseChange { _, newPhase in
-            scrollCoordinator.onScrollPhaseChanged(to: newPhase)
         }
         .glanceBackground()
         .navigationTitle("Glance")

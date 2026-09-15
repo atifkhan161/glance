@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct MadridHubView: View {
-    @Environment(ScrollCoordinator.self) private var scrollCoordinator
     let store: PulseStore
 
     var body: some View {
@@ -12,7 +11,7 @@ struct MadridHubView: View {
                 if case .stale(let data, _) = store.madrid { return data }
                 return nil
             }()
-            if let heroData, let standing = heroData.standing {
+            if let heroData {
                 ZStack(alignment: .topLeading) {
                     LinearGradient(
                         colors: [Theme.Colors.cardAmber.opacity(0.3), Theme.Colors.canvas],
@@ -28,9 +27,11 @@ struct MadridHubView: View {
                                 .font(Theme.Fonts.scale(.title1))
                                 .foregroundStyle(Theme.Colors.cardAmber)
 
-                            Text(standing.badge != nil ? "La Liga" : "")
-                                .font(Theme.Fonts.scale(.callout))
-                                .foregroundStyle(Theme.Colors.textMuted)
+                            if let standing = heroData.standing {
+                                Text(standing.badge != nil ? "La Liga" : "")
+                                    .font(Theme.Fonts.scale(.callout))
+                                    .foregroundStyle(Theme.Colors.textMuted)
+                            }
 
                             if let fixture = heroData.fixture,
                                let scores = fixture.scores {
@@ -39,27 +40,32 @@ struct MadridHubView: View {
                                     .foregroundStyle(Theme.Colors.textPrimary)
                             }
 
-                            HStack(spacing: 16) {
-                                statItem(label: "PTS", value: "\(standing.points)")
-                                statItem(label: "W", value: "\(standing.won)")
-                                statItem(label: "L", value: "\(standing.lost)")
+                            if let standing = heroData.standing {
+                                HStack(spacing: 16) {
+                                    statItem(label: "PTS", value: "\(standing.points)")
+                                    statItem(label: "W", value: "\(standing.won)")
+                                    statItem(label: "L", value: "\(standing.lost)")
+                                }
                             }
                         }
 
                         Spacer()
 
                         VStack(spacing: 8) {
-                            if let rmBadgeURL = heroData.fixture?.rmBadge ?? heroData.lastMatch?.rmBadge,
-                               let url = URL(string: rmBadgeURL) {
+                            let badgeURLString = heroData.fixture?.rmBadge ?? heroData.lastMatch?.rmBadge ?? "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg"
+                            if let url = URL(string: badgeURLString) {
                                 CachedAsyncImage(url: url) { image in
                                     image.resizable().scaledToFit()
                                 } placeholder: {
-                                    EmptyView()
+                                    Text("RM")
+                                        .font(Theme.Fonts.manrope(24, weight: .bold))
+                                        .foregroundStyle(Theme.Colors.textPrimary)
                                 }
                                 .frame(width: 100, height: 100)
                             }
 
-                            if let badgeURL = standing.badge, let url = URL(string: badgeURL) {
+                            if let standing = heroData.standing,
+                               let badgeURL = standing.badge, let url = URL(string: badgeURL) {
                                 CachedAsyncImage(url: url) { image in
                                     image.resizable().scaledToFit()
                                 } placeholder: {
@@ -101,9 +107,6 @@ struct MadridHubView: View {
         }
         .refreshable {
             await store.refreshCard(.madrid)
-        }
-        .onScrollPhaseChange { _, newPhase in
-            scrollCoordinator.onScrollPhaseChanged(to: newPhase)
         }
     }
 

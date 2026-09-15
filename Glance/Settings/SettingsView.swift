@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @Environment(ScrollCoordinator.self) private var scrollCoordinator
     @State private var cacheStore = CacheStore.shared
     @State private var showClearConfirm = false
     @State private var cacheAges: [String: String] = [:]
@@ -28,9 +27,6 @@ struct SettingsView: View {
         .glanceBackground()
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.large)
-        .onScrollPhaseChange { _, newPhase in
-            scrollCoordinator.onScrollPhaseChanged(to: newPhase)
-        }
         .task {
             await loadCacheAges()
         }

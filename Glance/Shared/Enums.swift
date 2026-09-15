@@ -2,9 +2,6 @@ import Foundation
 
 enum GlanceTab: String, CaseIterable, Hashable, Sendable {
     case pulse
-    case madrid
-    case pogo
-    case github
     case sources
     case settings
 }

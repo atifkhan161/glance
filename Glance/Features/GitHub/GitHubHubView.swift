@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct GitHubHubView: View {
-    @Environment(ScrollCoordinator.self) private var scrollCoordinator
     let store: PulseStore
     @State private var sortBy: SortOption = .stars
     @Namespace private var sortNamespace
@@ -41,9 +40,6 @@ struct GitHubHubView: View {
         }
         .refreshable {
             await store.refreshCard(.github)
-        }
-        .onScrollPhaseChange { _, newPhase in
-            scrollCoordinator.onScrollPhaseChanged(to: newPhase)
         }
     }
 
@@ -258,7 +254,7 @@ struct GitHubHubView: View {
                 .font(.caption)
                 .foregroundStyle(Theme.Colors.textMuted)
         }
-        .padding(14)
+        .padding(Theme.cardPadding)
         .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
         .accessibilityElement(children: .combine)
         .accessibilityLabel(repoAccessibilityLabel(item))
