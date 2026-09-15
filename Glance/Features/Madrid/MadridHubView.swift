@@ -496,87 +496,38 @@ struct MadridHubView: View {
 
     private func mmArticlesSection(_ articles: [MMArticle]) -> some View {
         HubSectionCard(title: "LATEST FROM MANAGING MADRID", titleColor: Theme.Colors.cardAmber) {
-            ForEach(articles.prefix(10)) { article in
-                NavigationLink(value: article) {
-                    HStack(alignment: .top, spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(article.title)
-                                .font(Theme.Fonts.manrope(14, weight: .semibold))
-                                .foregroundStyle(Theme.Colors.textPrimary)
-                                .lineLimit(2)
-                                .multilineTextAlignment(.leading)
-                            HStack(spacing: 6) {
-                                Text(article.author)
-                                Text("·")
-                                Text(article.category)
-                                Text("·")
-                                Text(article.published)
-                            }
-                            .font(Theme.Fonts.manrope(11))
-                            .foregroundStyle(Theme.Colors.textMuted)
-                            .lineLimit(1)
-                        }
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.caption)
-                            .foregroundStyle(Theme.Colors.textMuted)
-                            .padding(.top, 4)
-                    }
-                    .padding(.vertical, 8)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Read \(article.title)")
-                .contextMenu {
-                    Button {
-                        if let url = URL(string: article.url) {
-                            UIPasteboard.general.string = url.absoluteString
-                        }
-                    } label: {
-                        Label("Copy Link", systemImage: "doc.on.doc")
-                    }
-                    Button {
-                        if let url = URL(string: article.url) {
-                            let avc = UIActivityViewController(activityItems: [url], applicationActivities: nil)
-                            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                               let root = scene.windows.first?.rootViewController {
-                                root.present(avc, animated: true)
-                            }
-                        }
-                    } label: {
-                        Label("Share", systemImage: "square.and.arrow.up")
-                    }
-                }
-            }
-        }
-    }
-
-    // MARK: - Exa Articles
-
-    private func exaArticlesSection(_ articles: [ExaArticle]) -> some View {
-        HubSectionCard(title: "RELATED ARTICLES", titleColor: Theme.Colors.textMuted) {
-            ForEach(articles.prefix(5)) { article in
-                if let url = URL(string: article.url) {
-                    Link(destination: url) {
+            VStack(spacing: 10) {
+                ForEach(articles.prefix(10)) { article in
+                    NavigationLink(value: article) {
                         HStack(alignment: .top, spacing: 12) {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(article.title)
-                                    .font(Theme.Fonts.manrope(13, weight: .semibold))
+                                    .font(Theme.Fonts.manrope(14, weight: .semibold))
                                     .foregroundStyle(Theme.Colors.textPrimary)
                                     .lineLimit(2)
                                     .multilineTextAlignment(.leading)
-
-                                if let source = URL(string: article.url)?.host {
-                                    Text(source)
-                                        .font(Theme.Fonts.manrope(11))
-                                        .foregroundStyle(Theme.Colors.textMuted)
+                                HStack(spacing: 6) {
+                                    Text(article.author)
+                                    Text("·")
+                                    Text(article.category)
+                                    Text("·")
+                                    Text(article.published)
                                 }
+                                .font(Theme.Fonts.manrope(11))
+                                .foregroundStyle(Theme.Colors.textMuted)
+                                .lineLimit(1)
                             }
                             Spacer()
-                            Image(systemName: "arrow.up.right")
+                            Image(systemName: "chevron.right")
                                 .font(.caption)
                                 .foregroundStyle(Theme.Colors.textMuted)
+                                .padding(.top, 4)
                         }
+                        .padding(Theme.cardPadding)
+                        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
                     }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Read \(article.title)")
                     .contextMenu {
                         Button {
                             if let url = URL(string: article.url) {
@@ -595,6 +546,62 @@ struct MadridHubView: View {
                             }
                         } label: {
                             Label("Share", systemImage: "square.and.arrow.up")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Exa Articles
+
+    private func exaArticlesSection(_ articles: [ExaArticle]) -> some View {
+        HubSectionCard(title: "RELATED ARTICLES", titleColor: Theme.Colors.textMuted) {
+            VStack(spacing: 10) {
+                ForEach(articles.prefix(5)) { article in
+                    if let url = URL(string: article.url) {
+                        Link(destination: url) {
+                            HStack(alignment: .top, spacing: 12) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(article.title)
+                                        .font(Theme.Fonts.manrope(13, weight: .semibold))
+                                        .foregroundStyle(Theme.Colors.textPrimary)
+                                        .lineLimit(2)
+                                        .multilineTextAlignment(.leading)
+
+                                    if let source = URL(string: article.url)?.host {
+                                        Text(source)
+                                            .font(Theme.Fonts.manrope(11))
+                                            .foregroundStyle(Theme.Colors.textMuted)
+                                    }
+                                }
+                                Spacer()
+                                Image(systemName: "arrow.up.right")
+                                    .font(.caption)
+                                    .foregroundStyle(Theme.Colors.textMuted)
+                            }
+                            .padding(Theme.cardPadding)
+                            .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+                        }
+                        .contextMenu {
+                            Button {
+                                if let url = URL(string: article.url) {
+                                    UIPasteboard.general.string = url.absoluteString
+                                }
+                            } label: {
+                                Label("Copy Link", systemImage: "doc.on.doc")
+                            }
+                            Button {
+                                if let url = URL(string: article.url) {
+                                    let avc = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+                                    if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                                       let root = scene.windows.first?.rootViewController {
+                                        root.present(avc, animated: true)
+                                    }
+                                }
+                            } label: {
+                                Label("Share", systemImage: "square.and.arrow.up")
+                            }
                         }
                     }
                 }

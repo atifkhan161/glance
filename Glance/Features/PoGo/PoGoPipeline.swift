@@ -46,21 +46,43 @@ struct PoGoPipeline: Sendable {
     }
 
     static func filterActiveEvents(_ events: [PoGoEvent], now: Date = Date.now) -> [PoGoEvent] {
-        let formatter = ISO8601DateFormatter()
-        return events.map { event in
-            var updated = event
-            if let end = event.end, let endDate = formatter.date(from: end) ?? Self.looseDate(end) {
+        let filtered: [PoGoEvent] = events.compactMap { event in
+            if let end = event.end, let endDate = TimeFormat.parseISODate(end) {
+                if endDate <= now { return nil }
                 let countdown = Self.calculateCountdown(from: now, to: endDate)
-                updated = PoGoEvent(
+                return PoGoEvent(
                     eventID: event.eventID, name: event.name, eventType: event.eventType,
                     heading: event.heading, link: event.link, image: event.image,
                     start: event.start, end: event.end, countdown: countdown
                 )
-                if endDate <= now { return nil }
             }
-            return updated
+            return event
         }
-        .compactMap { $0 }
+        return Self.sortEvents(filtered, now: now)
+    }
+
+    static func sortEvents(_ events: [PoGoEvent], now: Date = Date.now) -> [PoGoEvent] {
+        events.sorted { a, b in
+            let aIsOngoing = Self.isOngoing(a, now: now)
+            let bIsOngoing = Self.isOngoing(b, now: now)
+            if aIsOngoing != bIsOngoing { return aIsOngoing }
+
+            let aStart = Self.parseEventStart(a) ?? .distantFuture
+            let bStart = Self.parseEventStart(b) ?? .distantFuture
+            return aStart < bStart
+        }
+    }
+
+    static func isOngoing(_ event: PoGoEvent, now: Date = Date.now) -> Bool {
+        guard let start = event.start, let end = event.end,
+              let startDate = TimeFormat.parseISODate(start),
+              let endDate = TimeFormat.parseISODate(end) else { return false }
+        return startDate <= now && endDate > now
+    }
+
+    static func parseEventStart(_ event: PoGoEvent) -> Date? {
+        guard let start = event.start else { return nil }
+        return TimeFormat.parseISODate(start)
     }
 
     static func calculateCountdown(from now: Date, to end: Date) -> String {
@@ -78,12 +100,6 @@ struct PoGoPipeline: Sendable {
         } else {
             return "\(minutes)m remaining"
         }
-    }
-
-    static func looseDate(_ text: String) -> Date? {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withFullDate]
-        return formatter.date(from: text)
     }
 
     func refresh(force: Bool = false) async -> PoGoData {

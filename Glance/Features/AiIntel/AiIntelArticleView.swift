@@ -23,7 +23,7 @@ struct AiIntelArticleView: View {
                     }
                     .frame(height: 220)
                     .frame(maxWidth: .infinity)
-                    .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius))
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.hero))
                     .overlay(LinearGradient(colors: [Theme.Colors.surface1.opacity(0.8), .clear], startPoint: .bottom, endPoint: .top).frame(height: 60), alignment: .bottom)
                     .accessibilityLabel("Article hero image")
                 }
@@ -44,10 +44,9 @@ struct AiIntelArticleView: View {
                     Text(metadataText)
                         .font(Theme.Fonts.manrope(13))
                         .foregroundStyle(Theme.Colors.textMuted)
+                        .padding(Theme.cardPadding)
+                        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
                 }
-
-                Divider()
-                    .background(Theme.Colors.borderSubtle)
 
                 // Key points
                 if !article.bullets.isEmpty {
@@ -69,6 +68,8 @@ struct AiIntelArticleView: View {
                             }
                         }
                     }
+                    .padding(Theme.cardPadding)
+                    .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
                 }
 
                 // Benchmarks
@@ -88,6 +89,8 @@ struct AiIntelArticleView: View {
                             }
                         }
                     }
+                    .padding(Theme.cardPadding)
+                    .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
                 }
 
                 // Full coverage (expandable)
@@ -101,7 +104,7 @@ struct AiIntelArticleView: View {
                                 .foregroundStyle(Theme.Colors.accent)
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 44)
-                                .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: 12))
+                                .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: Theme.Radius.medium))
                         }
                         .accessibilityLabel(showFullCoverage ? "Collapse full coverage" : "Expand full coverage")
                         .accessibilityHint("Double tap to \(showFullCoverage ? "collapse" : "expand") additional coverage details")
@@ -116,23 +119,28 @@ struct AiIntelArticleView: View {
                             .transition(.opacity.combined(with: .move(edge: .top)))
                         }
                     }
+                    .padding(Theme.cardPadding)
+                    .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
                 }
 
                 // Read original button
                 if let url = URL(string: article.url), !article.url.isEmpty {
                     Link(destination: url) {
-                        Text("Read original  ↗")
-                            .font(Theme.Fonts.manrope(14, weight: .semibold))
-                            .foregroundStyle(Theme.Colors.cardCyan)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(Theme.Colors.cardCyan.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                        HStack {
+                            Text("Read original")
+                            Image(systemName: "arrow.up.right")
+                        }
+                        .font(Theme.Fonts.manrope(14, weight: .semibold))
+                        .foregroundStyle(Theme.Colors.cardCyan)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Theme.Colors.cardCyan.opacity(0.15), in: RoundedRectangle(cornerRadius: Theme.Radius.medium))
                     }
                     .accessibilityLabel("Read original article on \(article.source)")
                     .padding(.top, 24)
                 }
             }
-            .padding(20)
+            .padding(.horizontal, Theme.cardPadding)
             .padding(.bottom, 100)
         }
         .scrollIndicators(.hidden)

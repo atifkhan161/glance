@@ -81,4 +81,70 @@ enum TimeFormat {
         formatter.dateFormat = "MMM d"
         return formatter.string(from: date)
     }
+
+    static func localDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        formatter.timeZone = TimeZone.current
+        return formatter.string(from: date)
+    }
+
+    static func localDateShort(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d"
+        formatter.timeZone = TimeZone.current
+        return formatter.string(from: date)
+    }
+
+    static func parseISODate(_ text: String) -> Date? {
+        let iso = ISO8601DateFormatter()
+
+        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = iso.date(from: text) { return date }
+
+        iso.formatOptions = [.withInternetDateTime]
+        if let date = iso.date(from: text) { return date }
+
+        let df = DateFormatter()
+        df.locale = Locale(identifier: "en_US_POSIX")
+        df.timeZone = TimeZone(identifier: "UTC")
+
+        df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS"
+        if let date = df.date(from: text) { return date }
+
+        df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        if let date = df.date(from: text) { return date }
+
+        df.dateFormat = "yyyy-MM-dd"
+        if let date = df.date(from: text) { return date }
+
+        return nil
+    }
+
+    static func localTimeRange(start: String?, end: String?) -> String {
+        guard let start = start, let end = end,
+              let startDate = parseISODate(start),
+              let endDate = parseISODate(end) else {
+            return ""
+        }
+        let timeFormatter = DateFormatter()
+        timeFormatter.timeStyle = .short
+        timeFormatter.dateStyle = .none
+        timeFormatter.timeZone = TimeZone.current
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMM d"
+        dateFormatter.timeZone = TimeZone.current
+
+        let startDay = dateFormatter.string(from: startDate)
+        let endDay = dateFormatter.string(from: endDate)
+        let startTime = timeFormatter.string(from: startDate)
+        let endTime = timeFormatter.string(from: endDate)
+
+        if startDay == endDay {
+            return "\(startDay), \(startTime) → \(endTime)"
+        }
+        return "\(startDay) \(startTime) → \(endDay) \(endTime)"
+    }
 }

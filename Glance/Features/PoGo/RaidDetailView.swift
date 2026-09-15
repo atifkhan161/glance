@@ -8,11 +8,11 @@ struct RaidDetailView: View {
             VStack(alignment: .leading, spacing: 20) {
                 // Hero panel
                 ZStack(alignment: .topLeading) {
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: Theme.Radius.hero)
                         .fill(Theme.Colors.surface1)
                         .frame(height: 240)
 
-                    AsyncImage(url: URL(string: raid.image ?? "")) { image in
+                    CachedAsyncImage(url: URL(string: raid.image ?? "")) { image in
                         image.resizable().scaledToFit()
                     } placeholder: {
                         Text(String(raid.name.prefix(2)))
@@ -45,13 +45,14 @@ struct RaidDetailView: View {
                             .frame(maxWidth: .infinity, alignment: .trailing)
                     }
                 }
+                .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.hero))
 
                 // Name
                 Text(raid.name)
                     .font(Theme.Fonts.manrope(26, weight: .heavy))
                     .foregroundStyle(Theme.Colors.textPrimary)
 
-                // Types
+                // Types card
                 if !raid.types.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("TYPE")
@@ -62,7 +63,7 @@ struct RaidDetailView: View {
                         HStack(spacing: 8) {
                             ForEach(raid.types, id: \.name) { type in
                                 HStack(spacing: 4) {
-                                    AsyncImage(url: URL(string: type.image)) { image in
+                                    CachedAsyncImage(url: URL(string: type.image)) { image in
                                         image.resizable().scaledToFit()
                                     } placeholder: {
                                         Circle().fill(Theme.Colors.surface3)
@@ -79,6 +80,8 @@ struct RaidDetailView: View {
                             }
                         }
                     }
+                    .padding(Theme.cardPadding)
+                    .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
                 }
 
                 // Combat Power
@@ -121,11 +124,13 @@ struct RaidDetailView: View {
                             }
                         }
                         .padding(12)
-                        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: 12))
+                        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.medium))
                     }
+                    .padding(Theme.cardPadding)
+                    .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
                 }
 
-                // Weather Boost
+                // Weather Boost card
                 if let weather = raid.boostedWeather, !weather.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("WEATHER BOOST")
@@ -136,7 +141,7 @@ struct RaidDetailView: View {
                         HStack(spacing: 8) {
                             ForEach(weather, id: \.name) { w in
                                 HStack(spacing: 4) {
-                                    AsyncImage(url: URL(string: w.image)) { image in
+                                    CachedAsyncImage(url: URL(string: w.image)) { image in
                                         image.resizable().scaledToFit()
                                     } placeholder: {
                                         Circle().fill(Theme.Colors.surface3)
@@ -150,9 +155,11 @@ struct RaidDetailView: View {
                             }
                         }
                     }
+                    .padding(Theme.cardPadding)
+                    .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
                 }
             }
-            .padding(20)
+            .padding(.horizontal, Theme.cardPadding)
             .padding(.bottom, 100)
         }
         .scrollIndicators(.hidden)

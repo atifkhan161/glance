@@ -2,7 +2,7 @@ import SwiftUI
 
 struct PoGoHubView: View {
     let store: PulseStore
-    @State private var selectedTier: String = "All"
+    @State private var selectedTier: String = "5★"
     @State private var completedRaids: Set<String> = []
 
     private let tiers = ["All", "1★", "3★", "5★", "Mega", "Shadow"]
@@ -14,7 +14,7 @@ struct PoGoHubView: View {
             return nil
         }()
         guard let data else { return nil }
-        return data.mega ?? data.fiveStar ?? data.shadow
+        return data.fiveStar ?? data.mega ?? data.shadow
     }
 
     var body: some View {
@@ -113,9 +113,9 @@ struct PoGoHubView: View {
             // Raid list
             raidList(filteredRaids(data.raids))
 
-            // Events section
+            // Events timeline
             if !data.events.isEmpty {
-                eventsSection(data.events)
+                eventsTimeline(data.events)
             }
 
             // Credit
@@ -201,7 +201,7 @@ struct PoGoHubView: View {
     // MARK: - Raid List
 
     private func raidList(_ raids: [PoGoRaid]) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             ForEach(raids) { raid in
                 Group {
                     NavigationLink(value: raid) {
@@ -327,52 +327,105 @@ struct PoGoHubView: View {
         return Theme.Colors.textMuted
     }
 
-    // MARK: - Events Section
+    // MARK: - Events Timeline
 
-    private func eventsSection(_ events: [PoGoEvent]) -> some View {
+    private func eventsTimeline(_ events: [PoGoEvent]) -> some View {
         HubSectionCard(title: "UPCOMING EVENTS", titleColor: Theme.Colors.cardRose) {
-            ForEach(events) { event in
-                NavigationLink(value: event) {
-                    HStack(alignment: .top, spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
+            VStack(spacing: 10) {
+                ForEach(Array(events.enumerated()), id: \.element.id) { index, event in
+                    timelineRow(event, isLast: index == events.count - 1)
+                }
+            }
+        }
+    }
+
+    private func timelineRow(_ event: PoGoEvent, isLast: Bool) -> some View {
+        let isOngoing = event.status == .ongoing
+        let dotColor = isOngoing ? Theme.Colors.success : Theme.Colors.cardRose
+
+        return HStack(alignment: .top, spacing: 14) {
+            // Timeline dot + line
+            VStack(spacing: 0) {
+                Circle()
+                    .fill(dotColor)
+                    .frame(width: 10, height: 10)
+                if !isLast {
+                    Rectangle()
+                        .fill(Theme.Colors.textMuted.opacity(0.2))
+                        .frame(width: 2)
+                    Spacer(minLength: 0)
+                }
+            }
+            .frame(minHeight: 64)
+
+            // Event content card
+            NavigationLink(value: event) {
+                HStack(spacing: 12) {
+                    // Thumbnail image
+                    if let imageURL = event.image, let url = URL(string: imageURL) {
+                        CachedAsyncImage(url: url) { image in
+                            image.resizable().scaledToFill()
+                        } placeholder: {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Theme.Colors.surface2)
+                        }
+                        .frame(width: 56, height: 56)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    } else {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Theme.Colors.surface2)
+                            .frame(width: 56, height: 56)
+                            .overlay(
+                                Image(systemName: "calendar")
+                                    .font(.body)
+                                    .foregroundStyle(Theme.Colors.textMuted)
+                            )
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 6) {
                             Text(event.name)
                                 .font(Theme.Fonts.manrope(14, weight: .semibold))
                                 .foregroundStyle(Theme.Colors.textPrimary)
                                 .lineLimit(1)
 
-                            if let heading = event.heading {
-                                Text(heading)
-                                    .font(Theme.Fonts.manrope(12))
-                                    .foregroundStyle(Theme.Colors.textMuted)
-                                    .lineLimit(1)
-                            }
-
-                            HStack(spacing: 8) {
-                                if let start = event.start, let end = event.end {
-                                    Text("\(start) → \(end)")
-                                        .font(Theme.Fonts.manrope(11))
-                                        .foregroundStyle(Theme.Colors.textMuted)
-                                }
+                            if isOngoing {
+                                Text("LIVE")
+                                    .font(Theme.Fonts.manrope(9, weight: .bold))
+                                    .foregroundStyle(Theme.Colors.success)
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 2)
+                                    .background(Theme.Colors.success.opacity(0.15), in: .capsule)
                             }
                         }
 
-                        Spacer()
-
-                        if let end = event.end, let endDate = ISO8601DateFormatter().date(from: end) {
-                            let endsIn = TimeFormat.endsIn(endDate)
-                            if !endsIn.isEmpty {
-                                Text(endsIn)
-                                    .font(Theme.Fonts.manrope(11, weight: .medium))
-                                    .foregroundStyle(Theme.Colors.cardRose)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 3)
-                                    .background(Theme.Colors.cardRose.opacity(0.15), in: .capsule)
-                            }
+                        if let start = event.start, let end = event.end {
+                            Text(TimeFormat.localTimeRange(start: start, end: end))
+                                .font(Theme.Fonts.manrope(12))
+                                .foregroundStyle(Theme.Colors.textMuted)
+                                .lineLimit(1)
                         }
                     }
-                    .padding(12)
-                    .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+
+                    Spacer()
+
+                    if let end = event.end, let endDate = TimeFormat.parseISODate(end) {
+                        let endsIn = TimeFormat.endsIn(endDate)
+                        if !endsIn.isEmpty {
+                            Text(endsIn)
+                                .font(Theme.Fonts.manrope(11, weight: .medium))
+                                .foregroundStyle(isOngoing ? Theme.Colors.success : Theme.Colors.cardRose)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(
+                                    (isOngoing ? Theme.Colors.success : Theme.Colors.cardRose).opacity(0.15),
+                                    in: .capsule
+                                )
+                        }
+                    }
                 }
+                .padding(Theme.cardPadding)
+                .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
             }
         }
     }

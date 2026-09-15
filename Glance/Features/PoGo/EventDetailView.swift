@@ -8,19 +8,25 @@ struct EventDetailView: View {
             VStack(alignment: .leading, spacing: 20) {
                 // Hero image
                 if let imageURL = event.image {
-                    AsyncImage(url: URL(string: imageURL)) { image in
+                    CachedAsyncImage(url: URL(string: imageURL)) { image in
                         image.resizable().scaledToFill()
                     } placeholder: {
                         Rectangle()
                             .fill(Theme.Colors.surface2)
                             .frame(height: 220)
+                            .overlay {
+                                Image(systemName: "photo")
+                                    .font(.title2)
+                                    .foregroundStyle(Theme.Colors.textMuted)
+                            }
+                            .shimmer()
                     }
                     .frame(height: 220)
                     .frame(maxWidth: .infinity)
-                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.hero))
                     .overlay(
                         LinearGradient(
-                            colors: [Theme.Colors.surface1, .clear],
+                            colors: [Theme.Colors.surface1.opacity(0.8), .clear],
                             startPoint: .bottom,
                             endPoint: .top
                         )
@@ -32,6 +38,7 @@ struct EventDetailView: View {
                         .fill(Theme.Colors.surface1)
                         .frame(height: 100)
                         .frame(maxWidth: .infinity)
+                        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.hero))
                         .overlay(
                             Text(event.eventType)
                                 .font(Theme.Fonts.manrope(14, weight: .semibold))
@@ -46,8 +53,8 @@ struct EventDetailView: View {
                     .lineSpacing(3)
                     .fixedSize(horizontal: false, vertical: true)
 
-                // Meta row
-                VStack(alignment: .leading, spacing: 6) {
+                // Meta card
+                VStack(alignment: .leading, spacing: 8) {
                     Text(event.eventType)
                         .font(Theme.Fonts.manrope(11, weight: .bold))
                         .foregroundStyle(Theme.Colors.cardRose)
@@ -58,26 +65,26 @@ struct EventDetailView: View {
                     if let start = event.start, let end = event.end {
                         HStack(spacing: 4) {
                             Image(systemName: "calendar")
-                            Text("\(start)  →  \(end)")
+                            Text(TimeFormat.localTimeRange(start: start, end: end))
                         }
                         .font(Theme.Fonts.manrope(14, weight: .regular))
                         .foregroundStyle(Theme.Colors.textMuted)
                     }
                 }
+                .padding(Theme.cardPadding)
+                .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
 
                 // Description
                 if let heading = event.heading {
                     VStack(alignment: .leading, spacing: 0) {
-                        Divider()
-                            .foregroundStyle(Theme.Colors.borderSubtle)
-
                         Text(heading)
                             .font(Theme.Fonts.manrope(17, weight: .regular))
                             .foregroundStyle(Theme.Colors.textPrimary)
                             .lineSpacing(5)
                             .fixedSize(horizontal: false, vertical: true)
-                            .padding(.top, 20)
                     }
+                    .padding(Theme.cardPadding)
+                    .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
                 }
 
                 // CTA
@@ -91,12 +98,12 @@ struct EventDetailView: View {
                         .foregroundStyle(Theme.Colors.cardRose)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
-                        .background(Theme.Colors.cardRose.opacity(0.12), in: RoundedRectangle(cornerRadius: Theme.Radius.medium))
+                        .background(Theme.Colors.cardRose.opacity(0.15), in: RoundedRectangle(cornerRadius: Theme.Radius.medium))
                     }
                     .padding(.top, 24)
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, Theme.cardPadding)
             .padding(.bottom, 100)
         }
         .scrollIndicators(.hidden)

@@ -77,6 +77,27 @@ struct PoGoEvent: Codable, Sendable, Identifiable, Equatable, Hashable {
 
     var id: String { eventID }
 
+    enum EventStatus: Sendable, Equatable {
+        case ongoing
+        case upcoming
+        case unknown
+    }
+
+    var status: EventStatus {
+        let now = Date.now
+        guard let start = start, let end = end,
+              let startDate = TimeFormat.parseISODate(start),
+              let endDate = TimeFormat.parseISODate(end) else { return .unknown }
+        if startDate <= now && endDate > now { return .ongoing }
+        if startDate > now { return .upcoming }
+        return .unknown
+    }
+
+    var sortKey: Date {
+        guard let start = start, let date = TimeFormat.parseISODate(start) else { return .distantFuture }
+        return date
+    }
+
     init(
         eventID: String,
         name: String,

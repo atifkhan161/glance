@@ -79,7 +79,7 @@ struct GitHubHubView: View {
             sortControl
 
             // Repo list
-            LazyVStack(spacing: 12) {
+            LazyVStack(spacing: 10) {
                 ForEach(sortedRepos(data.repos)) { item in
                     NavigationLink(value: item) {
                         repoRow(item)

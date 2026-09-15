@@ -6,10 +6,10 @@ struct RepoDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                // Header
+                // Header card
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(spacing: 12) {
-                        AsyncImage(url: URL(string: repository.repo.ownerAvatar)) { image in
+                        CachedAsyncImage(url: URL(string: repository.repo.ownerAvatar)) { image in
                             image.resizable().scaledToFit()
                         } placeholder: {
                             Circle().fill(Theme.Colors.surface3)
@@ -50,6 +50,8 @@ struct RepoDetailView: View {
                     .font(Theme.Fonts.manrope(12))
                     .foregroundStyle(Theme.Colors.textMuted)
                 }
+                .padding(Theme.cardPadding)
+                .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
 
                 // Stats grid
                 LazyVGrid(columns: [
@@ -77,7 +79,7 @@ struct RepoDetailView: View {
                     .background(Theme.Colors.cardEmerald.opacity(0.15), in: .capsule)
                 }
 
-                // Attributes
+                // Attributes card
                 VStack(alignment: .leading, spacing: 8) {
                     Text("ATTRIBUTES")
                         .font(Theme.Fonts.manrope(10, weight: .bold))
@@ -85,28 +87,30 @@ struct RepoDetailView: View {
                         .tracking(1.2)
 
                     FlowLayout(spacing: 8) {
-                    if let lang = repository.repo.language {
-                        pill(icon: "chevron.left.forwardslash.chevron.right", text: lang, color: Theme.languageColor(for: lang))
-                    }
-                    if let license = repository.repo.license?.name {
-                        pill(icon: "document", text: license, color: Theme.Colors.textSecondary)
-                    }
-                    if repository.repo.hasWiki {
-                        pill(icon: "book", text: "Wiki", color: Theme.Colors.textMuted)
-                    }
-                    if repository.repo.hasPages {
-                        pill(icon: "globe", text: "Pages", color: Theme.Colors.textMuted)
-                    }
-                    if repository.repo.hasDiscussions {
-                        pill(icon: "bubble.right", text: "Discussions", color: Theme.Colors.textMuted)
-                    }
-                    if let homepage = repository.repo.homepage, !homepage.isEmpty {
-                        pill(icon: "link", text: "Homepage", color: Theme.Colors.cardCyan)
+                        if let lang = repository.repo.language {
+                            pill(icon: "chevron.left.forwardslash.chevron.right", text: lang, color: Theme.languageColor(for: lang))
+                        }
+                        if let license = repository.repo.license?.name {
+                            pill(icon: "document", text: license, color: Theme.Colors.textSecondary)
+                        }
+                        if repository.repo.hasWiki {
+                            pill(icon: "book", text: "Wiki", color: Theme.Colors.textMuted)
+                        }
+                        if repository.repo.hasPages {
+                            pill(icon: "globe", text: "Pages", color: Theme.Colors.textMuted)
+                        }
+                        if repository.repo.hasDiscussions {
+                            pill(icon: "bubble.right", text: "Discussions", color: Theme.Colors.textMuted)
+                        }
+                        if let homepage = repository.repo.homepage, !homepage.isEmpty {
+                            pill(icon: "link", text: "Homepage", color: Theme.Colors.cardCyan)
+                        }
                     }
                 }
-                }
+                .padding(Theme.cardPadding)
+                .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
 
-                // Topics
+                // Topics card
                 if !repository.repo.topics.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("TOPICS")
@@ -125,6 +129,8 @@ struct RepoDetailView: View {
                             }
                         }
                     }
+                    .padding(Theme.cardPadding)
+                    .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
                 }
 
                 // Open on GitHub button
@@ -132,19 +138,18 @@ struct RepoDetailView: View {
                     Link(destination: url) {
                         HStack {
                             Text("Open on GitHub")
-                                .font(Theme.Fonts.manrope(14, weight: .semibold))
                             Image(systemName: "arrow.up.right")
-                                .font(.caption)
                         }
+                        .font(Theme.Fonts.manrope(14, weight: .semibold))
                         .foregroundStyle(Theme.Colors.cardEmerald)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
-                        .background(Theme.Colors.cardEmerald.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                        .background(Theme.Colors.cardEmerald.opacity(0.15), in: RoundedRectangle(cornerRadius: Theme.Radius.medium))
                     }
                     .padding(.top, 24)
                 }
             }
-            .padding(20)
+            .padding(.horizontal, Theme.cardPadding)
             .padding(.bottom, 100)
         }
         .scrollIndicators(.hidden)
@@ -169,7 +174,7 @@ struct RepoDetailView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 16)
-        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: 12))
+        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.medium))
     }
 
     private func pill(icon: String, text: String, color: Color) -> some View {
