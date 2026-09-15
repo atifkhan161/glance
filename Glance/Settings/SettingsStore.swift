@@ -32,6 +32,63 @@ final class SettingsStore {
         set { defaults.set(newValue, forKey: "showAiIntel") }
     }
 
+    // MARK: - Provider URLs
+
+    var madridRSSURL: String {
+        get { defaults.string(forKey: "madrid_rss_url") ?? "https://www.managingmadrid.com/rss/index.xml" }
+        set { defaults.set(newValue, forKey: "madrid_rss_url") }
+    }
+
+    var madridTeamID: String {
+        get { defaults.string(forKey: "madrid_team_id") ?? "133738" }
+        set { defaults.set(newValue, forKey: "madrid_team_id") }
+    }
+
+    var madridLeagueID: String {
+        get { defaults.string(forKey: "madrid_league_id") ?? "4335" }
+        set { defaults.set(newValue, forKey: "madrid_league_id") }
+    }
+
+    var pogoRaidsURL: String {
+        get { defaults.string(forKey: "pogo_raids_url") ?? "https://raw.githubusercontent.com/bigfoott/ScrapedDuck/data/raids.json" }
+        set { defaults.set(newValue, forKey: "pogo_raids_url") }
+    }
+
+    var pogoEventsURL: String {
+        get { defaults.string(forKey: "pogo_events_url") ?? "https://raw.githubusercontent.com/bigfoott/ScrapedDuck/data/events.json" }
+        set { defaults.set(newValue, forKey: "pogo_events_url") }
+    }
+
+    var githubSearchTopics: String {
+        get { defaults.string(forKey: "github_search_topics") ?? "llm, ai" }
+        set { defaults.set(newValue, forKey: "github_search_topics") }
+    }
+
+    var githubSortOrder: String {
+        get { defaults.string(forKey: "github_sort_order") ?? "stars" }
+        set { defaults.set(newValue, forKey: "github_sort_order") }
+    }
+
+    var aiIntelSearchQuery: String {
+        get { defaults.string(forKey: "aiintel_search_query") ?? "latest AI LLM breakthroughs, new model releases" }
+        set { defaults.set(newValue, forKey: "aiintel_search_query") }
+    }
+
+    var customRSSFeeds: [CustomRSSFeed] {
+        get {
+            guard let data = defaults.data(forKey: "custom_rss_feeds"),
+                  let feeds = try? JSONDecoder().decode([CustomRSSFeed].self, from: data) else {
+                return []
+            }
+            return feeds
+        }
+        set {
+            if let data = try? JSONEncoder().encode(newValue) {
+                defaults.set(data, forKey: "custom_rss_feeds")
+            }
+        }
+    }
+
     private let keychain = KeychainStore()
     private let defaults = UserDefaults.standard
 
@@ -63,5 +120,19 @@ final class SettingsStore {
         let prefix = String(value.prefix(4))
         let suffix = String(value.suffix(4))
         return "\(prefix)••••\(suffix)"
+    }
+}
+
+struct CustomRSSFeed: Codable, Identifiable, Hashable {
+    let id: UUID
+    var name: String
+    var url: String
+    var isEnabled: Bool
+
+    init(id: UUID = UUID(), name: String, url: String, isEnabled: Bool = true) {
+        self.id = id
+        self.name = name
+        self.url = url
+        self.isEnabled = isEnabled
     }
 }

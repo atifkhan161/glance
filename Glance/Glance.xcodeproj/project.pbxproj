@@ -29,6 +29,9 @@
 		43420A37FC0A235A69020B85 /* events.json in Resources */ = {isa = PBXBuildFile; fileRef = 59C98FF057511D43C9EDD34A /* events.json */; };
 		4480DF96B39661A2011114BD /* raids.json in Resources */ = {isa = PBXBuildFile; fileRef = 73FCEFE840005BDAE6E9BFDC /* raids.json */; };
 		45FB5BDD7E141CD05BDE5054 /* SourcesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D44183E20A98B8B4BB01FE8 /* SourcesView.swift */; };
+		AA11BB22CC33DD44EE55FF78 /* ProviderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22CC33DD44EE55FF660078 /* ProviderView.swift */; };
+		CC11DD22EE33FF44GG55FF79 /* GenericRSSClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD22EE33FF44GG55FF660079 /* GenericRSSClient.swift */; };
+		EE11FF22GG33HH44II55FF80 /* GenericRSSPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF22GG33HH44II55FF660080 /* GenericRSSPipeline.swift */; };
 		47C63C93AFB93383EBBA3EFC /* CacheStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F65672F62EC7DA587E61CBB6 /* CacheStoreTests.swift */; };
 		4C5A4447575865357AA90C3A /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7858C0D91F95952753F08721 /* Enums.swift */; };
 		4C7EB67886D3ADF0ACBF5FFF /* SourcesFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10BA754B5EC93CFFE1B72319 /* SourcesFlowUITests.swift */; };
@@ -120,6 +123,9 @@
 		33B8021DC59DAC0AAA0673BE /* GlanceBadge.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GlanceBadge.swift; sourceTree = "<group>"; };
 		3C81652325E4B949DE4B4E01 /* Extensions.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		3D44183E20A98B8B4BB01FE8 /* SourcesView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SourcesView.swift; sourceTree = "<group>"; };
+		BB22CC33DD44EE55FF660078 /* ProviderView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ProviderView.swift; sourceTree = "<group>"; };
+		DD22EE33FF44GG55FF660079 /* GenericRSSClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GenericRSSClient.swift; sourceTree = "<group>"; };
+		FF22GG33HH44II55FF660080 /* GenericRSSPipeline.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GenericRSSPipeline.swift; sourceTree = "<group>"; };
 		44568B552442758133DEF919 /* PoGoHubView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = PoGoHubView.swift; sourceTree = "<group>"; };
 		453DA7F3953B22719544D662 /* GitHubPipelineTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubPipelineTests.swift; sourceTree = "<group>"; };
 		47065905154CC6E47579CB42 /* MadridFixtureParser.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = MadridFixtureParser.swift; sourceTree = "<group>"; };
@@ -241,6 +247,7 @@
 				76BA268209C52E00B0FB8062 /* GitHubClient.swift */,
 				7AC5FEA17B8577E4EB10A0AB /* ScrapedDuckClient.swift */,
 				761E28609E32E6E33EB2DC21 /* ManagingMadridClient.swift */,
+				DD22EE33FF44GG55FF660079 /* GenericRSSClient.swift */,
 				C2D3E4F5A6B7C8D9E0F1A2B3 /* NetworkMonitor.swift */,
 			);
 			path = Network;
@@ -350,8 +357,17 @@
 				7DFC5AEC6DD35497AA891F46 /* PoGo */,
 				F393856C854949D7C2FA7B83 /* GitHub */,
 				70D8BCC9BB56E4FDECD0DFAC /* AiIntel */,
+				GG33HH44II55JJ66KK77 /* GenericRSS */,
 			);
 			path = Features;
+			sourceTree = "<group>";
+		};
+		GG33HH44II55JJ66KK77 /* GenericRSS */ = {
+			isa = PBXGroup;
+			children = (
+				FF22GG33HH44II55FF660080 /* GenericRSSPipeline.swift */,
+			);
+			path = GenericRSS;
 			sourceTree = "<group>";
 		};
 		C0D6E39BE912DFA452C964E5 /* Madrid */ = {
@@ -372,6 +388,7 @@
 			children = (
 				7D29FA2484914D1C92BFEFEE /* SettingsStore.swift */,
 				0DDB5287486413A1BC7A95B1 /* SettingsView.swift */,
+				BB22CC33DD44EE55FF660078 /* ProviderView.swift */,
 				3D44183E20A98B8B4BB01FE8 /* SourcesView.swift */,
 			);
 			path = Settings;
@@ -672,6 +689,9 @@
 				70C4D04F2D86D901D561200C /* SettingsStore.swift in Sources */,
 				0DA71C7319CF6FEF3DDAF056 /* SettingsView.swift in Sources */,
 				45FB5BDD7E141CD05BDE5054 /* SourcesView.swift in Sources */,
+				AA11BB22CC33DD44EE55FF78 /* ProviderView.swift in Sources */,
+				CC11DD22EE33FF44GG55FF79 /* GenericRSSClient.swift in Sources */,
+				EE11FF22GG33HH44II55FF80 /* GenericRSSPipeline.swift in Sources */,
 				FE86DACADCCAC95C40100576 /* Theme.swift in Sources */,
 				F92EC9784909D6464A009A36 /* GlanceBadge.swift in Sources */,
 				E5CB8D9BFF379C4E8765123A /* SkeletonView.swift in Sources */,

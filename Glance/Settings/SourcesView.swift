@@ -1,3 +1,7 @@
+// DEPRECATED: API key management moved to SettingsView.
+// Provider configuration moved to ProviderView.
+// This file is kept for reference only.
+
 import SwiftUI
 
 struct SourcesView: View {

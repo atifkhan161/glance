@@ -36,6 +36,47 @@ struct PulseView: View {
                     .scaleEffect(isLead ? 1.02 : 1.0)
                     .padding(.horizontal, Theme.cardPadding)
                 }
+
+                // Custom RSS Feed Cards
+                ForEach(Array(store.customRSSCards.keys.sorted()), id: \.self) { feedID in
+                    if case .ready(let articles, _) = store.customRSSCards[feedID] {
+                        let feedName = settingsStore.customRSSFeeds.first(where: { $0.id.uuidString == feedID })?.name ?? "Custom Feed"
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: "rss")
+                                    .foregroundStyle(Theme.Colors.cardAmber)
+                                Text(feedName)
+                                    .font(Theme.Fonts.manrope(14, weight: .bold))
+                                    .foregroundStyle(Theme.Colors.textPrimary)
+                                Spacer()
+                                Text("\(articles.count) articles")
+                                    .font(Theme.Fonts.manrope(11))
+                                    .foregroundStyle(Theme.Colors.textMuted)
+                            }
+
+                            ForEach(articles.prefix(3)) { article in
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(article.title)
+                                        .font(Theme.Fonts.manrope(13, weight: .medium))
+                                        .foregroundStyle(Theme.Colors.textPrimary)
+                                        .lineLimit(2)
+                                    if !article.author.isEmpty {
+                                        Text(article.author)
+                                            .font(Theme.Fonts.manrope(11))
+                                            .foregroundStyle(Theme.Colors.textMuted)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(Theme.cardPadding)
+                        .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: Theme.Radius.card)
+                                .stroke(Theme.Colors.borderSubtle.opacity(0.6), lineWidth: 1)
+                        )
+                        .padding(.horizontal, Theme.cardPadding)
+                    }
+                }
             }
             .padding(.vertical, 8)
             .padding(.bottom, 100)

@@ -54,7 +54,14 @@ struct GitHubPipeline: Sendable {
         return colors[lang] ?? "#8B8B8B"
     }
 
-    func refresh(force: Bool = false) async throws -> GitHubData {
+    func refresh(settings: SettingsStore, force: Bool = false) async throws -> GitHubData {
+        // Extract values on main actor before async work
+        let topicsString = await settings.githubSearchTopics
+        let sort = await settings.githubSortOrder
+        let topics = topicsString
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         
@@ -63,7 +70,7 @@ struct GitHubPipeline: Sendable {
         let thirtyDaysAgo = formatter.string(from: Date.now.addingTimeInterval(-30 * 86400))
         
         // Fetch current data (7-day window for velocity)
-        let result = try await client.searchRepos(since: sevenDaysAgo)
+        let result = try await client.searchRepos(topics: topics, sort: sort, since: sevenDaysAgo)
         
         // Load prior data for velocity comparison
         let priorRaw: CacheEnvelope<GitHubSearchResult>? = await cache.load("cache_github_raw")

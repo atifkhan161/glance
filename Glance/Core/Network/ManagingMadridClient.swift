@@ -1,7 +1,7 @@
 import Foundation
 
 protocol ManagingMadridClientProtocol: Sendable {
-    func fetchArticles() async throws -> [MMArticle]
+    func fetchArticles(rssURL: String) async throws -> [MMArticle]
 }
 
 struct MMArticle: Codable, Sendable, Identifiable, Equatable, Hashable {
@@ -15,8 +15,10 @@ struct MMArticle: Codable, Sendable, Identifiable, Equatable, Hashable {
 }
 
 struct ManagingMadridClient: ManagingMadridClientProtocol, Sendable {
-    func fetchArticles() async throws -> [MMArticle] {
-        let url = URL(string: "https://www.managingmadrid.com/rss/index.xml")!
+    func fetchArticles(rssURL: String) async throws -> [MMArticle] {
+        guard let url = URL(string: rssURL) else {
+            throw GlanceError.networkError("Invalid RSS URL: \(rssURL)")
+        }
         let (data, _) = try await URLSession.shared.data(from: url)
         let parser = MMXMLParser()
         return parser.parse(data: data)

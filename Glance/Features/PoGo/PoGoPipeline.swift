@@ -102,9 +102,13 @@ struct PoGoPipeline: Sendable {
         }
     }
 
-    func refresh(force: Bool = false) async -> PoGoData {
-        async let raidsTask: [PoGoRaid] = { (try? await self.client.fetchRaids()) ?? [] }()
-        async let eventsTask: [PoGoEvent] = { (try? await self.client.fetchEvents()) ?? [] }()
+    func refresh(settings: SettingsStore, force: Bool = false) async -> PoGoData {
+        // Extract values on main actor before async work
+        let raidsURL = await settings.pogoRaidsURL
+        let eventsURL = await settings.pogoEventsURL
+
+        async let raidsTask: [PoGoRaid] = { (try? await self.client.fetchRaids(raidsURL: raidsURL)) ?? [] }()
+        async let eventsTask: [PoGoEvent] = { (try? await self.client.fetchEvents(eventsURL: eventsURL)) ?? [] }()
         let raids = Self.prioritizeRaids(await raidsTask)
         let events = Self.filterActiveEvents(await eventsTask)
         let fiveStar = Self.pickFiveStar(raids)

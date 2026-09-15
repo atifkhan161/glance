@@ -1,7 +1,7 @@
 import Foundation
 
 protocol GitHubClientProtocol: Sendable {
-    func searchRepos(since: String) async throws -> GitHubSearchResult
+    func searchRepos(topics: [String], sort: String, since: String) async throws -> GitHubSearchResult
 }
 
 struct GitHubSearchResult: Codable, Sendable {
@@ -169,11 +169,12 @@ struct GitHubClient: GitHubClientProtocol, Sendable {
         return URLSession(configuration: config)
     }()
 
-    func searchRepos(since: String) async throws -> GitHubSearchResult {
+    func searchRepos(topics: [String], sort: String, since: String) async throws -> GitHubSearchResult {
         var components = URLComponents(string: "https://api.github.com/search/repositories")!
+        let query = topics.map { "topic:\($0)" }.joined(separator: "+") + "+created:>\(since)"
         components.queryItems = [
-            URLQueryItem(name: "q", value: "topic:llm+topic:ai+created:>\(since)"),
-            URLQueryItem(name: "sort", value: "stars"),
+            URLQueryItem(name: "q", value: query),
+            URLQueryItem(name: "sort", value: sort),
             URLQueryItem(name: "order", value: "desc"),
             URLQueryItem(name: "per_page", value: "10"),
         ]

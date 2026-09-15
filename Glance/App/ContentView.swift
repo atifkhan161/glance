@@ -15,8 +15,8 @@ struct ContentView: View {
                 case .pulse:
                     NavigationStack(path: $bindable.pulsePath) { PulseView(store: store) }
                         .tint(Theme.Colors.accent)
-                case .sources:
-                    NavigationStack(path: $bindable.sourcesPath) { SourcesView() }
+                case .provider:
+                    NavigationStack(path: $bindable.providerPath) { ProviderView() }
                         .tint(Theme.Colors.accent)
                 case .settings:
                     NavigationStack(path: $bindable.settingsPath) { SettingsView() }
@@ -102,7 +102,7 @@ extension GlanceTab {
     var icon: String {
         switch self {
         case .pulse: "bolt.fill"
-        case .sources: "key"
+        case .provider: "antenna.radiowaves.left.and.right"
         case .settings: "gearshape.fill"
         }
     }
@@ -110,7 +110,7 @@ extension GlanceTab {
     var shortLabel: String {
         switch self {
         case .pulse: "Feed"
-        case .sources: "Keys"
+        case .provider: "Providers"
         case .settings: "Settings"
         }
     }
@@ -118,7 +118,7 @@ extension GlanceTab {
     var accentColor: Color {
         switch self {
         case .pulse: Theme.Colors.cardEmerald
-        case .sources: Theme.Colors.textMuted
+        case .provider: Theme.Colors.cardAmber
         case .settings: Theme.Colors.textMuted
         }
     }
@@ -126,7 +126,7 @@ extension GlanceTab {
     var accessibilityLabel: String {
         switch self {
         case .pulse: "Pulse feed"
-        case .sources: "API sources"
+        case .provider: "Data providers"
         case .settings: "Settings"
         }
     }

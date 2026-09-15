@@ -33,33 +33,38 @@ struct MadridPipeline: Sendable {
         return nil
     }
 
-    func refresh(force: Bool = false) async -> MadridRefreshResult {
+    func refresh(settings: SettingsStore, force: Bool = false) async -> MadridRefreshResult {
+        // Extract values on main actor before async work
+        let rssURL = await settings.madridRSSURL
+        let teamID = await settings.madridTeamID
+        let leagueID = await settings.madridLeagueID
+
         // 1. API-Sports (thesportsdb.com) free tier — no API key required.
         do {
             // Sequential calls to be gentle on free-tier rate limits
-            let lastEvents = try await sportsDB.lastEvents(teamID: SportsDB.realMadridID)
+            let lastEvents = try await sportsDB.lastEvents(teamID: teamID)
 
             try? await Task.sleep(for: .milliseconds(600))
 
-            let nextEvents = try await sportsDB.nextEvents(teamID: SportsDB.realMadridID)
+            let nextEvents = try await sportsDB.nextEvents(teamID: teamID)
 
             try? await Task.sleep(for: .milliseconds(600))
 
             let table = try await sportsDB.leagueTable(
-                leagueID: SportsDB.laLigaID, season: SportsDB.currentSeason()
+                leagueID: leagueID, season: SportsDB.currentSeason()
             )
 
             // 2. Derive data
             let lastMatch = Self.parseLastMatch(from: lastEvents)
             let form = Self.parseForm(from: lastEvents)
-            let standing = Self.parseStanding(from: table, teamID: SportsDB.realMadridID)
+            let standing = Self.parseStanding(from: table, teamID: teamID)
             let nextFixture = Self.parseNextFixture(from: nextEvents.first)
 
             // 3. Fetch Exa for related articles (unchanged)
             let exaArticles = await fetchExaArticles()
 
             // 4. Fetch MM articles (unchanged)
-            let mmArticles = (try? await madridClient.fetchArticles()) ?? []
+            let mmArticles = (try? await madridClient.fetchArticles(rssURL: rssURL)) ?? []
 
             // 5. Combine
             let data = MadridData(
@@ -81,19 +86,19 @@ struct MadridPipeline: Sendable {
             return .ready(data: data)
         } catch {
             print("[MadridPipeline] API-Sports fetch failed: \(error)")
-            return await refreshWithExaFallback()
+            return await refreshWithExaFallback(settings: settings)
         }
     }
 
     // MARK: - Exa Fallback (when no Football key)
 
-    private func refreshWithExaFallback() async -> MadridRefreshResult {
+    private func refreshWithExaFallback(settings: SettingsStore) async -> MadridRefreshResult {
         async let exaTask: [ExaResult]? = {
             guard let key = self.keychain.load(forKey: "keys_exa") else { return nil }
             return try? await self.exa.search(query: "Real Madrid next match fixture upcoming schedule", apiKey: key)
         }()
         async let mmTask: [MMArticle] = {
-            (try? await self.madridClient.fetchArticles()) ?? []
+            (try? await self.madridClient.fetchArticles(rssURL: settings.madridRSSURL)) ?? []
         }()
         let exaResults = await exaTask
         let mmArticles = await mmTask

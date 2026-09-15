@@ -28,6 +28,7 @@ final class PulseStore {
     var pogo: CardState<PoGoData> = .loading
     var github: CardState<GitHubData> = .loading
     var aiIntel: CardState<AiIntelData> = .loading
+    var customRSSCards: [String: CardState<[MMArticle]>] = [:]
 
     var freshestCacheAge: String {
         [madridAge, pogoAge, githubAge, aiIntelAge]
@@ -65,6 +66,8 @@ final class PulseStore {
     private let pogoPipeline: PoGoPipeline
     private let githubPipeline: GitHubPipeline
     private let aiIntelPipeline: AiIntelPipeline
+    private let genericRSSPipeline: GenericRSSPipeline
+    private let settingsStore: SettingsStore
     private var refreshTasks: [CardID: Task<Void, Never>] = [:]
 
     init(
@@ -72,13 +75,17 @@ final class PulseStore {
         madridPipeline: MadridPipeline = MadridPipeline(),
         pogoPipeline: PoGoPipeline = PoGoPipeline(),
         githubPipeline: GitHubPipeline = GitHubPipeline(),
-        aiIntelPipeline: AiIntelPipeline = AiIntelPipeline()
+        aiIntelPipeline: AiIntelPipeline = AiIntelPipeline(),
+        genericRSSPipeline: GenericRSSPipeline = GenericRSSPipeline(),
+        settingsStore: SettingsStore = SettingsStore()
     ) {
         self.cache = cache
         self.madridPipeline = madridPipeline
         self.pogoPipeline = pogoPipeline
         self.githubPipeline = githubPipeline
         self.aiIntelPipeline = aiIntelPipeline
+        self.genericRSSPipeline = genericRSSPipeline
+        self.settingsStore = settingsStore
     }
 
     func loadFromCache() async {
@@ -98,6 +105,28 @@ final class PulseStore {
         await refresh(.pogo, force: true)
         await refresh(.github, force: true)
         await refresh(.aiIntel, force: true)
+        await refreshCustomRSS()
+    }
+
+    func refreshCustomRSS() async {
+        let feeds = settingsStore.customRSSFeeds
+        for feed in feeds {
+            guard feed.isEnabled else {
+                customRSSCards[feed.id.uuidString] = nil
+                continue
+            }
+            let articles = await genericRSSPipeline.refresh(feed: feed)
+            if articles.isEmpty {
+                customRSSCards[feed.id.uuidString] = .error(message: "No articles found")
+            } else {
+                customRSSCards[feed.id.uuidString] = .ready(data: articles, age: "just now")
+            }
+        }
+        // Remove cards for deleted feeds
+        let activeIDs = Set(feeds.map(\.id.uuidString))
+        for key in customRSSCards.keys where !activeIDs.contains(key) {
+            customRSSCards.removeValue(forKey: key)
+        }
     }
 
     func refreshCard(_ card: CardID) async {
@@ -134,7 +163,7 @@ final class PulseStore {
         switch card {
         case .madrid:
             if case .ready(let data, let age) = madrid { madrid = .stale(data: data, age: age) }
-            switch await madridPipeline.refresh() {
+            switch await madridPipeline.refresh(settings: settingsStore) {
             case .ready(let data):
                 madrid = .ready(data: data, age: TimeFormat.age(from: data.timestamp))
             case .degraded(let data, let reason):
@@ -149,12 +178,12 @@ final class PulseStore {
             }
         case .pogo:
             if case .ready(let data, let age) = pogo { pogo = .stale(data: data, age: age) }
-            let data = await pogoPipeline.refresh()
+            let data = await pogoPipeline.refresh(settings: settingsStore)
             pogo = .ready(data: data, age: TimeFormat.age(from: data.timestamp))
         case .github:
             if case .ready(let data, let age) = github { github = .stale(data: data, age: age) }
             do {
-                let data = try await githubPipeline.refresh()
+                let data = try await githubPipeline.refresh(settings: settingsStore)
                 github = .ready(data: data, age: TimeFormat.age(from: data.timestamp))
             } catch {
                 print("[PulseStore] GitHub refresh failed: \(error)")
@@ -166,7 +195,7 @@ final class PulseStore {
             }
         case .aiIntel:
             if case .ready(let data, let age) = aiIntel { aiIntel = .stale(data: data, age: age) }
-            switch await aiIntelPipeline.refresh() {
+            switch await aiIntelPipeline.refresh(settings: settingsStore) {
             case .ready(let data):
                 aiIntel = .ready(data: data, age: TimeFormat.age(from: data.timestamp))
             case .degraded(let data, let reason):

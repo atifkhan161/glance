@@ -8,7 +8,7 @@ final class AppState {
 
     // One NavigationPath per tab so the floating dock can pop back to root.
     var pulsePath = NavigationPath()
-    var sourcesPath = NavigationPath()
+    var providerPath = NavigationPath()
     var settingsPath = NavigationPath()
 
     func markLaunched() {
@@ -25,7 +25,7 @@ final class AppState {
     func resetPath(for tab: GlanceTab) {
         switch tab {
         case .pulse: pulsePath = NavigationPath()
-        case .sources: sourcesPath = NavigationPath()
+        case .provider: providerPath = NavigationPath()
         case .settings: settingsPath = NavigationPath()
         }
     }

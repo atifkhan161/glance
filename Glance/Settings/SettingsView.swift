@@ -6,6 +6,8 @@ struct SettingsView: View {
     @State private var cacheAges: [String: String] = [:]
     @State private var settingsStore = SettingsStore()
     @AppStorage("colorScheme") private var colorScheme = "dark"
+    @State private var saveSuccess = false
+    @State private var isSaving = false
 
     var body: some View {
         ScrollView {
@@ -13,7 +15,7 @@ struct SettingsView: View {
                 brandingHeader
                 appearanceSection
                 displaySection
-                cardVisibilitySection
+                apiKeysSection
                 cacheSection
 
                 Divider()
@@ -133,44 +135,142 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Card Visibility Section
+    // MARK: - API Keys Section
 
-    private var cardVisibilitySection: some View {
+    private var apiKeysSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionHeader("CARD VISIBILITY")
+            SectionHeader("API KEYS")
 
-            VStack(spacing: 8) {
-                cardToggle("Real Madrid", isOn: Binding(
-                    get: { settingsStore.showMadrid },
-                    set: { settingsStore.showMadrid = $0 }
-                ))
-                cardToggle("Pokémon GO", isOn: Binding(
-                    get: { settingsStore.showPoGo },
-                    set: { settingsStore.showPoGo = $0 }
-                ))
-                cardToggle("GitHub Trending", isOn: Binding(
-                    get: { settingsStore.showGithub },
-                    set: { settingsStore.showGithub = $0 }
-                ))
-                cardToggle("AI Intel", isOn: Binding(
-                    get: { settingsStore.showAiIntel },
-                    set: { settingsStore.showAiIntel = $0 }
-                ))
+            // Exa
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("EXA SEARCH")
+                        .font(Theme.Fonts.manrope(10, weight: .bold))
+                        .foregroundStyle(Theme.Colors.textMuted)
+                        .tracking(1.2)
+                    Spacer()
+                    Text(settingsStore.exaAPIKey.isEmpty ? "Missing" : "Configured ✓")
+                        .font(Theme.Fonts.manrope(10, weight: .medium))
+                        .foregroundStyle(settingsStore.exaAPIKey.isEmpty ? Theme.Colors.cardAmber : Theme.Colors.success)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(
+                            (settingsStore.exaAPIKey.isEmpty ? Theme.Colors.cardAmber : Theme.Colors.success).opacity(0.15),
+                            in: .capsule
+                        )
+                }
+
+                SecureField("Enter Exa API key", text: $settingsStore.exaAPIKey)
+                    .font(Theme.Fonts.manrope(14))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .padding(12)
+                    .background(Theme.Colors.canvasDeep, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.Radius.small)
+                            .stroke(Theme.Colors.borderSubtle, lineWidth: 1)
+                    )
+            }
+
+            // Gemini
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("GEMINI")
+                        .font(Theme.Fonts.manrope(10, weight: .bold))
+                        .foregroundStyle(Theme.Colors.textMuted)
+                        .tracking(1.2)
+                    Spacer()
+                    Text(settingsStore.geminiAPIKey.isEmpty ? "Missing" : "Configured ✓")
+                        .font(Theme.Fonts.manrope(10, weight: .medium))
+                        .foregroundStyle(settingsStore.geminiAPIKey.isEmpty ? Theme.Colors.cardAmber : Theme.Colors.success)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(
+                            (settingsStore.geminiAPIKey.isEmpty ? Theme.Colors.cardAmber : Theme.Colors.success).opacity(0.15),
+                            in: .capsule
+                        )
+                }
+
+                SecureField("Enter Gemini API key", text: $settingsStore.geminiAPIKey)
+                    .font(Theme.Fonts.manrope(14))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .padding(12)
+                    .background(Theme.Colors.canvasDeep, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.Radius.small)
+                            .stroke(Theme.Colors.borderSubtle, lineWidth: 1)
+                    )
+            }
+
+            // Gemini Model Picker
+            VStack(alignment: .leading, spacing: 8) {
+                Text("GEMINI MODEL")
+                    .font(Theme.Fonts.manrope(10, weight: .bold))
+                    .foregroundStyle(Theme.Colors.textMuted)
+                    .tracking(1.2)
+
+                Picker("Gemini Model", selection: $settingsStore.selectedModel) {
+                    Text("3.6 Flash").tag("gemini-3.6-flash")
+                    Text("3.7 Flash").tag("gemini-3.7-flash")
+                    Text("3.8 Flash").tag("gemini-3.8-flash")
+                }
+                .pickerStyle(.segmented)
+            }
+
+            // Football Data info
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("FOOTBALL DATA")
+                        .font(Theme.Fonts.manrope(10, weight: .bold))
+                        .foregroundStyle(Theme.Colors.textMuted)
+                        .tracking(1.2)
+                    Spacer()
+                    Text("Configured ✓")
+                        .font(Theme.Fonts.manrope(10, weight: .medium))
+                        .foregroundStyle(Theme.Colors.success)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(Theme.Colors.success.opacity(0.15), in: .capsule)
+                }
+
+                Text("Powered by thesportsdb.com free tier — no key required")
+                    .font(Theme.Fonts.manrope(13))
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Theme.Colors.canvasDeep, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
+            }
+
+            // Save button
+            Button {
+                saveKeys()
+            } label: {
+                HStack {
+                    if isSaving {
+                        ProgressView()
+                            .tint(.white)
+                    }
+                    Text(isSaving ? "Saving..." : "Save Keys")
+                        .font(Theme.Fonts.scale(.callout).weight(.semibold))
+                }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(Theme.Colors.cardEmerald, in: RoundedRectangle(cornerRadius: Theme.Radius.medium))
+            }
+            .disabled(isSaving)
+            .padding(.top, 8)
+
+            if saveSuccess {
+                HStack(spacing: 6) {
+                    Image(systemName: "checkmark.circle.fill")
+                    Text("Keys saved successfully")
+                }
+                .font(Theme.Fonts.scale(.caption2))
+                .foregroundStyle(Theme.Colors.success)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .transition(.opacity)
             }
         }
-    }
-
-    private func cardToggle(_ label: String, isOn: Binding<Bool>) -> some View {
-        HStack {
-            Text(label)
-                .font(Theme.Fonts.manrope(14))
-                .foregroundStyle(Theme.Colors.textPrimary)
-            Spacer()
-            Toggle("", isOn: isOn)
-                .labelsHidden()
-        }
-        .padding(12)
-        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
     }
 
     // MARK: - Cache Section
@@ -279,6 +379,20 @@ struct SettingsView: View {
         cacheAges = ["cache_madrid": "Cleared", "cache_pogo": "Cleared", "cache_github": "Cleared", "cache_aiintel": "Cleared"]
         try? await Task.sleep(for: .seconds(2))
         await loadCacheAges()
+    }
+
+    private func saveKeys() {
+        isSaving = true
+        saveSuccess = false
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            settingsStore.saveToKeychain()
+            isSaving = false
+            saveSuccess = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                saveSuccess = false
+            }
+        }
     }
 }
 

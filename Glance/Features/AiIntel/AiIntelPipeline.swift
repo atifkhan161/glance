@@ -36,13 +36,14 @@ struct AiIntelPipeline: Sendable {
         return queries[hour % queries.count]
     }
 
-    func refresh(force: Bool = false) async -> AiIntelRefreshResult {
+    func refresh(settings: SettingsStore, force: Bool = false) async -> AiIntelRefreshResult {
         guard let key = keychain.load(forKey: "keys_exa") else {
             let cached: CacheEnvelope<AiIntelData>? = await cache.load("cache_aiintel")
             return .keyMissing(cachedData: cached?.data)
         }
         
-        let query = Self.dynamicQuery()
+        // Extract values on main actor before async work
+        let query = await settings.aiIntelSearchQuery
         let results = (try? await exa.search(query: query, apiKey: key)) ?? []
         
         if results.isEmpty {
