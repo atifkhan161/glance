@@ -39,47 +39,21 @@ struct PulseView: View {
 
                 // Custom RSS Feed Cards
                 ForEach(Array(store.customRSSCards.keys.sorted()), id: \.self) { feedID in
-                    if case .ready(let articles, _) = store.customRSSCards[feedID] {
+                    if case .ready = store.customRSSCards[feedID] {
                         let feedName = settingsStore.customRSSFeeds.first(where: { $0.id.uuidString == feedID })?.name ?? "Custom Feed"
                         Button {
                             let ref = CustomRSSFeedRef(feedID: feedID, feedName: feedName)
                             appState.pulsePath.append(ref)
                         } label: {
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack {
-                                    Image(systemName: "rss")
-                                        .foregroundStyle(Theme.Colors.cardAmber)
-                                    Text(feedName)
-                                        .font(Theme.Fonts.manrope(14, weight: .bold))
-                                        .foregroundStyle(Theme.Colors.textPrimary)
-                                    Spacer()
-                                    Text("\(articles.count) articles")
-                                        .font(Theme.Fonts.manrope(11))
-                                        .foregroundStyle(Theme.Colors.textMuted)
-                                }
-
-                                ForEach(articles.prefix(3)) { article in
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(article.title)
-                                            .font(Theme.Fonts.manrope(13, weight: .medium))
-                                            .foregroundStyle(Theme.Colors.textPrimary)
-                                            .lineLimit(2)
-                                        if !article.author.isEmpty {
-                                            Text(article.author)
-                                                .font(Theme.Fonts.manrope(11))
-                                                .foregroundStyle(Theme.Colors.textMuted)
-                                        }
-                                    }
-                                }
-                            }
+                            CustomRSSCardView(feedID: feedID, feedName: feedName, store: store)
                         }
                         .buttonStyle(.plain)
-                        .padding(Theme.cardPadding)
                         .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
                         .overlay(
                             RoundedRectangle(cornerRadius: Theme.Radius.card)
                                 .stroke(Theme.Colors.borderSubtle.opacity(0.6), lineWidth: 1)
                         )
+                        .shadow(color: Color(uiColor: UIColor { traits in traits.userInterfaceStyle == .dark ? UIColor.black.withAlphaComponent(0.35) : UIColor.black.withAlphaComponent(0.06) }), radius: 8, y: 2)
                         .padding(.horizontal, Theme.cardPadding)
                     }
                 }
