@@ -44,6 +44,46 @@ import Foundation
             """
             return try await session.respond(to: prompt, generating: AiIntelItems.self).content
         }
+
+        func isAvailableSync() -> Bool {
+            SystemLanguageModel.default.isAvailable
+        }
+
+        func summarizeArticle(content: String, prompt: String) async throws -> ArticleIntelligenceResult {
+            let session = LanguageModelSession()
+            let fullPrompt = "\(prompt)\n\nArticle:\n\(content)"
+            return try await session.respond(to: fullPrompt, generating: ArticleIntelligenceResult.self).content
+        }
+
+        func streamSummary(content: String, prompt: String) -> AsyncStream<String> {
+            let session = LanguageModelSession()
+            let fullPrompt = "\(prompt)\n\nArticle:\n\(content)"
+            return AsyncStream { continuation in
+                Task {
+                    do {
+                        var currentSections: [String: String] = [:]
+                        for try await partial in session.streamResponse(to: fullPrompt, generating: ArticleIntelligenceResult.self) {
+                            guard let sections = partial.content?.sections else { continue }
+                            for section in sections {
+                                let key = section.title
+                                let newContent = section.content
+                                if let existing = currentSections[key], newContent.count > existing.count {
+                                    let delta = String(newContent.dropFirst(existing.count))
+                                    continuation.yield(delta)
+                                    currentSections[key] = newContent
+                                } else if currentSections[key] == nil {
+                                    currentSections[key] = newContent
+                                    continuation.yield(newContent)
+                                }
+                            }
+                        }
+                        continuation.finish()
+                    } catch {
+                        continuation.finish()
+                    }
+                }
+            }
+        }
     }
 #else
     struct FoundationModelsClient: Sendable {
@@ -59,6 +99,16 @@ import Foundation
 
         func processAiIntel(snippets: String) async throws -> AiIntelItems {
             throw GlanceError.notConfigured("Foundation Models unavailable on this device")
+        }
+
+        func isAvailableSync() -> Bool { false }
+
+        func summarizeArticle(content: String, prompt: String) async throws -> ArticleIntelligenceResult {
+            throw GlanceError.notConfigured("Foundation Models unavailable on this device")
+        }
+
+        func streamSummary(content: String, prompt: String) -> AsyncStream<String> {
+            AsyncStream { $0.finish() }
         }
     }
 #endif
