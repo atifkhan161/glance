@@ -3,6 +3,21 @@ import SwiftUI
 struct RaidDetailView: View {
     let raid: PoGoRaid
 
+    private var intelligenceContent: String {
+        var parts: [raid.name, raid.tier]
+        if let cp = raid.combatPower, let normal = cp.normal {
+            parts.append("Normal CP: \(normal.min ?? 0) - \(normal.max ?? 0)")
+        }
+        if let cp = raid.combatPower, let boosted = cp.boosted {
+            parts.append("Boosted CP: \(boosted.min ?? 0) - \(boosted.max ?? 0)")
+        }
+        if raid.canBeShiny { parts.append("Shiny available") }
+        if let weather = raid.boostedWeather {
+            parts.append("Weather boost: \(weather.map(\.name).joined(separator: ", "))")
+        }
+        return parts.joined(separator: "\n")
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -158,6 +173,13 @@ struct RaidDetailView: View {
                     .padding(Theme.cardPadding)
                     .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
                 }
+
+                // AI Intelligence Card
+                ArticleIntelligenceCard(
+                    content: intelligenceContent,
+                    type: .poGoRaid,
+                    accentColor: Theme.Colors.cardRose
+                )
             }
             .padding(.horizontal, Theme.cardPadding)
             .padding(.bottom, 100)
