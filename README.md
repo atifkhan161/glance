@@ -55,7 +55,30 @@ Real Madrid and PokÃ©mon GO data use free APIs (TheSportsDB, public RSS feeds) â
 - Xcode 15.0+
 - Swift 5.9+
 
-## Getting Started
+## Download
+
+Grab the latest `.ipa` from [Releases](https://github.com/atifkhan161/glance/releases/latest).
+
+## Installing via AltStore
+
+Glance can be sideloaded onto your iPhone using [AltStore](https://altstore.io).
+
+### Prerequisites
+
+1. Download and install [AltServer](https://altstore.io) on your Mac
+2. Connect your iPhone via USB and trust the computer
+3. Install AltStore on your device from the AltServer menu bar icon
+
+### Sideload the IPA
+
+1. Download `Glance.ipa` from the [latest release](https://github.com/atifkhan161/glance/releases/latest)
+2. **Option + click** the AltServer menu bar icon and select **Sideload .ipa...**
+3. Choose the downloaded `Glance.ipa` and enter your Apple ID when prompted
+4. On your iPhone, go to **Settings > General > VPN & Device Management** and trust your Apple ID under "Developer App"
+
+> **Note:** Free developer accounts require re-signing every 7 days. AltStore refreshes apps automatically when your device is on the same WiFi as AltServer.
+
+## Getting Started (from source)
 
 1. Clone the repository:
    ```bash
