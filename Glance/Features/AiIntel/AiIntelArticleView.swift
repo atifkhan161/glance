@@ -4,6 +4,13 @@ struct AiIntelArticleView: View {
     let article: AiIntelArticle
     @State private var showFullCoverage = false
 
+    private var intelligenceContent: String {
+        var parts: [article.headline]
+        parts.append(contentsOf: article.bullets)
+        parts.append(contentsOf: article.highlights)
+        return parts.joined(separator: "\n")
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -48,49 +55,48 @@ struct AiIntelArticleView: View {
                         .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
                 }
 
-                // Key points
-                if !article.bullets.isEmpty {
+                // AI Intelligence Card
+                ArticleIntelligenceCard(
+                    content: intelligenceContent,
+                    type: .aiIntel,
+                    accentColor: Theme.Colors.cardCyan
+                )
+
+                // Raw content card
+                RawArticleCard(headerTitle: "FULL COVERAGE") {
                     VStack(alignment: .leading, spacing: 14) {
-                        SectionHeader("KEY POINTS")
+                        if !article.bullets.isEmpty {
+                            SectionHeader("KEY POINTS")
+                            ForEach(article.bullets, id: \.self) { bullet in
+                                HStack(alignment: .top, spacing: 10) {
+                                    Circle()
+                                        .fill(Theme.Colors.cardCyan)
+                                        .frame(width: 6, height: 6)
+                                        .padding(.top, 6)
+                                    Text(bullet)
+                                        .font(Theme.Fonts.manrope(16))
+                                        .foregroundStyle(Theme.Colors.textPrimary)
+                                        .lineSpacing(4)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
+                        }
 
-                        ForEach(article.bullets, id: \.self) { bullet in
-                            HStack(alignment: .top, spacing: 10) {
-                                Circle()
-                                    .fill(Theme.Colors.cardCyan)
-                                    .frame(width: 6, height: 6)
-                                    .padding(.top, 6)
-
-                                Text(bullet)
-                                    .font(Theme.Fonts.manrope(16))
-                                    .foregroundStyle(Theme.Colors.textPrimary)
-                                    .lineSpacing(4)
-                                    .fixedSize(horizontal: false, vertical: true)
+                        if !article.benchmarks.isEmpty {
+                            SectionHeader("BENCHMARKS", color: Theme.Colors.cardCyan)
+                            FlowLayout(spacing: 8) {
+                                ForEach(article.benchmarks, id: \.self) { bench in
+                                    Text(bench)
+                                        .font(Theme.Fonts.manrope(12, weight: .medium))
+                                        .foregroundStyle(Theme.Colors.cardCyan)
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 5)
+                                        .background(Theme.Colors.cardCyan.opacity(0.1), in: .capsule)
+                                        .accessibilityLabel("Benchmark: \(bench)")
+                                }
                             }
                         }
                     }
-                    .padding(Theme.cardPadding)
-                    .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
-                }
-
-                // Benchmarks
-                if !article.benchmarks.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        SectionHeader("BENCHMARKS", color: Theme.Colors.cardCyan)
-
-                        FlowLayout(spacing: 8) {
-                            ForEach(article.benchmarks, id: \.self) { bench in
-                                Text(bench)
-                                    .font(Theme.Fonts.manrope(12, weight: .medium))
-                                    .foregroundStyle(Theme.Colors.cardCyan)
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 5)
-                                    .background(Theme.Colors.cardCyan.opacity(0.1), in: .capsule)
-                                    .accessibilityLabel("Benchmark: \(bench)")
-                            }
-                        }
-                    }
-                    .padding(Theme.cardPadding)
-                    .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
                 }
 
                 // Full coverage (expandable)
@@ -120,7 +126,7 @@ struct AiIntelArticleView: View {
                         }
                     }
                     .padding(Theme.cardPadding)
-                    .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+                    .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
                 }
 
                 // Read original button
@@ -148,8 +154,6 @@ struct AiIntelArticleView: View {
         .navigationTitle("AI Intel")
         .navigationBarTitleDisplayMode(.inline)
     }
-
-    // MARK: - Tag Color
 
     private var metadataText: String {
         var parts: [String] = []
