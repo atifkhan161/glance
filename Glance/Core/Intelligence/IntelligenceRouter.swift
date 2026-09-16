@@ -72,6 +72,15 @@ actor IntelligenceRouter {
         return nil
     }
 
+    func articleIntelligence(content: String, type: ArticleIntelligenceType) async -> ArticleIntelligenceResult? {
+        guard await foundationModels.isAvailable() else { return nil }
+        return try? await foundationModels.summarizeArticle(content: content, prompt: type.systemPrompt)
+    }
+
+    func streamArticleIntelligence(content: String, type: ArticleIntelligenceType) -> AsyncStream<String> {
+        foundationModels.streamSummary(content: content, prompt: type.systemPrompt)
+    }
+
     private func truncate(_ text: String, maxChars: Int = 6000) -> String {
         text.count > maxChars ? String(text.prefix(maxChars)) : text
     }
