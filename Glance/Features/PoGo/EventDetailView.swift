@@ -3,6 +3,12 @@ import SwiftUI
 struct EventDetailView: View {
     let event: PoGoEvent
 
+    private var intelligenceContent: String {
+        var parts: [event.name, event.eventType]
+        if let heading = event.heading { parts.append(heading) }
+        return parts.joined(separator: "\n")
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -74,17 +80,22 @@ struct EventDetailView: View {
                 .padding(Theme.cardPadding)
                 .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
 
-                // Description
+                // AI Intelligence Card
+                ArticleIntelligenceCard(
+                    content: intelligenceContent,
+                    type: .poGoEvent,
+                    accentColor: Theme.Colors.cardRose
+                )
+
+                // Raw content card
                 if let heading = event.heading {
-                    VStack(alignment: .leading, spacing: 0) {
+                    RawArticleCard(headerTitle: "FULL DETAILS") {
                         Text(heading)
                             .font(Theme.Fonts.manrope(17, weight: .regular))
                             .foregroundStyle(Theme.Colors.textPrimary)
                             .lineSpacing(5)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    .padding(Theme.cardPadding)
-                    .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
                 }
 
                 // CTA
