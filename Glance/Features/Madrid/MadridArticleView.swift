@@ -41,7 +41,7 @@ struct MadridArticleView: View {
                 .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
 
                 // Article body (stripped of media)
-                let stripped = stripMedia(from: article.content)
+                let stripped = HTMLStripper.stripMedia(from: article.content)
                 let paragraphs = stripped.components(separatedBy: "\n\n").filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
                 VStack(alignment: .leading, spacing: 14) {
                     ForEach(Array(paragraphs.enumerated()), id: \.offset) { _, paragraph in
@@ -79,65 +79,6 @@ struct MadridArticleView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    /// Strips media elements from HTML content, keeping text paragraphs
-    private func stripMedia(from html: String) -> String {
-        var result = html
-
-        // Remove img, figure, blockquote, iframe, script tags and their content
-        let patterns = [
-            "<img[^>]*>",
-            "<figure[^>]*>[\\s\\S]*?</figure>",
-            "<blockquote[^>]*>[\\s\\S]*?</blockquote>",
-            "<iframe[^>]*>[\\s\\S]*?</iframe>",
-            "<script[^>]*>[\\s\\S]*?</script>",
-            "<twitter-tweet[^>]*>[\\s\\S]*?</twitter-tweet>",
-            "<div[^>]*class=\"twitter-tweet\"[^>]*>[\\s\\S]*?</div>",
-        ]
-
-        for pattern in patterns {
-            if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
-                result = regex.stringByReplacingMatches(
-                    in: result,
-                    range: NSRange(result.startIndex..., in: result),
-                    withTemplate: ""
-                )
-            }
-        }
-
-        // Convert common HTML tags to readable text
-        result = result.replacingOccurrences(of: "<br>", with: "\n")
-        result = result.replacingOccurrences(of: "<br/>", with: "\n")
-        result = result.replacingOccurrences(of: "<br />", with: "\n")
-        result = result.replacingOccurrences(of: "</p>", with: "\n\n")
-        result = result.replacingOccurrences(of: "</h1>", with: "\n\n")
-        result = result.replacingOccurrences(of: "</h2>", with: "\n\n")
-        result = result.replacingOccurrences(of: "</h3>", with: "\n\n")
-        result = result.replacingOccurrences(of: "<li>", with: "• ")
-
-        // Strip remaining HTML tags
-        if let regex = try? NSRegularExpression(pattern: "<[^>]+>", options: []) {
-            result = regex.stringByReplacingMatches(
-                in: result,
-                range: NSRange(result.startIndex..., in: result),
-                withTemplate: ""
-            )
-        }
-
-        // Clean up whitespace
-        result = result.replacingOccurrences(of: "&amp;", with: "&")
-        result = result.replacingOccurrences(of: "&lt;", with: "<")
-        result = result.replacingOccurrences(of: "&gt;", with: ">")
-        result = result.replacingOccurrences(of: "&quot;", with: "\"")
-        result = result.replacingOccurrences(of: "&#39;", with: "'")
-        result = result.replacingOccurrences(of: "&nbsp;", with: " ")
-
-        // Collapse multiple newlines
-        while result.contains("\n\n\n") {
-            result = result.replacingOccurrences(of: "\n\n\n", with: "\n\n")
-        }
-
-        return result.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
 }
 
 #Preview {
