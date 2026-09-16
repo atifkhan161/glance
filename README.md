@@ -1,6 +1,8 @@
 # Glance
 
-A zero-backend personal intelligence dashboard for iOS. Aggregates multiple data streams into a single home screen with a clean, dark-mode-first design.
+A personal intelligence dashboard for iOS. Aggregates multiple data streams into a single home screen with a clean, dark-mode-first design.
+
+![Glance](docs/screenshot.png)
 
 ## Features
 
