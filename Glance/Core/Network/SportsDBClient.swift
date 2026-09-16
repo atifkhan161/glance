@@ -17,6 +17,19 @@ enum SportsDB {
         let startYear = month >= 7 ? year : year - 1
         return "\(startYear)-\(startYear + 1)"
     }
+
+    /// Current La Liga round number. Season starts ~Aug 20, one round per week.
+    static func currentRound(date: Date = Date.now) -> Int {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Europe/Madrid") ?? .current
+        let year = calendar.component(.year, from: date)
+        let month = calendar.component(.month, from: date)
+        let startYear = month >= 7 ? year : year - 1
+        let seasonStart = calendar.date(from: DateComponents(year: startYear, month: 8, day: 20)) ?? date
+        let days = calendar.dateComponents([.day], from: seasonStart, to: date).day ?? 0
+        let round = (days / 7) + 1
+        return max(1, min(round, 38))
+    }
 }
 
 // MARK: - Models
@@ -79,6 +92,39 @@ struct SDBEvent: Codable, Sendable, Equatable {
         return nil
     }
 
+    /// Memberwise initializer for testing
+    init(
+        idEvent: String, strEvent: String, strLeague: String,
+        strSeason: String?, strTimestamp: String?,
+        dateEvent: String?, strTime: String?,
+        strHomeTeam: String, strAwayTeam: String,
+        idHomeTeam: String?, idAwayTeam: String?,
+        strVenue: String?, intRound: String?,
+        strStatus: String?, intHomeScore: Int?, intAwayScore: Int?,
+        strHomeTeamBadge: String?, strAwayTeamBadge: String?,
+        strPostponed: String?
+    ) {
+        self.idEvent = idEvent
+        self.strEvent = strEvent
+        self.strLeague = strLeague
+        self.strSeason = strSeason
+        self.strTimestamp = strTimestamp
+        self.dateEvent = dateEvent
+        self.strTime = strTime
+        self.strHomeTeam = strHomeTeam
+        self.strAwayTeam = strAwayTeam
+        self.idHomeTeam = idHomeTeam
+        self.idAwayTeam = idAwayTeam
+        self.strVenue = strVenue
+        self.intRound = intRound
+        self.strStatus = strStatus
+        self.intHomeScore = intHomeScore
+        self.intAwayScore = intAwayScore
+        self.strHomeTeamBadge = strHomeTeamBadge
+        self.strAwayTeamBadge = strAwayTeamBadge
+        self.strPostponed = strPostponed
+    }
+
     var isFinished: Bool {
         let status = strStatus ?? ""
         return status.contains("Finished") || status == "FT" || status == "AET" || status == "PEN"
@@ -139,6 +185,7 @@ protocol SportsDBClientProtocol: Sendable {
     func lastEvents(teamID: String) async throws -> [SDBEvent]
     func nextEvents(teamID: String) async throws -> [SDBEvent]
     func leagueTable(leagueID: String, season: String) async throws -> [SDBStanding]
+    func eventsRound(leagueID: String, round: String, season: String) async throws -> [SDBEvent]
 }
 
 struct SportsDBClient: SportsDBClientProtocol, Sendable {
@@ -172,6 +219,17 @@ struct SportsDBClient: SportsDBClientProtocol, Sendable {
         ]
         let response: SDBTableResponse = try await get(url: components.url!, label: "lookuptable")
         return response.table ?? []
+    }
+
+    func eventsRound(leagueID: String, round: String, season: String) async throws -> [SDBEvent] {
+        var components = URLComponents(string: "\(SportsDB.baseURL)/eventsround.php")!
+        components.queryItems = [
+            URLQueryItem(name: "id", value: leagueID),
+            URLQueryItem(name: "r", value: round),
+            URLQueryItem(name: "s", value: season)
+        ]
+        let response: SDBEventsResponse = try await get(url: components.url!, label: "eventsround")
+        return response.events ?? []
     }
 
     // MARK: - Private

@@ -69,6 +69,11 @@ final class SettingsStore {
         set { defaults.set(newValue, forKey: "github_sort_order") }
     }
 
+    var githubTrendingSince: String {
+        get { defaults.string(forKey: "github_trending_since") ?? "daily" }
+        set { defaults.set(newValue, forKey: "github_trending_since") }
+    }
+
     var aiIntelSearchQuery: String {
         get { defaults.string(forKey: "aiintel_search_query") ?? "latest AI LLM breakthroughs, new model releases" }
         set { defaults.set(newValue, forKey: "aiintel_search_query") }

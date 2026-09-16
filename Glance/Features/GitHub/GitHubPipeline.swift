@@ -1,28 +1,12 @@
 import Foundation
 
 struct GitHubPipeline: Sendable {
-    private let client: any GitHubClientProtocol
+    private let trendingClient: any GitHubTrendingClientProtocol
     private let cache: CacheStore
 
-    init(client: any GitHubClientProtocol = GitHubClient(), cache: CacheStore = .shared) {
-        self.client = client
+    init(trendingClient: any GitHubTrendingClientProtocol = GitHubTrendingClient(), cache: CacheStore = .shared) {
+        self.trendingClient = trendingClient
         self.cache = cache
-    }
-
-    static func velocity(current: [GitHubRepo], prior: [GitHubRepo]) -> [Int?] {
-        let priorByName = Dictionary(uniqueKeysWithValues: prior.map { ($0.fullName, $0.stars) })
-        return current.map { repo in
-            guard let old = priorByName[repo.fullName] else { return nil }
-            let delta = repo.stars - old
-            return delta > 0 ? delta : nil
-        }
-    }
-
-    static func velocityDirection(_ velocity: Int?) -> String {
-        guard let v = velocity, v > 0 else { return "" }
-        if v >= 100 { return "↑↑" }
-        if v >= 50 { return "↑" }
-        return "↗"
     }
 
     static func languageColor(for language: String?) -> String {
@@ -39,9 +23,7 @@ struct GitHubPipeline: Sendable {
             "c": "#555555",
             "ruby": "#701516",
             "php": "#4F5D95",
-            "swift": "#F05138",
             "kotlin": "#A97BFF",
-            "dart": "#00B4AB",
             "scala": "#c22d40",
             "r": "#198CE7",
             "julia": "#a270ba",
@@ -50,43 +32,27 @@ struct GitHubPipeline: Sendable {
             "css": "#563d7c",
             "html": "#e34c26",
             "jupyter notebook": "#DA5B0B",
+            "c#": "#178600",
+            "lua": "#000080",
+            "zig": "#ec915c",
+            "elixir": "#6e4a7e",
+            "haskell": "#5e5086",
         ]
         return colors[lang] ?? "#8B8B8B"
     }
 
-    func refresh(settings: SettingsStore, force: Bool = false) async throws -> GitHubData {
-        // Extract values on main actor before async work
-        let topicsString = await settings.githubSearchTopics
-        let sort = await settings.githubSortOrder
-        let topics = topicsString
-            .split(separator: ",")
-            .map { $0.trimmingCharacters(in: .whitespaces) }
+    func refresh(since: TrendingPeriod = .daily) async throws -> GitHubTrendingData {
+        let cacheKey = "cache_github_trending_\(since.rawValue)"
 
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        
-        // Use 7-day window for velocity calculation
-        let sevenDaysAgo = formatter.string(from: Date.now.addingTimeInterval(-7 * 86400))
-        let thirtyDaysAgo = formatter.string(from: Date.now.addingTimeInterval(-30 * 86400))
-        
-        // Fetch current data (7-day window for velocity)
-        let result = try await client.searchRepos(topics: topics, sort: sort, since: sevenDaysAgo)
-        
-        // Load prior data for velocity comparison
-        let priorRaw: CacheEnvelope<GitHubSearchResult>? = await cache.load("cache_github_raw")
-        let deltas = Self.velocity(current: result.items, prior: priorRaw?.data.items ?? [])
-        
-        let repos = zip(result.items, deltas).map { repo, delta in
-            GitHubRepoWithVelocity(repo: repo, velocity: delta)
-        }
-        
-        let data = GitHubData(
-            repos: repos, totalCount: result.totalCount,
-            rateLimitRemaining: result.rateLimitRemaining, timestamp: Date.now,
-            source: "github"
+        let repos = try await trendingClient.fetchTrending(since: since.rawValue)
+
+        let data = GitHubTrendingData(
+            repos: repos,
+            timestamp: Date.now,
+            since: since.rawValue
         )
-        await cache.save("cache_github", envelope: CacheEnvelope(data: data, ttlMs: 24 * 3_600_000))
-        await cache.save("cache_github_raw", envelope: CacheEnvelope(data: result, ttlMs: 24 * 3_600_000))
+
+        await cache.save(cacheKey, envelope: CacheEnvelope(data: data, ttlMs: 24 * 3_600_000))
         return data
     }
 }

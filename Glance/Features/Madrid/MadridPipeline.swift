@@ -41,12 +41,34 @@ struct MadridPipeline: Sendable {
 
         // 1. API-Sports (thesportsdb.com) free tier — no API key required.
         do {
-            // Sequential calls to be gentle on free-tier rate limits
-            let lastEvents = try await sportsDB.lastEvents(teamID: teamID)
+            // Fetch next events (upcoming fixtures) — this API is reliable
+            let nextEvents = try await sportsDB.nextEvents(teamID: teamID)
 
             try? await Task.sleep(for: .milliseconds(600))
 
-            let nextEvents = try await sportsDB.nextEvents(teamID: teamID)
+            // Fetch round data for recent matches (more up-to-date than eventslast)
+            let estimatedRound = SportsDB.currentRound()
+            var recentEvents: [SDBEvent] = []
+
+            // Fetch a range of rounds to handle irregular scheduling
+            let roundsToFetch = Array((estimatedRound - 3)...(estimatedRound + 2)).filter { $0 >= 1 }
+            for round in roundsToFetch {
+                if let roundEvents = try? await sportsDB.eventsRound(
+                    leagueID: leagueID,
+                    round: String(round),
+                    season: SportsDB.currentSeason()
+                ) {
+                    recentEvents.append(contentsOf: roundEvents)
+                }
+                try? await Task.sleep(for: .milliseconds(400))
+            }
+
+            // Fallback: if round data didn't yield finished matches, try eventslast
+            if recentEvents.filter({ $0.isFinished }).isEmpty {
+                if let lastEvents = try? await sportsDB.lastEvents(teamID: teamID) {
+                    recentEvents = lastEvents
+                }
+            }
 
             try? await Task.sleep(for: .milliseconds(600))
 
@@ -54,22 +76,32 @@ struct MadridPipeline: Sendable {
                 leagueID: leagueID, season: SportsDB.currentSeason()
             )
 
-            // 2. Derive data
-            let lastMatch = Self.parseLastMatch(from: lastEvents)
-            let form = Self.parseForm(from: lastEvents)
-            let standing = Self.parseStanding(from: table, teamID: teamID)
-            let nextFixture = Self.parseNextFixture(from: nextEvents.first)
+            // 2. Build timeline and derive backward-compat data
+            let madridRecentEvents = recentEvents.filter {
+                $0.idHomeTeam == teamID || $0.idAwayTeam == teamID
+            }
+            let matchTimeline = Self.parseMatchTimeline(
+                recentEvents: madridRecentEvents,
+                nextEvents: nextEvents,
+                teamID: teamID
+            )
 
-            // 3. Fetch Exa for related articles (unchanged)
+            let lastMatch = matchTimeline.first(where: { $0.isFinished }).flatMap { Self.convertToLastMatch($0) }
+            let nextFixture = matchTimeline.first(where: { !$0.isFinished }).flatMap { Self.convertToFixture($0) }
+            let form = Self.parseForm(from: recentEvents.filter { $0.isFinished })
+            let standing = Self.parseStanding(from: table, teamID: teamID)
+
+            // 3. Fetch Exa for related articles
             let exaArticles = await fetchExaArticles()
 
-            // 4. Fetch MM articles (unchanged)
+            // 4. Fetch MM articles
             let mmArticles = (try? await madridClient.fetchArticles(rssURL: rssURL)) ?? []
 
             // 5. Combine
             let data = MadridData(
                 fixture: nextFixture,
                 lastMatch: lastMatch,
+                matchTimeline: matchTimeline,
                 schedule: [],
                 form: form,
                 standing: standing,
@@ -111,7 +143,7 @@ struct MadridPipeline: Sendable {
         if results.isEmpty {
             return .degraded(
                 data: MadridData(
-                    fixture: nil, lastMatch: nil, schedule: [], form: [],
+                    fixture: nil, lastMatch: nil, matchTimeline: [], schedule: [], form: [],
                     standing: nil, standingText: "",
                     intel: "No match data available", headToHead: nil,
                     articles: [], mmArticles: mmArticles, source: "none", timestamp: Date.now
@@ -136,6 +168,7 @@ struct MadridPipeline: Sendable {
         let data = MadridData(
             fixture: parsed.fixture,
             lastMatch: nil,
+            matchTimeline: [],
             schedule: parsed.schedule,
             form: enrichment?.form ?? formStrings,
             standing: nil,
@@ -229,6 +262,113 @@ struct MadridPipeline: Sendable {
             scores: score,
             rmBadge: badges.rm,
             opponentBadge: badges.opponent
+        )
+    }
+
+    static func parseMatchTimeline(
+        recentEvents: [SDBEvent],
+        nextEvents: [SDBEvent],
+        teamID: String
+    ) -> [MatchTimelineItem] {
+        var items: [MatchTimelineItem] = []
+
+        // Last 2 finished matches (most recent first, sorted by date)
+        let finished = recentEvents
+            .filter { $0.isFinished }
+            .sorted { ($0.strTimestamp ?? $0.dateEvent ?? "") > ($1.strTimestamp ?? $1.dateEvent ?? "") }
+            .prefix(2)
+        for event in finished {
+            guard let item = timelineItem(from: event, teamID: teamID) else { continue }
+            items.append(item)
+        }
+
+        // Next 3 upcoming matches (sorted by date)
+        let upcoming = nextEvents
+            .filter { $0.isNotStarted || $0.strStatus == "NS" }
+            .sorted { ($0.strTimestamp ?? $0.dateEvent ?? "") < ($1.strTimestamp ?? $1.dateEvent ?? "") }
+            .prefix(3)
+        for event in upcoming {
+            guard let item = timelineItem(from: event, teamID: teamID) else { continue }
+            items.append(item)
+        }
+
+        return items
+    }
+
+    private static func timelineItem(from event: SDBEvent, teamID: String) -> MatchTimelineItem? {
+        let isHome = event.idHomeTeam == teamID
+        let opponent = isHome ? event.strAwayTeam : event.strHomeTeam
+        let badges = Self.badges(for: event)
+        let datetime = event.strTimestamp
+            ?? (event.dateEvent.map { "\($0)T\(event.strTime ?? "00:00:00")" })
+            ?? event.dateEvent
+            ?? ""
+
+        let homeScore = event.intHomeScore
+        let awayScore = event.intAwayScore
+        let isFinished = event.isFinished
+
+        var result: String? = nil
+        if isFinished, let h = homeScore, let a = awayScore {
+            let rmGoals = isHome ? h : a
+            let oppGoals = isHome ? a : h
+            if rmGoals > oppGoals { result = "W" }
+            else if rmGoals == oppGoals { result = "D" }
+            else { result = "L" }
+        }
+
+        return MatchTimelineItem(
+            id: event.idEvent,
+            opponent: opponent,
+            opponentBadge: badges.opponent,
+            rmBadge: badges.rm,
+            homeScore: homeScore,
+            awayScore: awayScore,
+            datetime: datetime,
+            competition: event.strLeague,
+            venue: event.strVenue ?? "",
+            isFinished: isFinished,
+            result: result,
+            round: event.intRound.map { "R\($0)" },
+            isHome: isHome
+        )
+    }
+
+    /// Convert MatchTimelineItem to LastMatch for backward compatibility with glance card
+    static func convertToLastMatch(_ item: MatchTimelineItem) -> LastMatch? {
+        guard item.isFinished, let h = item.homeScore, let a = item.awayScore else { return nil }
+        return LastMatch(
+            opponent: item.opponent,
+            score: LastMatch.LastMatchScore(home: h, away: a),
+            competition: item.competition,
+            venue: item.venue,
+            datetime: item.datetime,
+            status: "FT",
+            scorers: [],
+            cards: [],
+            round: item.round,
+            rmBadge: item.rmBadge,
+            opponentBadge: item.opponentBadge
+        )
+    }
+
+    /// Convert MatchTimelineItem to Fixture for backward compatibility with glance card
+    static func convertToFixture(_ item: MatchTimelineItem) -> Fixture? {
+        let score: Fixture.Score?
+        if let h = item.homeScore, let a = item.awayScore {
+            score = Fixture.Score(home: h, away: a)
+        } else {
+            score = nil
+        }
+        return Fixture(
+            opponent: item.opponent,
+            datetime: item.datetime,
+            stadium: item.venue,
+            competition: item.competition,
+            venue: item.venue,
+            scores: score,
+            rmBadge: item.rmBadge,
+            opponentBadge: item.opponentBadge
         )
     }
 

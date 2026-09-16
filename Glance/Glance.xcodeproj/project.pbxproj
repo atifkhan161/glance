@@ -59,12 +59,14 @@
 		A96986B8A8C94414ED991F21 /* CacheStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FCCD985E015E21DCCED8520 /* CacheStore.swift */; };
 		B3B65B4CB3105DA4D8A53E7B /* MadridModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62BB524E1F13B6631643F30B /* MadridModels.swift */; };
 		B77B36E6CC1DE6610C3101A3 /* GitHubClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76BA268209C52E00B0FB8062 /* GitHubClient.swift */; };
+		AA11BB22CC33DD44EE55FF81 /* GitHubTrendingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF82 /* GitHubTrendingClient.swift */; };
 		B8255817BAB3D33F952290D9 /* PulseFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D08A0A13CBECC1A43D3DD97 /* PulseFlowUITests.swift */; };
 		BC10008C484758547C989AAC /* FoundationModelsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85F33B9C1FEF06261744DCCB /* FoundationModelsClient.swift */; };
 		C055284524085E1696D9864E /* GitHubModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6263EFE1565E274CD9BBE16 /* GitHubModels.swift */; };
 		C4F7A91DECC1082A7429B83B /* madrid-search.json in Resources */ = {isa = PBXBuildFile; fileRef = 8FE05B7D2F09CD7EFD3A9EE2 /* madrid-search.json */; };
 		C71FD04EB7EE758AF092C4E2 /* Manrope-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D53DE0F725178C0F69136715 /* Manrope-Bold.ttf */; };
 		CA4594EEC28F6837ACDA78F4 /* MadridArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 624222E9906AED3B3050FE4D /* MadridArticleView.swift */; };
+		B2C3D4E5F6A7B8C9D0E1F2A3 /* MatchTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9D0E1F2A3B4C5D6E7F8A9B0 /* MatchTimelineView.swift */; };
 		CB04AF25B8072EB1C93103FF /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5499D323A95C9D573A14BDD5 /* KeychainStore.swift */; };
 		CBD1DF44CC2583FF724E4AD7 /* Manrope-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4C6526E7C8F6E1FEA834BD90 /* Manrope-ExtraBold.ttf */; };
 		D589A9502D12A581CE199D6F /* MadridFixtureParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47065905154CC6E47579CB42 /* MadridFixtureParser.swift */; };
@@ -124,6 +126,7 @@
 		274E1FF781DE1E99CE883CB1 /* EventDetailView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = EventDetailView.swift; sourceTree = "<group>"; };
 		2FCCD985E015E21DCCED8520 /* CacheStore.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CacheStore.swift; sourceTree = "<group>"; };
 		325CB57B76E82C3934F41946 /* MadridHubView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = MadridHubView.swift; sourceTree = "<group>"; };
+		C9D0E1F2A3B4C5D6E7F8A9B0 /* MatchTimelineView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = MatchTimelineView.swift; sourceTree = "<group>"; };
 		33B8021DC59DAC0AAA0673BE /* GlanceBadge.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GlanceBadge.swift; sourceTree = "<group>"; };
 		3C81652325E4B949DE4B4E01 /* Extensions.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		3D44183E20A98B8B4BB01FE8 /* SourcesView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SourcesView.swift; sourceTree = "<group>"; };
@@ -152,6 +155,7 @@
 		75197729187B4AE302A61239 /* HankenGrotesk-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = file; path = "HankenGrotesk-Regular.ttf"; sourceTree = "<group>"; };
 		761E28609E32E6E33EB2DC21 /* ManagingMadridClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ManagingMadridClient.swift; sourceTree = "<group>"; };
 		76BA268209C52E00B0FB8062 /* GitHubClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubClient.swift; sourceTree = "<group>"; };
+		AA11BB22CC33DD44EE55FF82 /* GitHubTrendingClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubTrendingClient.swift; sourceTree = "<group>"; };
 		7858C0D91F95952753F08721 /* Enums.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
 		7AC5FEA17B8577E4EB10A0AB /* ScrapedDuckClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ScrapedDuckClient.swift; sourceTree = "<group>"; };
 		7D29FA2484914D1C92BFEFEE /* SettingsStore.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
@@ -253,6 +257,7 @@
 				BB22CC33DD44EE55FF660077 /* SportsDBClient.swift */,
 				8432ADC86D8071C0A729DC28 /* GeminiClient.swift */,
 				76BA268209C52E00B0FB8062 /* GitHubClient.swift */,
+				AA11BB22CC33DD44EE55FF82 /* GitHubTrendingClient.swift */,
 				7AC5FEA17B8577E4EB10A0AB /* ScrapedDuckClient.swift */,
 				761E28609E32E6E33EB2DC21 /* ManagingMadridClient.swift */,
 				DD22EE33FF44GG55FF660079 /* GenericRSSClient.swift */,
@@ -397,6 +402,7 @@
 				7DF0D56AA2D3E58D038DD154 /* MadridDateParsing.swift */,
 				47065905154CC6E47579CB42 /* MadridFixtureParser.swift */,
 				325CB57B76E82C3934F41946 /* MadridHubView.swift */,
+				C9D0E1F2A3B4C5D6E7F8A9B0 /* MatchTimelineView.swift */,
 				624222E9906AED3B3050FE4D /* MadridArticleView.swift */,
 			);
 			path = Madrid;
@@ -678,6 +684,7 @@
 				AA11BB22CC33DD44EE55FF77 /* SportsDBClient.swift in Sources */,
 				E78A461D3A5B0A1F140AF378 /* GeminiClient.swift in Sources */,
 				B77B36E6CC1DE6610C3101A3 /* GitHubClient.swift in Sources */,
+				AA11BB22CC33DD44EE55FF81 /* GitHubTrendingClient.swift in Sources */,
 				5BA02C670F37712948EB23B7 /* ScrapedDuckClient.swift in Sources */,
 				EC388E6180F7AFEFE7A00C77 /* ManagingMadridClient.swift in Sources */,
 				89477086D92D8EA1A76A0BEA /* Models.swift in Sources */,
@@ -693,6 +700,7 @@
 				D589A9502D12A581CE199D6F /* MadridFixtureParser.swift in Sources */,
 				FA080D8C8DBEBE1E0F6C6725 /* MadridHubView.swift in Sources */,
 				CA4594EEC28F6837ACDA78F4 /* MadridArticleView.swift in Sources */,
+				B2C3D4E5F6A7B8C9D0E1F2A3 /* MatchTimelineView.swift in Sources */,
 				19E5B4F68F337ED811CBC50C /* PoGoModels.swift in Sources */,
 				E9DC9274D7EF30EAFCE6C500 /* PoGoPipeline.swift in Sources */,
 				12E679C512844CB0A323646C /* PoGoHubView.swift in Sources */,

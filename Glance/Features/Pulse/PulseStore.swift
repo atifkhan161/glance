@@ -26,7 +26,7 @@ enum CardState<T: Codable & Sendable & Equatable>: Equatable {
 final class PulseStore {
     var madrid: CardState<MadridData> = .loading
     var pogo: CardState<PoGoData> = .loading
-    var github: CardState<GitHubData> = .loading
+    var github: CardState<GitHubTrendingData> = .loading
     var aiIntel: CardState<AiIntelData> = .loading
     var customRSSCards: [String: CardState<[MMArticle]>] = [:]
 
@@ -45,12 +45,16 @@ final class PulseStore {
         return false
     }
 
+    var trendingSince: String {
+        settingsStore.githubTrendingSince
+    }
+
     func isCacheValid(for card: CardID) async -> Bool {
         let cacheKey: String
         switch card {
         case .madrid: cacheKey = "cache_madrid"
         case .pogo: cacheKey = "cache_pogo"
-        case .github: cacheKey = "cache_github"
+        case .github: cacheKey = "cache_github_trending_daily"
         case .aiIntel: cacheKey = "cache_aiintel"
         }
         return await cache.isValid(key: cacheKey)
@@ -91,7 +95,8 @@ final class PulseStore {
     func loadFromCache() async {
         async let madridEnvelope: CacheEnvelope<MadridData>? = cache.load("cache_madrid")
         async let pogoEnvelope: CacheEnvelope<PoGoData>? = cache.load("cache_pogo")
-        async let githubEnvelope: CacheEnvelope<GitHubData>? = cache.load("cache_github")
+        let selectedSince = settingsStore.githubTrendingSince
+        async let githubEnvelope: CacheEnvelope<GitHubTrendingData>? = cache.load("cache_github_trending_\(selectedSince)")
         async let aiIntelEnvelope: CacheEnvelope<AiIntelData>? = cache.load("cache_aiintel")
         let (m, p, g, a) = await (madridEnvelope, pogoEnvelope, githubEnvelope, aiIntelEnvelope)
         if let m { madrid = .ready(data: m.data, age: TimeFormat.age(from: Date(timeIntervalSince1970: TimeInterval(m.timestampMs) / 1000))) }
@@ -133,6 +138,26 @@ final class PulseStore {
         await refresh(card, force: true)
     }
 
+    func refreshGitHub(since: TrendingPeriod) async {
+        let cacheKey = "cache_github_trending_\(since.rawValue)"
+
+        if case .ready(let data, _) = github, data.since == since.rawValue {} else {
+            if case .ready(let data, let age) = github { github = .stale(data: data, age: age) }
+        }
+
+        do {
+            let data = try await githubPipeline.refresh(since: since)
+            github = .ready(data: data, age: TimeFormat.age(from: data.timestamp))
+        } catch {
+            print("[PulseStore] GitHub refresh failed: \(error)")
+            if case .stale(let data, _) = github {
+                github = .offline(data: data, age: TimeFormat.age(from: data.timestamp))
+            } else {
+                github = .error(message: "GitHub refresh failed: \(error.localizedDescription)")
+            }
+        }
+    }
+
     func refresh(_ card: CardID, force: Bool = false) async {
         // Cancel any in-flight refresh for this card
         refreshTasks[card]?.cancel()
@@ -141,7 +166,7 @@ final class PulseStore {
         switch card {
         case .madrid: cacheKey = "cache_madrid"
         case .pogo: cacheKey = "cache_pogo"
-        case .github: cacheKey = "cache_github"
+        case .github: cacheKey = "cache_github_trending_\(settingsStore.githubTrendingSince)"
         case .aiIntel: cacheKey = "cache_aiintel"
         }
 
@@ -181,18 +206,8 @@ final class PulseStore {
             let data = await pogoPipeline.refresh(settings: settingsStore)
             pogo = .ready(data: data, age: TimeFormat.age(from: data.timestamp))
         case .github:
-            if case .ready(let data, let age) = github { github = .stale(data: data, age: age) }
-            do {
-                let data = try await githubPipeline.refresh(settings: settingsStore)
-                github = .ready(data: data, age: TimeFormat.age(from: data.timestamp))
-            } catch {
-                print("[PulseStore] GitHub refresh failed: \(error)")
-                if case .stale(let data, _) = github {
-                    github = .offline(data: data, age: TimeFormat.age(from: data.timestamp))
-                } else {
-                    github = .error(message: "GitHub refresh failed: \(error.localizedDescription)")
-                }
-            }
+            let since = TrendingPeriod(rawValue: settingsStore.githubTrendingSince) ?? .daily
+            await refreshGitHub(since: since)
         case .aiIntel:
             if case .ready(let data, let age) = aiIntel { aiIntel = .stale(data: data, age: age) }
             switch await aiIntelPipeline.refresh(settings: settingsStore) {

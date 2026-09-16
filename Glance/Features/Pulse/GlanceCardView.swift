@@ -443,7 +443,7 @@ struct GlanceCardView: View {
         }
     }
 
-    private func githubContent(_ data: GitHubData) -> some View {
+    private func githubContent(_ data: GitHubTrendingData) -> some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             VStack(alignment: .leading, spacing: 10) {
                 ForEach(Array(data.repos.prefix(3))) { item in
@@ -453,28 +453,21 @@ struct GlanceCardView: View {
                         githubPreviewRow(item)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Open \(item.repo.fullName)")
+                    .accessibilityLabel("Open \(item.fullName)")
                 }
             }
             .padding(.horizontal, Theme.cardPadding)
 
-            Text("\(data.totalCount) repos this week")
+            Text("\(data.repos.count) repos trending \(TrendingPeriod(rawValue: data.since)?.periodLabel ?? "today")")
                 .font(Theme.Fonts.manrope(12))
                 .foregroundStyle(Theme.Colors.textMuted)
                 .padding(.horizontal, Theme.cardPadding)
-
-            if let remaining = data.rateLimitRemaining {
-                Text("GitHub API · \(remaining) requests remaining")
-                    .font(Theme.Fonts.manrope(10))
-                    .foregroundStyle(Theme.Colors.textMuted)
-                    .padding(.horizontal, Theme.cardPadding)
-            }
         }
     }
 
-    private func githubPreviewRow(_ item: GitHubRepoWithVelocity) -> some View {
+    private func githubPreviewRow(_ item: GitHubTrendingRepo) -> some View {
         HStack(alignment: .top, spacing: 10) {
-            CachedAsyncImage(url: URL(string: item.repo.ownerAvatar)) { image in
+            CachedAsyncImage(url: URL(string: "https://avatars.githubusercontent.com/\(item.owner)")) { image in
                 image.resizable().scaledToFit()
             } placeholder: {
                 Circle().fill(Theme.Colors.surface3)
@@ -483,12 +476,12 @@ struct GlanceCardView: View {
             .clipShape(.circle)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(item.repo.fullName)
+                Text(item.fullName)
                     .font(Theme.Fonts.manrope(13, weight: .semibold))
                     .foregroundStyle(Theme.Colors.textPrimary)
                     .lineLimit(1)
 
-                if let desc = item.repo.description, !desc.isEmpty {
+                if let desc = item.description, !desc.isEmpty {
                     Text(desc)
                         .font(Theme.Fonts.manrope(12))
                         .foregroundStyle(Theme.Colors.textSecondary)
@@ -496,12 +489,12 @@ struct GlanceCardView: View {
                 }
 
                 HStack(spacing: 8) {
-                    Text("★ \(TimeFormat.stars(item.repo.stars))")
+                    Text("★ \(TimeFormat.stars(item.starsTotal))")
                         .font(Theme.Fonts.manrope(12))
                         .foregroundStyle(Theme.Colors.textSecondary)
 
-                    if let velocity = item.velocity, velocity > 0 {
-                        Text("+\(velocity)")
+                    if let starsPeriod = item.starsPeriod, starsPeriod > 0 {
+                        Text("+\(starsPeriod)")
                             .font(Theme.Fonts.manrope(11, weight: .bold))
                             .foregroundStyle(card.accentColor)
                             .padding(.horizontal, 6)
@@ -509,7 +502,7 @@ struct GlanceCardView: View {
                             .background(card.accentColor.opacity(0.15), in: .capsule)
                     }
 
-                    if let lang = item.repo.language {
+                    if let lang = item.language {
                         HStack(spacing: 3) {
                             Circle().fill(Theme.languageColor(for: lang)).frame(width: 6, height: 6)
                             Text(lang)

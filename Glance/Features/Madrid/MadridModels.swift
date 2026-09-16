@@ -3,6 +3,7 @@ import Foundation
 struct MadridData: Codable, Sendable, Equatable {
     let fixture: Fixture?
     let lastMatch: LastMatch?
+    let matchTimeline: [MatchTimelineItem]
     let schedule: [ScheduleItem]
     let form: [String]
     let standing: StandingInfo?
@@ -86,4 +87,20 @@ struct ExaArticle: Codable, Sendable, Identifiable, Equatable {
     let image: String?
 
     var id: String { url }
+}
+
+struct MatchTimelineItem: Codable, Sendable, Equatable, Identifiable {
+    let id: String
+    let opponent: String
+    let opponentBadge: String?
+    let rmBadge: String?
+    let homeScore: Int?
+    let awayScore: Int?
+    let datetime: String
+    let competition: String
+    let venue: String
+    let isFinished: Bool
+    let result: String?
+    let round: String?
+    let isHome: Bool
 }

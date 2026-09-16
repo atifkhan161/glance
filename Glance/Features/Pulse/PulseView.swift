@@ -112,7 +112,7 @@ struct PulseView: View {
         .navigationDestination(for: PoGoEvent.self) { event in
             EventDetailView(event: event)
         }
-        .navigationDestination(for: GitHubRepoWithVelocity.self) { repo in
+        .navigationDestination(for: GitHubTrendingRepo.self) { repo in
             RepoDetailView(repository: repo)
         }
         .navigationDestination(for: AiIntelArticle.self) { article in
