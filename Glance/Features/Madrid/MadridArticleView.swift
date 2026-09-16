@@ -3,6 +3,20 @@ import SwiftUI
 struct MadridArticleView: View {
     let article: MMArticle
 
+    private var articleType: MadridArticleType {
+        MadridArticleType(title: article.title)
+    }
+
+    private var strippedContent: String {
+        HTMLStripper.stripMedia(from: article.content)
+    }
+
+    private var paragraphs: [String] {
+        strippedContent
+            .components(separatedBy: "\n\n")
+            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -40,19 +54,26 @@ struct MadridArticleView: View {
                 .padding(Theme.cardPadding)
                 .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
 
-                // Article body (stripped of media)
-                let stripped = HTMLStripper.stripMedia(from: article.content)
-                let paragraphs = stripped.components(separatedBy: "\n\n").filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-                VStack(alignment: .leading, spacing: 14) {
-                    ForEach(Array(paragraphs.enumerated()), id: \.offset) { _, paragraph in
-                        Text(paragraph)
-                            .font(Theme.Fonts.manrope(17, weight: .regular))
-                            .foregroundStyle(Theme.Colors.textPrimary)
-                            .lineSpacing(5)
-                            .fixedSize(horizontal: false, vertical: true)
+                // AI Intelligence Card
+                ArticleIntelligenceCard(
+                    content: strippedContent,
+                    type: .madrid(articleType),
+                    accentColor: Theme.Colors.cardAmber
+                )
+
+                // Raw Article Card
+                RawArticleCard(headerTitle: "FULL ARTICLE") {
+                    VStack(alignment: .leading, spacing: 14) {
+                        ForEach(Array(paragraphs.enumerated()), id: \.offset) { _, paragraph in
+                            Text(paragraph)
+                                .font(Theme.Fonts.manrope(17, weight: .regular))
+                                .foregroundStyle(Theme.Colors.textPrimary)
+                                .lineSpacing(5)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
+                    .textSelection(.enabled)
                 }
-                .textSelection(.enabled)
 
                 // Open on Managing Madrid button
                 if let url = URL(string: article.url) {
@@ -78,7 +99,6 @@ struct MadridArticleView: View {
         .navigationTitle("Managing Madrid")
         .navigationBarTitleDisplayMode(.inline)
     }
-
 }
 
 #Preview {
