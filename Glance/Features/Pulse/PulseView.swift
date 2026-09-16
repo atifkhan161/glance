@@ -127,6 +127,9 @@ struct PulseView: View {
             }()
             CustomRSSDetailView(feedName: ref.feedName, articles: articles)
         }
+        .navigationDestination(for: CustomRSSArticleRef.self) { ref in
+            CustomRSSArticleView(article: ref.article, feedName: ref.feedName)
+        }
         .task {
             await store.loadFromCache()
             // Refresh any cards whose cache has expired

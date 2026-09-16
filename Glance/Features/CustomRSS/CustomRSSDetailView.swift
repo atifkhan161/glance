@@ -8,11 +8,7 @@ struct CustomRSSDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 ForEach(articles) { article in
-                    Button {
-                        if let url = URL(string: article.url) {
-                            UIApplication.shared.open(url)
-                        }
-                    } label: {
+                    NavigationLink(value: CustomRSSArticleRef(article: article, feedName: feedName)) {
                         VStack(alignment: .leading, spacing: 6) {
                             Text(article.title)
                                 .font(Theme.Fonts.manrope(15, weight: .semibold))
@@ -46,7 +42,7 @@ struct CustomRSSDetailView: View {
                                 Text("Read more")
                                     .font(Theme.Fonts.manrope(12, weight: .medium))
                                     .foregroundStyle(Theme.Colors.accent)
-                                Image(systemName: "arrow.up.right")
+                                Image(systemName: "chevron.right")
                                     .font(Theme.Fonts.manrope(10))
                                     .foregroundStyle(Theme.Colors.accent)
                             }
