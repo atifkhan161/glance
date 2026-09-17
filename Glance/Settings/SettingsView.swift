@@ -15,6 +15,7 @@ struct SettingsView: View {
                 brandingHeader
                 appearanceSection
                 displaySection
+                intelligenceSection
                 apiKeysSection
                 cacheSection
 
@@ -132,6 +133,15 @@ struct SettingsView: View {
                 .padding(12)
                 .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
             }
+        }
+    }
+
+    // MARK: - Intelligence Section
+
+    private var intelligenceSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader("INTELLIGENCE")
+            FoundationModelsStatus()
         }
     }
 

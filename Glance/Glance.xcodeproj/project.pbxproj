@@ -13,6 +13,8 @@
 		AA11BB22CC33DD44EE55FF77 /* SportsDBClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22CC33DD44EE55FF660077 /* SportsDBClient.swift */; };
 		0BE13B387270F4520E4FC24E /* Glance.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FE51DADF51E57ECD0B40BE8F /* Glance.xcassets */; };
 		0DA71C7319CF6FEF3DDAF056 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DDB5287486413A1BC7A95B1 /* SettingsView.swift */; };
+		AA11BB22CC33DD44EE55FF78 /* FoundationModelsStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22CC33DD44EE55FF660079 /* FoundationModelsStatus.swift */; };
+		BB22CC33DD44EE55FF660080 /* ProviderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22CC33DD44EE55FF660078 /* ProviderView.swift */; };
 		1085346A0AD944BC6DFF3E16 /* MadridPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61CCC1E587C8D063447BE25C /* MadridPipelineTests.swift */; };
 		12E679C512844CB0A323646C /* PoGoHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44568B552442758133DEF919 /* PoGoHubView.swift */; };
 		17E43F2670D9DD76CBBE7E74 /* Manrope-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B7ABFE1A44714303D7726BAE /* Manrope-Regular.ttf */; };
@@ -29,7 +31,6 @@
 		43420A37FC0A235A69020B85 /* events.json in Resources */ = {isa = PBXBuildFile; fileRef = 59C98FF057511D43C9EDD34A /* events.json */; };
 		4480DF96B39661A2011114BD /* raids.json in Resources */ = {isa = PBXBuildFile; fileRef = 73FCEFE840005BDAE6E9BFDC /* raids.json */; };
 		45FB5BDD7E141CD05BDE5054 /* SourcesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D44183E20A98B8B4BB01FE8 /* SourcesView.swift */; };
-		AA11BB22CC33DD44EE55FF78 /* ProviderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22CC33DD44EE55FF660078 /* ProviderView.swift */; };
 		CC11DD22EE33FF44GG55FF79 /* GenericRSSClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD22EE33FF44GG55FF660079 /* GenericRSSClient.swift */; };
 		EE11FF22GG33HH44II55FF80 /* GenericRSSPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF22GG33HH44II55FF660080 /* GenericRSSPipeline.swift */; };
 		A1B2C3D400010001AB0001B2 /* AddRSSFeedSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D400010001AA0001B1 /* AddRSSFeedSheet.swift */; };
@@ -118,6 +119,7 @@
 		0062F9E61C96E727A4D59E9C /* HankenGrotesk-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = file; path = "HankenGrotesk-SemiBold.ttf"; sourceTree = "<group>"; };
 		032774EA8666009381F3C760 /* ExaClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ExaClient.swift; sourceTree = "<group>"; };
 		BB22CC33DD44EE55FF660077 /* SportsDBClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SportsDBClient.swift; sourceTree = "<group>"; };
+		BB22CC33DD44EE55FF660079 /* FoundationModelsStatus.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = FoundationModelsStatus.swift; sourceTree = "<group>"; };
 		06B010D9C40163AF882E9554 /* PulseStore.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = PulseStore.swift; sourceTree = "<group>"; };
 		0C95DCBE3D848BDB6C254116 /* Models.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		0DDB5287486413A1BC7A95B1 /* SettingsView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -427,6 +429,7 @@
 			children = (
 				7D29FA2484914D1C92BFEFEE /* SettingsStore.swift */,
 				0DDB5287486413A1BC7A95B1 /* SettingsView.swift */,
+				BB22CC33DD44EE55FF660079 /* FoundationModelsStatus.swift */,
 				BB22CC33DD44EE55FF660078 /* ProviderView.swift */,
 				A1B2C3D400010001AA0001B1 /* AddRSSFeedSheet.swift */,
 				3D44183E20A98B8B4BB01FE8 /* SourcesView.swift */,
@@ -739,8 +742,9 @@
 				D7E8F9A0B1C2D3E4F5A6B7C8 /* AiIntelHubView.swift in Sources */,
 				70C4D04F2D86D901D561200C /* SettingsStore.swift in Sources */,
 				0DA71C7319CF6FEF3DDAF056 /* SettingsView.swift in Sources */,
+				AA11BB22CC33DD44EE55FF78 /* FoundationModelsStatus.swift in Sources */,
 				45FB5BDD7E141CD05BDE5054 /* SourcesView.swift in Sources */,
-				AA11BB22CC33DD44EE55FF78 /* ProviderView.swift in Sources */,
+				BB22CC33DD44EE55FF660080 /* ProviderView.swift in Sources */,
 				CC11DD22EE33FF44GG55FF79 /* GenericRSSClient.swift in Sources */,
 				EE11FF22GG33HH44II55FF80 /* GenericRSSPipeline.swift in Sources */,
 				A1B2C3D400010001AB0001B2 /* AddRSSFeedSheet.swift in Sources */,

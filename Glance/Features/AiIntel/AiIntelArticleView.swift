@@ -85,7 +85,7 @@ struct AiIntelArticleView: View {
                         if !article.benchmarks.isEmpty {
                             SectionHeader("BENCHMARKS", color: Theme.Colors.cardCyan)
                             FlowLayout(spacing: 8) {
-                                ForEach(article.benchmarks, id: \.self) { bench in
+                                ForEach(Array(article.benchmarks.enumerated()), id: \.offset) { _, bench in
                                     Text(bench)
                                         .font(Theme.Fonts.manrope(12, weight: .medium))
                                         .foregroundStyle(Theme.Colors.cardCyan)

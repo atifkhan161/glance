@@ -8,6 +8,24 @@ import Foundation
             SystemLanguageModel.default.isAvailable
         }
 
+        func availabilityStatus() -> (available: Bool, reason: String) {
+            let status = SystemLanguageModel.default.availability
+            switch status {
+            case .available:
+                return (true, "Model ready")
+            case .unavailable(.appleIntelligenceNotEnabled):
+                return (false, "Enable Apple Intelligence in Settings > General > Apple Intelligence & Siri")
+            case .unavailable(.modelNotReady):
+                return (false, "Model downloading. Connect to WiFi and wait a few minutes")
+            case .unavailable(.deviceNotEligible):
+                return (false, "Device does not support Apple Intelligence")
+            case .unavailable(let other):
+                return (false, "Model unavailable: \(other)")
+            @unknown default:
+                return (false, "Unknown state")
+            }
+        }
+
         func processRealMadrid(snippets: String) async throws -> RealMadridEnrichment {
             let session = LanguageModelSession()
             let prompt = """
@@ -60,6 +78,17 @@ import Foundation
             let fullPrompt = "\(prompt)\n\nArticle:\n\(content)"
             return AsyncStream { continuation in
                 Task {
+                    #if DEBUG
+                    let status = SystemLanguageModel.default.availability
+                    switch status {
+                    case .available:
+                        print("[FM] Model available, starting stream")
+                    case .unavailable(let reason):
+                        print("[FM] Model unavailable: \(reason)")
+                    @unknown default:
+                        print("[FM] Model unknown state")
+                    }
+                    #endif
                     do {
                         var currentSections: [String: String] = [:]
                         for try await partial in session.streamResponse(to: fullPrompt, generating: ArticleIntelligenceResult.self) {
@@ -78,6 +107,9 @@ import Foundation
                         }
                         continuation.finish()
                     } catch {
+                        #if DEBUG
+                        print("[FM] streamSummary error: \(error.localizedDescription)")
+                        #endif
                         continuation.finish()
                     }
                 }
@@ -101,6 +133,10 @@ import Foundation
         }
 
         func isAvailableSync() -> Bool { false }
+
+        func availabilityStatus() -> (available: Bool, reason: String) {
+            (false, "Foundation Models not available on this device")
+        }
 
         func summarizeArticle(content: String, prompt: String) async throws -> ArticleIntelligenceResult {
             throw GlanceError.notConfigured("Foundation Models unavailable on this device")

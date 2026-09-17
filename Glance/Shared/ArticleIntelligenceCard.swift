@@ -9,24 +9,29 @@ struct ArticleIntelligenceCard: View {
     @State private var streamedVerdict = ""
     @State private var isGenerating = true
     @State private var isExpanded = true
+    @State private var unavailableReason: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            header
+        if unavailableReason != nil {
+            EmptyView()
+        } else {
+            VStack(alignment: .leading, spacing: 12) {
+                header
 
-            if isExpanded {
-                if isGenerating && streamedSections.isEmpty {
-                    skeletonView
-                } else {
-                    streamingContent
+                if isExpanded {
+                    if isGenerating && streamedSections.isEmpty {
+                        skeletonView
+                    } else {
+                        streamingContent
+                    }
                 }
             }
-        }
-        .padding(Theme.cardPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
-        .task(id: content) {
-            await generate()
+            .padding(Theme.cardPadding)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
+            .task(id: content) {
+                await generate()
+            }
         }
     }
 
@@ -117,6 +122,17 @@ struct ArticleIntelligenceCard: View {
 
     private func generate() async {
         let router = IntelligenceRouter()
+        let status = await router.checkArticleIntelligenceAvailability()
+
+        guard status.available else {
+            isGenerating = false
+            unavailableReason = status.reason
+            #if DEBUG
+            print("[Card] AI summary hidden: \(status.reason)")
+            #endif
+            return
+        }
+
         let stream = await router.streamArticleIntelligence(content: content, type: type)
 
         var sectionTexts: [String: String] = [:]

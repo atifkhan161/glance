@@ -72,6 +72,10 @@ actor IntelligenceRouter {
         return nil
     }
 
+    func checkArticleIntelligenceAvailability() async -> (available: Bool, reason: String) {
+        await foundationModels.availabilityStatus()
+    }
+
     func articleIntelligence(content: String, type: ArticleIntelligenceType) async -> ArticleIntelligenceResult? {
         guard await foundationModels.isAvailable() else { return nil }
         return try? await foundationModels.summarizeArticle(content: content, prompt: type.systemPrompt)
