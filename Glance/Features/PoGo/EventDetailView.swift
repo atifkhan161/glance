@@ -5,12 +5,6 @@ struct EventDetailView: View {
     @State private var eventDescription = ""
     @State private var isLoadingDescription = false
 
-    private var intelligenceContent: String {
-        var parts = [event.name, event.eventType]
-        if let heading = event.heading { parts.append(heading) }
-        return parts.joined(separator: "\n")
-    }
-
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -135,24 +129,6 @@ struct EventDetailView: View {
                     }
                     .padding(Theme.cardPadding)
                     .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
-                }
-
-                // AI Intelligence Card
-                ArticleIntelligenceCard(
-                    content: intelligenceContent,
-                    type: .poGoEvent,
-                    accentColor: Theme.Colors.cardRose
-                )
-
-                // Raw content card
-                if let heading = event.heading {
-                    RawArticleCard(headerTitle: "FULL DETAILS") {
-                        Text(heading)
-                            .font(Theme.Fonts.manrope(17, weight: .regular))
-                            .foregroundStyle(Theme.Colors.textPrimary)
-                            .lineSpacing(5)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
                 }
 
                 // CTA
