@@ -174,6 +174,24 @@ struct PoGoEvent: Codable, Sendable, Identifiable, Equatable, Hashable {
         }
     }
 
+    enum CodingKeys: String, CodingKey {
+        case eventID, name, eventType, heading, link, image, start, end, countdown, description
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        eventID = try container.decode(String.self, forKey: .eventID)
+        name = try container.decode(String.self, forKey: .name)
+        eventType = try container.decode(String.self, forKey: .eventType)
+        heading = try container.decodeIfPresent(String.self, forKey: .heading)
+        link = try container.decodeIfPresent(String.self, forKey: .link)
+        image = try container.decodeIfPresent(String.self, forKey: .image)
+        start = try container.decodeIfPresent(String.self, forKey: .start)
+        end = try container.decodeIfPresent(String.self, forKey: .end)
+        countdown = try container.decodeIfPresent(String.self, forKey: .countdown)
+        description = try container.decodeIfPresent(String.self, forKey: .description) ?? ""
+    }
+
     init(
         eventID: String,
         name: String,
