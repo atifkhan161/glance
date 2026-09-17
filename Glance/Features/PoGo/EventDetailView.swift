@@ -61,12 +61,26 @@ struct EventDetailView: View {
 
                 // Meta card
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(event.eventType)
-                        .font(Theme.Fonts.manrope(11, weight: .bold))
-                        .foregroundStyle(Theme.Colors.cardRose)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Theme.Colors.cardRose.opacity(0.15), in: .capsule)
+                    HStack(spacing: 6) {
+                        Text(event.eventTypeLabel)
+                            .font(Theme.Fonts.manrope(11, weight: .bold))
+                            .foregroundStyle(Theme.Colors.cardRose)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Theme.Colors.cardRose.opacity(0.15), in: .capsule)
+
+                        if let start = event.start, let end = event.end {
+                            let countdown = TimeFormat.smartCountdown(start: start, end: end)
+                            if !countdown.isEmpty {
+                                Text(countdown)
+                                    .font(Theme.Fonts.manrope(11, weight: .medium))
+                                    .foregroundStyle(Theme.Colors.success)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 3)
+                                    .background(Theme.Colors.success.opacity(0.15), in: .capsule)
+                            }
+                        }
+                    }
 
                     if let start = event.start, let end = event.end {
                         HStack(spacing: 4) {
@@ -75,6 +89,26 @@ struct EventDetailView: View {
                         }
                         .font(Theme.Fonts.manrope(14, weight: .regular))
                         .foregroundStyle(Theme.Colors.textMuted)
+                    }
+
+                    if event.status == .ongoing, let start = event.start, let end = event.end {
+                        let progress = TimeFormat.eventProgress(start: start, end: end)
+                        VStack(alignment: .leading, spacing: 4) {
+                            GeometryReader { geo in
+                                ZStack(alignment: .leading) {
+                                    RoundedRectangle(cornerRadius: 2)
+                                        .fill(Theme.Colors.textMuted.opacity(0.2))
+                                        .frame(height: 4)
+                                    RoundedRectangle(cornerRadius: 2)
+                                        .fill(Theme.Colors.success)
+                                        .frame(width: geo.size.width * progress, height: 4)
+                                }
+                            }
+                            .frame(height: 4)
+                            Text("\(Int(progress * 100))% elapsed")
+                                .font(Theme.Fonts.manrope(10))
+                                .foregroundStyle(Theme.Colors.textMuted)
+                        }
                     }
                 }
                 .padding(Theme.cardPadding)

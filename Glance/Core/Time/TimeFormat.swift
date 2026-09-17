@@ -122,6 +122,44 @@ enum TimeFormat {
         return nil
     }
 
+    static func startsIn(_ startDate: Date) -> String {
+        let interval = startDate.timeIntervalSinceNow
+        if interval <= 0 { return "" }
+        let days = Int(interval) / 86400
+        let hours = (Int(interval) % 86400) / 3600
+        let minutes = (Int(interval) % 3600) / 60
+        if days > 0 {
+            return hours > 0 ? "Starts in \(days)d \(hours)h" : "Starts in \(days)d"
+        }
+        if hours > 0 {
+            return minutes > 0 ? "Starts in \(hours)h \(minutes)m" : "Starts in \(hours)h"
+        }
+        return "Starts in \(max(1, minutes))m"
+    }
+
+    static func eventProgress(start: String?, end: String?) -> Double {
+        guard let start = start, let end = end,
+              let startDate = parseISODate(start),
+              let endDate = parseISODate(end) else { return 0 }
+        let now = Date.now
+        guard now >= startDate else { return 0 }
+        guard endDate > startDate else { return 1 }
+        let total = endDate.timeIntervalSince(startDate)
+        let elapsed = now.timeIntervalSince(startDate)
+        return min(max(elapsed / total, 0), 1)
+    }
+
+    static func smartCountdown(start: String?, end: String?) -> String {
+        let now = Date.now
+        if let start = start, let startDate = parseISODate(start), startDate > now {
+            return startsIn(startDate)
+        }
+        if let end = end, let endDate = parseISODate(end) {
+            return endsIn(endDate)
+        }
+        return ""
+    }
+
     static func localTimeRange(start: String?, end: String?) -> String {
         guard let start = start, let end = end,
               let startDate = parseISODate(start),

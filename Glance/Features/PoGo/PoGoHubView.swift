@@ -4,6 +4,7 @@ struct PoGoHubView: View {
     let store: PulseStore
     @State private var selectedTier: String = "5★"
     @State private var completedRaids: Set<String> = []
+    @State private var selectedFilter: EventFilter = .all
 
     private let tiers = ["All", "1★", "3★", "5★", "Mega", "Shadow"]
 
@@ -185,6 +186,29 @@ struct PoGoHubView: View {
         }
     }
 
+    private func eventFilterChips() -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(EventFilter.allFilters) { filter in
+                    Button {
+                        withAnimation { selectedFilter = filter }
+                    } label: {
+                        Text(filter.label)
+                            .font(Theme.Fonts.manrope(13, weight: selectedFilter == filter ? .bold : .medium))
+                            .foregroundStyle(selectedFilter == filter ? Theme.Colors.canvas : Theme.Colors.textSecondary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(
+                                selectedFilter == filter ? Theme.Colors.cardRose : Theme.Colors.surface2,
+                                in: .capsule
+                            )
+                    }
+                }
+            }
+            .padding(.horizontal, Theme.cardPadding)
+        }
+    }
+
     private func filteredRaids(_ raids: [PoGoRaid]) -> [PoGoRaid] {
         let available = raids.filter { !completedRaids.contains($0.id) }
         switch selectedTier {
@@ -330,12 +354,30 @@ struct PoGoHubView: View {
     // MARK: - Events Timeline
 
     private func eventsTimeline(_ events: [PoGoEvent]) -> some View {
-        HubSectionCard(title: "UPCOMING EVENTS", titleColor: Theme.Colors.cardRose) {
-            VStack(spacing: 10) {
-                ForEach(Array(events.enumerated()), id: \.element.id) { index, event in
-                    timelineRow(event, isLast: index == events.count - 1)
+        let filtered = PoGoPipeline.filterByType(events, filter: selectedFilter)
+        let sections = PoGoPipeline.groupBySection(filtered)
+
+        return VStack(alignment: .leading, spacing: 20) {
+            eventFilterChips()
+
+            ForEach(sections, id: \.0) { section, sectionEvents in
+                HubSectionCard(title: section.rawValue.uppercased(), titleColor: sectionColor(section)) {
+                    VStack(spacing: 10) {
+                        ForEach(Array(sectionEvents.enumerated()), id: \.element.id) { index, event in
+                            timelineRow(event, isLast: index == sectionEvents.count - 1)
+                        }
+                    }
                 }
             }
+        }
+    }
+
+    private func sectionColor(_ section: PoGoEvent.EventSection) -> Color {
+        switch section {
+        case .live: return Theme.Colors.success
+        case .endsToday: return Theme.Colors.error
+        case .thisWeek: return Theme.Colors.cardRose
+        case .upcoming: return Theme.Colors.textMuted
         }
     }
 
@@ -344,7 +386,6 @@ struct PoGoHubView: View {
         let dotColor = isOngoing ? Theme.Colors.success : Theme.Colors.cardRose
 
         return HStack(alignment: .top, spacing: 14) {
-            // Timeline dot + line
             VStack(spacing: 0) {
                 Circle()
                     .fill(dotColor)
@@ -356,77 +397,117 @@ struct PoGoHubView: View {
                     Spacer(minLength: 0)
                 }
             }
-            .frame(minHeight: 64)
+            .frame(minHeight: 80)
 
-            // Event content card
             NavigationLink(value: event) {
-                HStack(spacing: 12) {
-                    // Thumbnail image
-                    if let imageURL = event.image, let url = URL(string: imageURL) {
-                        CachedAsyncImage(url: url) { image in
-                            image.resizable().scaledToFill()
-                        } placeholder: {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 12) {
+                        if let imageURL = event.image, let url = URL(string: imageURL) {
+                            CachedAsyncImage(url: url) { image in
+                                image.resizable().scaledToFill()
+                            } placeholder: {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Theme.Colors.surface2)
+                            }
+                            .frame(width: 56, height: 56)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        } else {
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(Theme.Colors.surface2)
+                                .frame(width: 56, height: 56)
+                                .overlay(
+                                    Image(systemName: "calendar")
+                                        .font(.body)
+                                        .foregroundStyle(Theme.Colors.textMuted)
+                                )
                         }
-                        .frame(width: 56, height: 56)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                    } else {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Theme.Colors.surface2)
-                            .frame(width: 56, height: 56)
-                            .overlay(
-                                Image(systemName: "calendar")
-                                    .font(.body)
-                                    .foregroundStyle(Theme.Colors.textMuted)
-                            )
-                    }
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 6) {
-                            Text(event.name)
-                                .font(Theme.Fonts.manrope(14, weight: .semibold))
-                                .foregroundStyle(Theme.Colors.textPrimary)
-                                .lineLimit(1)
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack(spacing: 6) {
+                                Text(event.name)
+                                    .font(Theme.Fonts.manrope(14, weight: .semibold))
+                                    .foregroundStyle(Theme.Colors.textPrimary)
+                                    .lineLimit(1)
 
-                            if isOngoing {
-                                Text("LIVE")
-                                    .font(Theme.Fonts.manrope(9, weight: .bold))
-                                    .foregroundStyle(Theme.Colors.success)
-                                    .padding(.horizontal, 5)
+                                if isOngoing {
+                                    Text("LIVE")
+                                        .font(Theme.Fonts.manrope(9, weight: .bold))
+                                        .foregroundStyle(Theme.Colors.success)
+                                        .padding(.horizontal, 5)
+                                        .padding(.vertical, 2)
+                                        .background(Theme.Colors.success.opacity(0.15), in: .capsule)
+                                }
+                            }
+
+                            HStack(spacing: 6) {
+                                Text(event.eventTypeLabel)
+                                    .font(Theme.Fonts.manrope(10, weight: .bold))
+                                    .foregroundStyle(eventTypeColor(event.eventTypeColorHex))
+                                    .padding(.horizontal, 6)
                                     .padding(.vertical, 2)
-                                    .background(Theme.Colors.success.opacity(0.15), in: .capsule)
+                                    .background(eventTypeColor(event.eventTypeColorHex).opacity(0.15), in: .capsule)
+
+                                if let start = event.start, let end = event.end {
+                                    Text(TimeFormat.localTimeRange(start: start, end: end))
+                                        .font(Theme.Fonts.manrope(11))
+                                        .foregroundStyle(Theme.Colors.textMuted)
+                                        .lineLimit(1)
+                                }
                             }
                         }
 
+                        Spacer()
+
                         if let start = event.start, let end = event.end {
-                            Text(TimeFormat.localTimeRange(start: start, end: end))
-                                .font(Theme.Fonts.manrope(12))
-                                .foregroundStyle(Theme.Colors.textMuted)
-                                .lineLimit(1)
+                            let countdown = TimeFormat.smartCountdown(start: start, end: end)
+                            if !countdown.isEmpty {
+                                Text(countdown)
+                                    .font(Theme.Fonts.manrope(11, weight: .medium))
+                                    .foregroundStyle(isOngoing ? Theme.Colors.success : Theme.Colors.cardRose)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(
+                                        (isOngoing ? Theme.Colors.success : Theme.Colors.cardRose).opacity(0.15),
+                                        in: .capsule
+                                    )
+                            }
                         }
                     }
 
-                    Spacer()
-
-                    if let end = event.end, let endDate = TimeFormat.parseISODate(end) {
-                        let endsIn = TimeFormat.endsIn(endDate)
-                        if !endsIn.isEmpty {
-                            Text(endsIn)
-                                .font(Theme.Fonts.manrope(11, weight: .medium))
-                                .foregroundStyle(isOngoing ? Theme.Colors.success : Theme.Colors.cardRose)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(
-                                    (isOngoing ? Theme.Colors.success : Theme.Colors.cardRose).opacity(0.15),
-                                    in: .capsule
-                                )
+                    if isOngoing, let start = event.start, let end = event.end {
+                        let progress = TimeFormat.eventProgress(start: start, end: end)
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(Theme.Colors.textMuted.opacity(0.2))
+                                    .frame(height: 4)
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(Theme.Colors.success)
+                                    .frame(width: geo.size.width * progress, height: 4)
+                            }
                         }
+                        .frame(height: 4)
                     }
                 }
                 .padding(Theme.cardPadding)
                 .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
             }
+        }
+    }
+
+    private func eventTypeColor(_ hex: String) -> Color {
+        switch hex {
+        case "purple": return Color(red: 0.69, green: 0.32, blue: 0.87)
+        case "yellow": return Color(red: 0.98, green: 0.82, blue: 0.17)
+        case "red": return Color(red: 0.96, green: 0.26, blue: 0.21)
+        case "orange": return Color(red: 0.98, green: 0.58, blue: 0.20)
+        case "blue": return Color(red: 0.25, green: 0.47, blue: 0.98)
+        case "teal": return Color(red: 0.00, green: 0.59, blue: 0.53)
+        case "green": return Color(red: 0.30, green: 0.69, blue: 0.31)
+        case "cyan": return Color(red: 0.00, green: 0.74, blue: 0.83)
+        case "indigo": return Color(red: 0.24, green: 0.32, blue: 0.71)
+        case "amber": return Color(red: 1.00, green: 0.76, blue: 0.03)
+        default: return Theme.Colors.textMuted
         }
     }
 

@@ -73,6 +73,27 @@ struct PoGoPipeline: Sendable {
         }
     }
 
+    static func groupBySection(_ events: [PoGoEvent], now: Date = Date.now) -> [(PoGoEvent.EventSection, [PoGoEvent])] {
+        var grouped: [PoGoEvent.EventSection: [PoGoEvent]] = [:]
+        for event in events {
+            grouped[event.section, default: []].append(event)
+        }
+        return PoGoEvent.EventSection.allCases.compactMap { section in
+            guard let events = grouped[section], !events.isEmpty else { return nil }
+            let sorted = events.sorted { a, b in
+                let aStart = Self.parseEventStart(a) ?? .distantFuture
+                let bStart = Self.parseEventStart(b) ?? .distantFuture
+                return aStart < bStart
+            }
+            return (section, sorted)
+        }
+    }
+
+    static func filterByType(_ events: [PoGoEvent], filter: EventFilter) -> [PoGoEvent] {
+        guard !filter.eventTypes.isEmpty else { return events }
+        return events.filter { filter.eventTypes.contains($0.eventType) }
+    }
+
     static func isOngoing(_ event: PoGoEvent, now: Date = Date.now) -> Bool {
         guard let start = event.start, let end = event.end,
               let startDate = TimeFormat.parseISODate(start),
