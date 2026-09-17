@@ -5,7 +5,7 @@ struct AiIntelArticleView: View {
     @State private var showFullCoverage = false
 
     private var intelligenceContent: String {
-        var parts: [article.headline]
+        var parts = [article.headline]
         parts.append(contentsOf: article.bullets)
         parts.append(contentsOf: article.highlights)
         return parts.joined(separator: "\n")

@@ -4,7 +4,7 @@ struct EventDetailView: View {
     let event: PoGoEvent
 
     private var intelligenceContent: String {
-        var parts: [event.name, event.eventType]
+        var parts = [event.name, event.eventType]
         if let heading = event.heading { parts.append(heading) }
         return parts.joined(separator: "\n")
     }

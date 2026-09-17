@@ -4,7 +4,7 @@ struct RaidDetailView: View {
     let raid: PoGoRaid
 
     private var intelligenceContent: String {
-        var parts: [raid.name, raid.tier]
+        var parts = [raid.name, raid.tier]
         if let cp = raid.combatPower, let normal = cp.normal {
             parts.append("Normal CP: \(normal.min ?? 0) - \(normal.max ?? 0)")
         }

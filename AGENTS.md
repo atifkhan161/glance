@@ -46,3 +46,8 @@ The `IntelligenceRouter` actor routes through multiple backends:
 - Branch naming: `feat/`, `fix/`, `chore/`
 - Commits: imperative mood, lowercase, no period (`feat: add match timeline`)
 - No secrets, API keys, or `.env` files in commits
+
+## Build & Run
+
+- **Simulator**: iPhone 17 Pro Max
+- **Build command**: `cd Glance && xcodebuild -project Glance.xcodeproj -scheme Glance -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max' build`

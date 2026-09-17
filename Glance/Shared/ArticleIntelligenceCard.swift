@@ -117,7 +117,7 @@ struct ArticleIntelligenceCard: View {
 
     private func generate() async {
         let router = IntelligenceRouter()
-        let stream = router.streamArticleIntelligence(content: content, type: type)
+        let stream = await router.streamArticleIntelligence(content: content, type: type)
 
         var sectionTexts: [String: String] = [:]
         var sectionOrder: [String] = []

@@ -63,10 +63,9 @@ import Foundation
                     do {
                         var currentSections: [String: String] = [:]
                         for try await partial in session.streamResponse(to: fullPrompt, generating: ArticleIntelligenceResult.self) {
-                            guard let sections = partial.content?.sections else { continue }
+                            guard let sections = partial.content.sections else { continue }
                             for section in sections {
-                                let key = section.title
-                                let newContent = section.content
+                                guard let key = section.title, let newContent = section.content else { continue }
                                 if let existing = currentSections[key], newContent.count > existing.count {
                                     let delta = String(newContent.dropFirst(existing.count))
                                     continuation.yield(delta)
