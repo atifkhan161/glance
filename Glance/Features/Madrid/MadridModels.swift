@@ -5,7 +5,7 @@ struct MadridData: Codable, Sendable, Equatable {
     let lastMatch: LastMatch?
     let matchTimeline: [MatchTimelineItem]
     let schedule: [ScheduleItem]
-    let form: [String]
+    let form: [FormEntry]
     let standing: StandingInfo?
     let standingText: String
     let intel: String
@@ -77,6 +77,12 @@ struct StandingInfo: Codable, Sendable, Equatable {
     let goalsAgainst: Int
     let goalDifference: Int
     let badge: String?
+}
+
+struct FormEntry: Codable, Sendable, Equatable, Hashable {
+    let result: String
+    let score: String
+    let opponent: String
 }
 
 struct ExaArticle: Codable, Sendable, Identifiable, Equatable {

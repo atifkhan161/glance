@@ -152,35 +152,33 @@ struct MadridHubView: View {
     private func formSection(_ data: MadridData) -> some View {
         HubSectionCard(title: "FORM", titleColor: Theme.Colors.cardAmber) {
             HStack(spacing: 8) {
-                ForEach(data.form, id: \.self) { result in
-                    let trimmed = result.trimmingCharacters(in: .whitespaces)
-                    let letter = String(trimmed.prefix(1)).uppercased()
-                    let score = trimmed.count > 1 ? String(trimmed.dropFirst()).trimmingCharacters(in: .whitespaces) : ""
-
+                ForEach(data.form, id: \.self) { entry in
                     VStack(spacing: 4) {
-                        Text(letter)
+                        Text(entry.result)
                             .font(Theme.Fonts.manrope(16, weight: .bold))
-                            .foregroundStyle(formColor(letter))
-                        if !score.isEmpty {
-                            Text(score)
-                                .font(Theme.Fonts.manrope(9))
-                                .foregroundStyle(Theme.Colors.textMuted)
-                        }
+                            .foregroundStyle(formColor(entry.result))
+                        Text(entry.score)
+                            .font(Theme.Fonts.manrope(9))
+                            .foregroundStyle(Theme.Colors.textMuted)
+                        Text(entry.opponent)
+                            .font(Theme.Fonts.manrope(8))
+                            .foregroundStyle(Theme.Colors.textMuted)
+                            .lineLimit(1)
                     }
-                    .frame(width: 40, height: 48)
-                    .background(formColor(letter).opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
-                    .accessibilityLabel(formAccessibilityLabel(letter, score: score))
+                    .frame(width: 44, height: 52)
+                    .background(formColor(entry.result).opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+                    .accessibilityLabel(formAccessibilityLabel(entry.result, score: entry.score, opponent: entry.opponent))
                 }
             }
         }
     }
 
-    private func formAccessibilityLabel(_ letter: String, score: String) -> String {
+    private func formAccessibilityLabel(_ letter: String, score: String, opponent: String) -> String {
         switch letter {
-        case "W": "Win\(score.isEmpty ? "" : " \(score)")"
-        case "D": "Draw\(score.isEmpty ? "" : " \(score)")"
-        case "L": "Loss\(score.isEmpty ? "" : " \(score)")"
-        default: "\(letter)\(score.isEmpty ? "" : " \(score)")"
+        case "W": "Win\(score.isEmpty ? "" : " \(score)") against \(opponent)"
+        case "D": "Draw\(score.isEmpty ? "" : " \(score)") against \(opponent)"
+        case "L": "Loss\(score.isEmpty ? "" : " \(score)") against \(opponent)"
+        default: "\(letter)\(score.isEmpty ? "" : " \(score)") against \(opponent)"
         }
     }
 
@@ -399,9 +397,12 @@ struct MadridHubView: View {
     }
 
     private func formColor(_ result: String) -> Color {
-        if result.hasPrefix("W") { return Theme.Colors.success }
-        if result.hasPrefix("D") { return Theme.Colors.warning }
-        return Theme.Colors.error
+        switch result {
+        case "W": return Theme.Colors.success
+        case "D": return Theme.Colors.warning
+        case "L": return Theme.Colors.error
+        default: return Theme.Colors.textMuted
+        }
     }
 }
 

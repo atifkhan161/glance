@@ -245,23 +245,20 @@ struct GlanceCardView: View {
                         .foregroundStyle(Theme.Colors.textMuted)
                         .tracking(1.2)
                     HStack(spacing: 6) {
-                        ForEach(data.form, id: \.self) { result in
-                            let letter = String(result.prefix(1)).uppercased()
-                            let score = result.count > 1 ? String(result.dropFirst()).trimmingCharacters(in: .whitespaces) : ""
-
+                        ForEach(data.form, id: \.self) { entry in
                             VStack(spacing: 2) {
-                                Text(letter)
+                                Text(entry.result)
                                     .font(Theme.Fonts.manrope(12, weight: .semibold))
-                                    .foregroundStyle(formColor(letter))
-                                if !score.isEmpty {
-                                    Text(score)
+                                    .foregroundStyle(formColor(entry.result))
+                                if !entry.score.isEmpty {
+                                    Text(entry.score)
                                         .font(Theme.Fonts.manrope(9))
                                         .foregroundStyle(Theme.Colors.textMuted)
                                 }
                             }
                             .padding(.horizontal, 6)
                             .padding(.vertical, 3)
-                            .background(formColor(letter).opacity(0.15), in: .capsule)
+                            .background(formColor(entry.result).opacity(0.15), in: .capsule)
                         }
                     }
                 }

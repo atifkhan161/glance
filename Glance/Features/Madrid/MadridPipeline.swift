@@ -51,7 +51,7 @@ struct MadridPipeline: Sendable {
             var recentEvents: [SDBEvent] = []
 
             // Fetch a range of rounds to handle irregular scheduling
-            let roundsToFetch = Array((estimatedRound - 3)...(estimatedRound + 2)).filter { $0 >= 1 }
+            let roundsToFetch = Array((estimatedRound - 5)...(estimatedRound + 3)).filter { $0 >= 1 }
             for round in roundsToFetch {
                 if let roundEvents = try? await sportsDB.eventsRound(
                     leagueID: leagueID,
@@ -88,7 +88,7 @@ struct MadridPipeline: Sendable {
 
             let lastMatch = matchTimeline.first(where: { $0.isFinished }).flatMap { Self.convertToLastMatch($0) }
             let nextFixture = matchTimeline.first(where: { !$0.isFinished }).flatMap { Self.convertToFixture($0) }
-            let form = Self.parseForm(from: recentEvents.filter { $0.isFinished })
+            let form = Self.parseForm(from: madridRecentEvents)
             let standing = Self.parseStanding(from: table, teamID: teamID)
 
             // 3. Fetch Exa for related articles
@@ -163,14 +163,21 @@ struct MadridPipeline: Sendable {
         let (enrichment, source) = await IntelligenceRouter().enrichMadrid(snippets: snippets)
 
         let formDots = parsed.formDots
-        let formStrings = formDots.map { "\($0.result) \($0.score)" }
+        let formEntries = formDots.map { FormEntry(result: $0.result, score: $0.score, opponent: String($0.opponent.prefix(3)).uppercased()) }
+
+        let enrichmentForm: [FormEntry] = enrichment?.form.map { str in
+            let parts = str.split(separator: " ")
+            let result = String(parts.first ?? "W")
+            let score = parts.count > 1 ? String(parts[1]) : ""
+            return FormEntry(result: result, score: score, opponent: "")
+        } ?? []
 
         let data = MadridData(
             fixture: parsed.fixture,
             lastMatch: nil,
             matchTimeline: [],
             schedule: parsed.schedule,
-            form: enrichment?.form ?? formStrings,
+            form: enrichmentForm.isEmpty ? formEntries : enrichmentForm,
             standing: nil,
             standingText: enrichment?.standing ?? "",
             intel: enrichment?.intel ?? generateFallbackIntel(for: parsed.fixture),
@@ -272,22 +279,22 @@ struct MadridPipeline: Sendable {
     ) -> [MatchTimelineItem] {
         var items: [MatchTimelineItem] = []
 
-        // Last 2 finished matches (most recent first, sorted by date)
-        let finished = recentEvents
-            .filter { $0.isFinished }
-            .sorted { ($0.strTimestamp ?? $0.dateEvent ?? "") > ($1.strTimestamp ?? $1.dateEvent ?? "") }
-            .prefix(2)
-        for event in finished {
-            guard let item = timelineItem(from: event, teamID: teamID) else { continue }
-            items.append(item)
-        }
-
-        // Next 3 upcoming matches (sorted by date)
+        // Next 3 upcoming matches FIRST (earliest first, highlighted position)
         let upcoming = nextEvents
             .filter { $0.isNotStarted || $0.strStatus == "NS" }
             .sorted { ($0.strTimestamp ?? $0.dateEvent ?? "") < ($1.strTimestamp ?? $1.dateEvent ?? "") }
             .prefix(3)
         for event in upcoming {
+            guard let item = timelineItem(from: event, teamID: teamID) else { continue }
+            items.append(item)
+        }
+
+        // Last 4 finished matches SECOND (most recent first, sorted by date)
+        let finished = recentEvents
+            .filter { $0.isFinished }
+            .sorted { ($0.strTimestamp ?? $0.dateEvent ?? "") > ($1.strTimestamp ?? $1.dateEvent ?? "") }
+            .prefix(4)
+        for event in finished {
             guard let item = timelineItem(from: event, teamID: teamID) else { continue }
             items.append(item)
         }
@@ -372,7 +379,7 @@ struct MadridPipeline: Sendable {
         )
     }
 
-    static func parseForm(from events: [SDBEvent]) -> [String] {
+    static func parseForm(from events: [SDBEvent]) -> [FormEntry] {
         // Form from last 5 finished matches (most recent first)
         let finished = events.filter { $0.isFinished }.prefix(5)
 
@@ -393,7 +400,14 @@ struct MadridPipeline: Sendable {
                 result = "L"
             }
 
-            return "\(result) \(rmGoals)-\(oppGoals)"
+            let opponent = isHome ? match.strAwayTeam : match.strHomeTeam
+            let opponentAbbrev = String(opponent.prefix(3)).uppercased()
+
+            return FormEntry(
+                result: result,
+                score: "\(rmGoals)-\(oppGoals)",
+                opponent: opponentAbbrev
+            )
         }
     }
 
