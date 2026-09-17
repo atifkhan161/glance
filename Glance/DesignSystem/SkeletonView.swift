@@ -158,12 +158,57 @@ struct AIIntelSkeletonView: View {
     }
 }
 
+// MARK: - Custom RSS Skeleton
+
+struct CustomRSSSkeletonView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(Theme.Colors.surface2)
+                    .frame(width: 8, height: 8)
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Theme.Colors.surface2)
+                    .frame(width: 50, height: 14)
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Theme.Colors.surface2)
+                    .frame(width: 80, height: 12)
+                Spacer()
+            }
+            .padding(.horizontal, Theme.cardPadding)
+            .padding(.top, Theme.cardPadding)
+            .padding(.bottom, 10)
+
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(0..<3, id: \.self) { _ in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Rectangle()
+                            .fill(Theme.Colors.surface2)
+                            .frame(height: 12)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                        Rectangle()
+                            .fill(Theme.Colors.surface2)
+                            .frame(height: 10)
+                            .frame(maxWidth: 160)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                    }
+                }
+            }
+            .padding(.horizontal, Theme.cardPadding)
+            .padding(.bottom, 8)
+        }
+        .shimmer()
+        .accessibilityHidden(true)
+    }
+}
+
 #Preview {
     VStack(spacing: 24) {
         MadridSkeletonView()
         PoGoSkeletonView()
         GitHubSkeletonView()
         AIIntelSkeletonView()
+        CustomRSSSkeletonView()
     }
     .padding()
     .background(Theme.canvas)

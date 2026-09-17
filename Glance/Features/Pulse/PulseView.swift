@@ -39,8 +39,17 @@ struct PulseView: View {
 
                 // Custom RSS Feed Cards
                 ForEach(Array(store.customRSSCards.keys.sorted()), id: \.self) { feedID in
-                    if case .ready = store.customRSSCards[feedID] {
-                        let feedName = settingsStore.customRSSFeeds.first(where: { $0.id.uuidString == feedID })?.name ?? "Custom Feed"
+                    let feedName = settingsStore.customRSSFeeds.first(where: { $0.id.uuidString == feedID })?.name ?? "Custom Feed"
+                    switch store.customRSSCards[feedID] {
+                    case .loading:
+                        CustomRSSSkeletonView()
+                            .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Theme.Radius.card)
+                                    .stroke(Theme.Colors.borderSubtle.opacity(0.6), lineWidth: 1)
+                            )
+                            .padding(.horizontal, Theme.cardPadding)
+                    case .ready:
                         Button {
                             let ref = CustomRSSFeedRef(feedID: feedID, feedName: feedName)
                             appState.pulsePath.append(ref)
@@ -55,6 +64,8 @@ struct PulseView: View {
                         )
                         .shadow(color: Color(uiColor: UIColor { traits in traits.userInterfaceStyle == .dark ? UIColor.black.withAlphaComponent(0.35) : UIColor.black.withAlphaComponent(0.06) }), radius: 8, y: 2)
                         .padding(.horizontal, Theme.cardPadding)
+                    default:
+                        EmptyView()
                     }
                 }
             }
@@ -148,6 +159,8 @@ struct PulseView: View {
                     await store.refreshCard(card)
                 }
             }
+            await Task.yield()
+            await store.refreshCustomRSS()
         }
     }
 

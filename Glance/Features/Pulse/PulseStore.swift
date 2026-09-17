@@ -103,6 +103,12 @@ final class PulseStore {
         if let p { pogo = .ready(data: p.data, age: TimeFormat.age(from: Date(timeIntervalSince1970: TimeInterval(p.timestampMs) / 1000))) }
         if let g { github = .ready(data: g.data, age: TimeFormat.age(from: Date(timeIntervalSince1970: TimeInterval(g.timestampMs) / 1000))) }
         if let a { aiIntel = .ready(data: a.data, age: TimeFormat.age(from: Date(timeIntervalSince1970: TimeInterval(a.timestampMs) / 1000))) }
+
+        for feed in settingsStore.customRSSFeeds where feed.isEnabled {
+            if customRSSCards[feed.id.uuidString] == nil {
+                customRSSCards[feed.id.uuidString] = .loading
+            }
+        }
     }
 
     func refreshAll() async {
@@ -120,6 +126,7 @@ final class PulseStore {
                 customRSSCards[feed.id.uuidString] = nil
                 continue
             }
+            customRSSCards[feed.id.uuidString] = .loading
             let articles = await genericRSSPipeline.refresh(feed: feed)
             if articles.isEmpty {
                 customRSSCards[feed.id.uuidString] = .error(message: "No articles found")

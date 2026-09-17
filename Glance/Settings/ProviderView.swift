@@ -127,12 +127,17 @@ struct ProviderView: View {
                     ForEach(Array(settingsStore.customRSSFeeds.enumerated()), id: \.element.id) { index, feed in
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
+                                Image(systemName: "rss")
+                                    .foregroundStyle(Theme.Colors.cardAmber)
+
                                 TextField("Feed Name", text: Binding(
                                     get: { settingsStore.customRSSFeeds[index].name },
                                     set: { settingsStore.customRSSFeeds[index].name = $0 }
                                 ))
                                 .font(Theme.Fonts.manrope(14, weight: .medium))
                                 .foregroundStyle(Theme.Colors.textPrimary)
+
+                                Spacer()
 
                                 Button {
                                     removeFeed(at: index)
@@ -142,6 +147,12 @@ struct ProviderView: View {
                                         .foregroundStyle(Theme.Colors.error)
                                 }
                                 .accessibilityLabel("Remove \(feed.name)")
+
+                                Toggle("", isOn: Binding(
+                                    get: { settingsStore.customRSSFeeds[index].isEnabled },
+                                    set: { settingsStore.customRSSFeeds[index].isEnabled = $0 }
+                                ))
+                                .labelsHidden()
                             }
 
                             TextField("https://example.com/rss.xml", text: Binding(

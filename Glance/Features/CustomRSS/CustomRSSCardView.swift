@@ -4,6 +4,7 @@ struct CustomRSSCardView: View {
     let feedID: String
     let feedName: String
     let store: PulseStore
+    @Environment(AppState.self) private var appState
     @State private var settingsStore = SettingsStore()
 
     private var accentColor: Color { Theme.Colors.cardAmber }
@@ -109,9 +110,8 @@ struct CustomRSSCardView: View {
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(articles.prefix(5)) { article in
                     Button {
-                        if let url = URL(string: article.url) {
-                            UIApplication.shared.open(url)
-                        }
+                        let ref = CustomRSSArticleRef(article: article, feedName: feedName)
+                        appState.pulsePath.append(ref)
                     } label: {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
