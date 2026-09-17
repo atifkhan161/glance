@@ -2,6 +2,8 @@ import SwiftUI
 
 struct EventDetailView: View {
     let event: PoGoEvent
+    @State private var eventDescription = ""
+    @State private var isLoadingDescription = false
 
     private var intelligenceContent: String {
         var parts = [event.name, event.eventType]
@@ -114,6 +116,27 @@ struct EventDetailView: View {
                 .padding(Theme.cardPadding)
                 .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
 
+                // Description card
+                if isLoadingDescription {
+                    ProgressView()
+                        .padding(Theme.cardPadding)
+                        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+                } else if !eventDescription.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Description")
+                            .font(Theme.Fonts.manrope(10, weight: .bold))
+                            .foregroundStyle(Theme.Colors.textMuted)
+                            .tracking(1.2)
+                        Text(eventDescription)
+                            .font(Theme.Fonts.manrope(14, weight: .regular))
+                            .foregroundStyle(Theme.Colors.textPrimary)
+                            .lineSpacing(3)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(Theme.cardPadding)
+                    .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+                }
+
                 // AI Intelligence Card
                 ArticleIntelligenceCard(
                     content: intelligenceContent,
@@ -155,6 +178,12 @@ struct EventDetailView: View {
         .glanceBackground()
         .navigationTitle(event.eventType)
         .navigationBarTitleDisplayMode(.inline)
+        .task {
+            guard eventDescription.isEmpty, let link = event.link else { return }
+            isLoadingDescription = true
+            eventDescription = (try? await ScrapedDuckClient().fetchEventDescription(from: link)) ?? ""
+            isLoadingDescription = false
+        }
     }
 }
 
