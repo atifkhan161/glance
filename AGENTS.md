@@ -51,3 +51,13 @@ The `IntelligenceRouter` actor routes through multiple backends:
 
 - **Simulator**: iPhone 17 Pro Max
 - **Build command**: `cd Glance && xcodebuild -project Glance.xcodeproj -scheme Glance -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max' build`
+
+## Common Build Pitfalls
+
+- **Xcode project registration** — New `.swift` files must be added to `project.pbxproj`. Git tracking alone is not enough — Xcode only compiles files registered in the project. The `.gitignore` blocks `*.xcodeproj` changes, so use `git add -f` when committing pbxproj updates.
+- **Array literal vs type annotation** — `var parts: [value1, value2]` is a type annotation (invalid). Use `var parts = [value1, value2]` for array literals. This is a silent syntax error that was committed 3 times in this session.
+- **Foundation Models `PartiallyGenerated` optionality** — When using `session.streamResponse(to:generating:)`, `partial.content` is non-optional but nested properties like `.sections` are optional. Individual properties within `PartiallyGenerated<T>` (e.g. `section.title`, `section.content`) are also optional. Use `guard let` or `?.` on nested properties, not on `.content` itself.
+- **Actor-isolated method calls** — `IntelligenceRouter` is an actor. Calling any method on it requires `await`, even if the return is an `AsyncStream` — the actor hop still needs to be awaited.
+- **Xcode group path resolution** — Xcode resolves file paths relative to the parent group's `path`. Files must be placed on disk at the path the group expects. For example, the `Shared` group has `path = Shared` (root of Glance target), not `Features/Shared/`.
+- **Build before committing** — Always run `xcodebuild build` before committing. Errors introduced in one commit cascade through subsequent commits, making diagnosis harder.
+- **Avoid pbxproj Python libraries** — The `pbxproj` and `xcodeproj` Python packages corrupt the project file when adding files. Edit `project.pbxproj` manually or use Xcode directly.
