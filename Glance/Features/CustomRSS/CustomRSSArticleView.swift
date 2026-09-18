@@ -4,14 +4,15 @@ struct CustomRSSArticleView: View {
     let article: MMArticle
     let feedName: String
 
-    private var strippedContent: String {
-        HTMLStripper.stripMedia(from: article.content)
-    }
+    @State private var scrapedContent = ""
+    @State private var isScraping = false
+    @State private var scrapeError: String?
 
-    private var paragraphs: [String] {
-        strippedContent
-            .components(separatedBy: "\n\n")
-            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    private var displayContent: String {
+        if !scrapedContent.isEmpty {
+            return scrapedContent
+        }
+        return HTMLStripper.stripMedia(from: article.content)
     }
 
     private var sourceDomain: String? {
@@ -22,25 +23,17 @@ struct CustomRSSArticleView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // Title
                 Text(article.title)
                     .font(Theme.Fonts.manrope(26, weight: .heavy))
                     .foregroundStyle(Theme.Colors.textPrimary)
                     .lineSpacing(3)
                     .fixedSize(horizontal: false, vertical: true)
 
-                // Author · Date card
                 if !article.author.isEmpty || !article.published.isEmpty {
                     HStack(spacing: 0) {
-                        if !article.author.isEmpty {
-                            Text(article.author)
-                        }
-                        if !article.author.isEmpty && !article.published.isEmpty {
-                            Text(" · ")
-                        }
-                        if !article.published.isEmpty {
-                            Text(article.published)
-                        }
+                        if !article.author.isEmpty { Text(article.author) }
+                        if !article.author.isEmpty && !article.published.isEmpty { Text(" · ") }
+                        if !article.published.isEmpty { Text(article.published) }
                     }
                     .font(Theme.Fonts.manrope(13, weight: .regular))
                     .foregroundStyle(Theme.Colors.textMuted)
@@ -49,28 +42,66 @@ struct CustomRSSArticleView: View {
                     .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
                 }
 
-                // AI Intelligence Card
-                ArticleIntelligenceCard(
-                    content: strippedContent,
-                    type: .generic,
-                    accentColor: Theme.Colors.accent
-                )
-
-                // Raw Article Card
-                RawArticleCard(headerTitle: "FULL ARTICLE") {
-                    VStack(alignment: .leading, spacing: 14) {
-                        ForEach(Array(paragraphs.enumerated()), id: \.offset) { _, paragraph in
-                            Text(paragraph)
-                                .font(Theme.Fonts.manrope(17, weight: .regular))
-                                .foregroundStyle(Theme.Colors.textPrimary)
-                                .lineSpacing(5)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
+                if isScraping {
+                    VStack(spacing: 12) {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                        Text("Loading article\u{2026}")
+                            .font(Theme.Fonts.manrope(14))
+                            .foregroundStyle(Theme.Colors.textMuted)
                     }
-                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, minHeight: 120)
+                    .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.medium))
+                } else if !scrapedContent.isEmpty {
+                    ArticleIntelligenceCard(
+                        content: scrapedContent,
+                        type: .generic,
+                        accentColor: Theme.Colors.accent
+                    )
+
+                    RawArticleCard(headerTitle: "FULL ARTICLE") {
+                        VStack(alignment: .leading, spacing: 14) {
+                            ForEach(Array(displayContent.components(separatedBy: "\n\n").enumerated()), id: \.offset) { _, paragraph in
+                                let trimmed = paragraph.trimmingCharacters(in: .whitespacesAndNewlines)
+                                if !trimmed.isEmpty {
+                                    Text(trimmed)
+                                        .font(Theme.Fonts.manrope(17, weight: .regular))
+                                        .foregroundStyle(Theme.Colors.textPrimary)
+                                        .lineSpacing(5)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
+                        }
+                        .textSelection(.enabled)
+                    }
+                } else if !article.content.isEmpty {
+                    ArticleIntelligenceCard(
+                        content: HTMLStripper.stripMedia(from: article.content),
+                        type: .generic,
+                        accentColor: Theme.Colors.accent
+                    )
+
+                    RawArticleCard(headerTitle: "FULL ARTICLE") {
+                        VStack(alignment: .leading, spacing: 14) {
+                            ForEach(Array(paragraphs.enumerated()), id: \.offset) { _, paragraph in
+                                Text(paragraph)
+                                    .font(Theme.Fonts.manrope(17, weight: .regular))
+                                    .foregroundStyle(Theme.Colors.textPrimary)
+                                    .lineSpacing(5)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        .textSelection(.enabled)
+                    }
                 }
 
-                // Read on source button
+                if let scrapeError {
+                    Text(scrapeError)
+                        .font(Theme.Fonts.manrope(13))
+                        .foregroundStyle(Theme.Colors.textMuted)
+                        .padding(.top, 8)
+                }
+
                 if let url = URL(string: article.url) {
                     Link(destination: url) {
                         HStack {
@@ -93,5 +124,22 @@ struct CustomRSSArticleView: View {
         .scrollIndicators(.hidden)
         .navigationTitle(feedName)
         .navigationBarTitleDisplayMode(.inline)
+        .task {
+            guard scrapedContent.isEmpty, !article.url.isEmpty else { return }
+            isScraping = true
+            scrapeError = nil
+            do {
+                scrapedContent = try await ArticleScraper().scrape(urlString: article.url)
+            } catch {
+                scrapeError = "Could not load full article"
+            }
+            isScraping = false
+        }
+    }
+
+    private var paragraphs: [String] {
+        HTMLStripper.stripMedia(from: article.content)
+            .components(separatedBy: "\n\n")
+            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     }
 }

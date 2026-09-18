@@ -12,6 +12,7 @@ struct MMArticle: Codable, Sendable, Identifiable, Equatable, Hashable {
     let author: String
     let category: String
     let content: String
+    var scrapedContent: String
 }
 
 struct ManagingMadridClient: ManagingMadridClientProtocol, Sendable {
@@ -74,7 +75,8 @@ private final class MMXMLParser: NSObject, XMLParserDelegate {
                 published: item.published,
                 author: item.author,
                 category: item.category,
-                content: item.content
+                content: item.content,
+                scrapedContent: ""
             )
             articles.append(article)
             current = nil
@@ -92,4 +94,5 @@ private struct MMXMLItem {
     var author = ""
     var category = ""
     var content = ""
+    var scrapedContent = ""
 }

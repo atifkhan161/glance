@@ -8,7 +8,12 @@ struct MadridArticleView: View {
     }
 
     private var strippedContent: String {
-        HTMLStripper.stripMedia(from: article.content)
+        let stripped = HTMLStripper.stripMedia(from: article.content)
+        NSLog("[AI][Madrid] title: '%@', raw: %d chars, stripped: %d chars", article.title, article.content.count, stripped.count)
+        if stripped.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            NSLog("[AI][Madrid] ⚠️ STRIPPED CONTENT EMPTY")
+        }
+        return stripped
     }
 
     private var paragraphs: [String] {
@@ -110,7 +115,8 @@ struct MadridArticleView: View {
             published: "Sep 10, 2026",
             author: "John Doe",
             category: "Tactics",
-            content: "<p>Real Madrid continued their impressive form with a convincing victory. <img src='test.jpg'/> The team showed great tactical discipline.</p><blockquote>Amazing performance</blockquote><script>alert('test')</script>"
+            content: "<p>Real Madrid continued their impressive form with a convincing victory. <img src='test.jpg'/> The team showed great tactical discipline.</p><blockquote>Amazing performance</blockquote><script>alert('test')</script>",
+            scrapedContent: ""
         ))
     }
 }

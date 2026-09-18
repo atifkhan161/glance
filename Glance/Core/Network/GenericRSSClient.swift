@@ -113,7 +113,8 @@ private final class GenericRSSParser: NSObject, XMLParserDelegate {
                 published: item.published,
                 author: item.author,
                 category: item.category,
-                content: item.content
+                content: item.content,
+                scrapedContent: ""
             )
             articles.append(article)
             current = nil
@@ -131,4 +132,5 @@ private struct GenericRSSItem {
     var author = ""
     var category = ""
     var content = ""
+    var scrapedContent = ""
 }
