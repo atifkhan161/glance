@@ -39,6 +39,8 @@ struct MadridPipeline: Sendable {
         let teamID = await settings.madridTeamID
         let leagueID = await settings.madridLeagueID
 
+        let teamName = await settings.madridSelectedTeam.name
+
         // 1. API-Sports (thesportsdb.com) free tier — no API key required.
         do {
             // Fetch next events (upcoming fixtures) — this API is reliable
@@ -80,11 +82,12 @@ struct MadridPipeline: Sendable {
             let madridRecentEvents = recentEvents.filter {
                 $0.idHomeTeam == teamID || $0.idAwayTeam == teamID
             }
-            let matchTimeline = Self.parseMatchTimeline(
-                recentEvents: madridRecentEvents,
-                nextEvents: nextEvents,
-                teamID: teamID
-            )
+             let matchTimeline = Self.parseMatchTimeline(
+                 recentEvents: madridRecentEvents,
+                 nextEvents: nextEvents,
+                 teamID: teamID,
+                 teamName: teamName
+             )
 
             let lastMatch = matchTimeline.first(where: { $0.isFinished }).flatMap { Self.convertToLastMatch($0) }
             let nextFixture = matchTimeline.first(where: { !$0.isFinished }).flatMap { Self.convertToFixture($0) }
@@ -92,13 +95,14 @@ struct MadridPipeline: Sendable {
             let standing = Self.parseStanding(from: table, teamID: teamID)
 
             // 3. Fetch Exa for related articles
-            let exaArticles = await fetchExaArticles()
+             let exaArticles = await fetchExaArticles(teamName: teamName)
 
             // 4. Fetch MM articles
             let mmArticles = (try? await madridClient.fetchArticles(rssURL: rssURL)) ?? []
 
             // 5. Combine
             let data = MadridData(
+                teamName: teamName,
                 fixture: nextFixture,
                 lastMatch: lastMatch,
                 matchTimeline: matchTimeline,
@@ -106,7 +110,7 @@ struct MadridPipeline: Sendable {
                 form: form,
                 standing: standing,
                 standingText: Self.formatStandingText(standing),
-                intel: Self.generateIntel(nextFixture: nextFixture, lastMatch: lastMatch),
+                 intel: Self.generateIntel(nextFixture: nextFixture, lastMatch: lastMatch, teamName: teamName),
                 headToHead: nil,
                 articles: exaArticles,
                 mmArticles: mmArticles,
@@ -118,16 +122,16 @@ struct MadridPipeline: Sendable {
             return .ready(data: data)
         } catch {
             print("[MadridPipeline] API-Sports fetch failed: \(error)")
-            return await refreshWithExaFallback(settings: settings)
+            return await refreshWithExaFallback(settings: settings, teamName: teamName)
         }
     }
 
     // MARK: - Exa Fallback (when no Football key)
 
-    private func refreshWithExaFallback(settings: SettingsStore) async -> MadridRefreshResult {
+    private func refreshWithExaFallback(settings: SettingsStore, teamName: String) async -> MadridRefreshResult {
         async let exaTask: [ExaResult]? = {
             guard let key = self.keychain.load(forKey: "keys_exa") else { return nil }
-            return try? await self.exa.search(query: "Real Madrid next match fixture upcoming schedule", apiKey: key)
+            return try? await self.exa.search(query: "\(teamName) next match fixture upcoming schedule", apiKey: key)
         }()
         async let mmTask: [MMArticle] = {
             (try? await self.madridClient.fetchArticles(rssURL: settings.madridRSSURL)) ?? []
@@ -143,6 +147,7 @@ struct MadridPipeline: Sendable {
         if results.isEmpty {
             return .degraded(
                 data: MadridData(
+                    teamName: teamName,
                     fixture: nil, lastMatch: nil, matchTimeline: [], schedule: [], form: [],
                     standing: nil, standingText: "",
                     intel: "No match data available", headToHead: nil,
@@ -172,15 +177,16 @@ struct MadridPipeline: Sendable {
             return FormEntry(result: result, score: score, opponent: "")
         } ?? []
 
-        let data = MadridData(
-            fixture: parsed.fixture,
+         let data = MadridData(
+             teamName: teamName,
+             fixture: parsed.fixture,
             lastMatch: nil,
             matchTimeline: [],
             schedule: parsed.schedule,
             form: enrichmentForm.isEmpty ? formEntries : enrichmentForm,
             standing: nil,
             standingText: enrichment?.standing ?? "",
-            intel: enrichment?.intel ?? generateFallbackIntel(for: parsed.fixture),
+             intel: enrichment?.intel ?? generateFallbackIntel(for: parsed.fixture, teamName: teamName),
             headToHead: enrichment?.headToHead,
             articles: articles,
             mmArticles: mmArticles,
@@ -193,9 +199,9 @@ struct MadridPipeline: Sendable {
 
     // MARK: - Exa Articles
 
-    private func fetchExaArticles() async -> [ExaArticle] {
-        guard let key = keychain.load(forKey: "keys_exa") else { return [] }
-        guard let results = try? await exa.search(query: "Real Madrid news transfers tactics", apiKey: key) else { return [] }
+     private func fetchExaArticles(teamName: String) async -> [ExaArticle] {
+         guard let key = keychain.load(forKey: "keys_exa") else { return [] }
+         guard let results = try? await exa.search(query: "\(teamName) news transfers tactics", apiKey: key) else { return [] }
         return results.map {
             ExaArticle(
                 title: $0.title, url: $0.url, publishedDate: $0.publishedDate,
@@ -272,11 +278,12 @@ struct MadridPipeline: Sendable {
         )
     }
 
-    static func parseMatchTimeline(
-        recentEvents: [SDBEvent],
-        nextEvents: [SDBEvent],
-        teamID: String
-    ) -> [MatchTimelineItem] {
+     static func parseMatchTimeline(
+         recentEvents: [SDBEvent],
+         nextEvents: [SDBEvent],
+         teamID: String,
+         teamName: String
+     ) -> [MatchTimelineItem] {
         var items: [MatchTimelineItem] = []
 
         // Next 3 upcoming matches FIRST (earliest first, highlighted position)
@@ -284,25 +291,25 @@ struct MadridPipeline: Sendable {
             .filter { $0.isNotStarted || $0.strStatus == "NS" }
             .sorted { ($0.strTimestamp ?? $0.dateEvent ?? "") < ($1.strTimestamp ?? $1.dateEvent ?? "") }
             .prefix(3)
-        for event in upcoming {
-            guard let item = timelineItem(from: event, teamID: teamID) else { continue }
-            items.append(item)
-        }
+         for event in upcoming {
+             guard let item = timelineItem(from: event, teamID: teamID, teamName: teamName) else { continue }
+             items.append(item)
+         }
 
-        // Last 4 finished matches SECOND (most recent first, sorted by date)
-        let finished = recentEvents
-            .filter { $0.isFinished }
-            .sorted { ($0.strTimestamp ?? $0.dateEvent ?? "") > ($1.strTimestamp ?? $1.dateEvent ?? "") }
-            .prefix(4)
-        for event in finished {
-            guard let item = timelineItem(from: event, teamID: teamID) else { continue }
+         // Last 4 finished matches SECOND (most recent first, sorted by date)
+         let finished = recentEvents
+             .filter { $0.isFinished }
+             .sorted { ($0.strTimestamp ?? $0.dateEvent ?? "") > ($1.strTimestamp ?? $1.dateEvent ?? "") }
+             .prefix(4)
+         for event in finished {
+             guard let item = timelineItem(from: event, teamID: teamID, teamName: teamName) else { continue }
             items.append(item)
         }
 
         return items
     }
 
-    private static func timelineItem(from event: SDBEvent, teamID: String) -> MatchTimelineItem? {
+     private static func timelineItem(from event: SDBEvent, teamID: String, teamName: String) -> MatchTimelineItem? {
         let isHome = event.idHomeTeam == teamID
         let opponent = isHome ? event.strAwayTeam : event.strHomeTeam
         let badges = Self.badges(for: event, teamID: teamID)
@@ -324,9 +331,10 @@ struct MadridPipeline: Sendable {
             else { result = "L" }
         }
 
-        return MatchTimelineItem(
-            id: event.idEvent,
-            opponent: opponent,
+         return MatchTimelineItem(
+             id: event.idEvent,
+             teamName: teamName,
+             opponent: opponent,
             opponentBadge: badges.opponent,
             rmBadge: badges.rm,
             homeScore: homeScore,
@@ -444,7 +452,7 @@ struct MadridPipeline: Sendable {
         return "\(n)\(suffix)"
     }
 
-    static func generateIntel(nextFixture: Fixture?, lastMatch: LastMatch?) -> String {
+     static func generateIntel(nextFixture: Fixture?, lastMatch: LastMatch?, teamName: String) -> String {
         var parts: [String] = []
         if let lm = lastMatch {
             let rmGoals = lm.score.home > lm.score.away ? lm.score.home : lm.score.away
@@ -460,12 +468,12 @@ struct MadridPipeline: Sendable {
         if let fixture = nextFixture {
             parts.append("Next: vs \(fixture.opponent) in \(fixture.competition)")
         }
-        return parts.isEmpty ? "Real Madrid latest updates" : parts.joined(separator: " · ")
+        return parts.isEmpty ? "\(teamName) latest updates" : parts.joined(separator: " · ")
     }
 
-    private func generateFallbackIntel(for fixture: Fixture?) -> String {
-        guard let fixture else { return "Real Madrid latest updates" }
-        return "Upcoming match: Real Madrid vs \(fixture.opponent) in \(fixture.competition)"
+    private func generateFallbackIntel(for fixture: Fixture?, teamName: String) -> String {
+        guard let fixture else { return "\(teamName) latest updates" }
+        return "Upcoming match: \(teamName) vs \(fixture.opponent) in \(fixture.competition)"
     }
 
     // MARK: - Exa Fixture Parsing (fallback)

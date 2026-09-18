@@ -3,8 +3,16 @@ import SwiftUI
 struct MadridHubView: View {
     let store: PulseStore
 
+    private var teamName: String {
+        switch store.madrid {
+        case .ready(let data, _), .stale(let data, _): return data.teamName
+        default: return "Real Madrid"
+        }
+    }
+
     var body: some View {
-        ScrollView {
+
+         ScrollView {
             // Hero section
             let heroData: MadridData? = {
                 if case .ready(let data, _) = store.madrid { return data }
@@ -23,9 +31,9 @@ struct MadridHubView: View {
 
                     HStack(alignment: .top, spacing: 16) {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("REAL MADRID")
-                                .font(Theme.Fonts.scale(.title1))
-                                .foregroundStyle(Theme.Colors.cardAmber)
+                             Text(teamName)
+                                 .font(Theme.Fonts.scale(.title1))
+                                 .foregroundStyle(Theme.Colors.cardAmber)
 
                             if let standing = heroData.standing {
                                 Text(standing.badge != nil ? "La Liga" : "")
@@ -102,7 +110,7 @@ struct MadridHubView: View {
             .padding(.bottom, 100)
         }
         .glanceBackground()
-        .navigationTitle("Real Madrid")
+         .navigationTitle(teamName)
         .navigationBarTitleDisplayMode(.large)
         .overlay(alignment: .top) {
             RefreshOverlay(
@@ -201,9 +209,9 @@ struct MadridHubView: View {
                         .frame(width: 26, height: 26)
                     }
 
-                    Text("Real Madrid")
-                        .font(Theme.Fonts.manrope(16, weight: .semibold))
-                        .foregroundStyle(Theme.Colors.textPrimary)
+                      Text(teamName)
+                         .font(Theme.Fonts.manrope(16, weight: .semibold))
+                         .foregroundStyle(Theme.Colors.textPrimary)
                 }
 
                 HStack(spacing: 16) {

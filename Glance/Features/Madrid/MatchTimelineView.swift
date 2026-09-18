@@ -51,10 +51,10 @@ struct MatchTimelineView: View {
             HStack(alignment: .center, spacing: 12) {
                 VStack(spacing: 4) {
                     teamBadge(url: item.rmBadge, fallback: "RM", size: 40)
-                    Text("Real Madrid")
-                        .font(Theme.Fonts.manrope(9))
-                        .foregroundStyle(Theme.Colors.textSecondary)
-                        .lineLimit(1)
+                     Text(item.teamName)
+                         .font(Theme.Fonts.manrope(9))
+                         .foregroundStyle(Theme.Colors.textSecondary)
+                         .lineLimit(1)
                 }
                 .frame(maxWidth: .infinity)
 

@@ -1,6 +1,7 @@
 import Foundation
 
 struct MadridData: Codable, Sendable, Equatable {
+    let teamName: String
     let fixture: Fixture?
     let lastMatch: LastMatch?
     let matchTimeline: [MatchTimelineItem]
@@ -97,6 +98,7 @@ struct ExaArticle: Codable, Sendable, Identifiable, Equatable {
 
 struct MatchTimelineItem: Codable, Sendable, Equatable, Identifiable {
     let id: String
+    let teamName: String
     let opponent: String
     let opponentBadge: String?
     let rmBadge: String?

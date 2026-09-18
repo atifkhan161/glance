@@ -98,16 +98,16 @@ struct GlanceCardView: View {
 
                     HStack(alignment: .center, spacing: 16) {
                         VStack(spacing: 4) {
-                            CachedAsyncImage(url: URL(string: fixture.rmBadge ?? "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg")) { image in
-                                image.resizable().scaledToFit()
-                            } placeholder: {
-                                Text("RM")
-                                    .font(Theme.Fonts.manrope(20, weight: .bold))
-                                    .foregroundStyle(Theme.Colors.textPrimary)
-                            }
-                            .frame(width: 56, height: 56)
+                             CachedAsyncImage(url: URL(string: fixture.rmBadge ?? "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg")) { image in
+                                 image.resizable().scaledToFit()
+                             } placeholder: {
+                                 Text("RM")
+                                     .font(Theme.Fonts.manrope(20, weight: .bold))
+                                     .foregroundStyle(Theme.Colors.textPrimary)
+                             }
+                             .frame(width: 56, height: 56)
 
-                            Text("Real Madrid")
+                             Text(data.teamName)
                                 .font(Theme.Fonts.manrope(10))
                                 .foregroundStyle(Theme.Colors.textSecondary)
                                 .lineLimit(1)
@@ -171,16 +171,16 @@ struct GlanceCardView: View {
 
                     HStack(alignment: .center, spacing: 16) {
                         VStack(spacing: 4) {
-                            CachedAsyncImage(url: URL(string: lastMatch.rmBadge ?? "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg")) { image in
-                                image.resizable().scaledToFit()
-                            } placeholder: {
-                                Text("RM")
-                                    .font(Theme.Fonts.manrope(20, weight: .bold))
-                                    .foregroundStyle(Theme.Colors.textPrimary)
-                            }
-                            .frame(width: 56, height: 56)
+                             CachedAsyncImage(url: URL(string: lastMatch.rmBadge ?? "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg")) { image in
+                                 image.resizable().scaledToFit()
+                             } placeholder: {
+                                 Text("RM")
+                                     .font(Theme.Fonts.manrope(20, weight: .bold))
+                                     .foregroundStyle(Theme.Colors.textPrimary)
+                             }
+                             .frame(width: 56, height: 56)
 
-                            Text("Real Madrid")
+                             Text(data.teamName)
                                 .font(Theme.Fonts.manrope(10))
                                 .foregroundStyle(Theme.Colors.textSecondary)
                                 .lineLimit(1)
@@ -484,12 +484,18 @@ struct GlanceCardView: View {
                         .foregroundStyle(Theme.Colors.textSecondary)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
+                        .background(.red.opacity(0.3))
+                        .onAppear { print("[DEBUG] githubPreviewRow: \(item.fullName) desc=\"\(desc.prefix(80))\"") }
                 } else if let lang = item.language {
                     Text(lang)
                         .font(Theme.Fonts.manrope(13))
                         .foregroundStyle(Theme.Colors.textSecondary)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
+                        .background(.red.opacity(0.3))
+                        .onAppear { print("[DEBUG] githubPreviewRow: \(item.fullName) desc=nil, fallback lang=\"\(lang)\"") }
+                } else {
+                    Color.clear.onAppear { print("[DEBUG] githubPreviewRow: \(item.fullName) desc=nil, no fallback") }
                 }
 
                 HStack(spacing: 6) {

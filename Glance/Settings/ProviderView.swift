@@ -5,6 +5,7 @@ struct ProviderInput: Identifiable {
     let label: String
     let placeholder: String
     let binding: Binding<String>
+    var pickerTeam: Binding<FootballTeam>? = nil
 }
 
 struct ProviderCard: View {
@@ -36,17 +37,28 @@ struct ProviderCard: View {
                                 .foregroundStyle(Theme.Colors.textMuted)
                                 .tracking(1.2)
 
-                            TextField(input.placeholder, text: input.binding)
-                                .font(Theme.Fonts.manrope(13))
-                                .foregroundStyle(Theme.Colors.textPrimary)
-                                .textInputAutocapitalization(.never)
-                                .autocorrectionDisabled()
-                                .padding(10)
-                                .background(Theme.Colors.canvasDeep, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: Theme.Radius.small)
-                                        .stroke(Theme.Colors.borderSubtle, lineWidth: 1)
-                                )
+                            if let pickerTeam = input.pickerTeam {
+                                Picker("", selection: pickerTeam) {
+                                    ForEach(FootballData.topChampionsLeagueTeams) { team in
+                                        Text(team.name).tag(team)
+                                    }
+                                }
+                                .labelsHidden()
+                                .pickerStyle(.menu)
+                                .tint(Theme.Colors.accent)
+                            } else {
+                                TextField(input.placeholder, text: input.binding)
+                                    .font(Theme.Fonts.manrope(13))
+                                    .foregroundStyle(Theme.Colors.textPrimary)
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled()
+                                    .padding(10)
+                                    .background(Theme.Colors.canvasDeep, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: Theme.Radius.small)
+                                            .stroke(Theme.Colors.borderSubtle, lineWidth: 1)
+                                    )
+                            }
                         }
                     }
                 }
@@ -73,9 +85,11 @@ struct ProviderView: View {
                     icon: "sportscourt",
                     isOn: $settingsStore.showMadrid,
                     inputs: [
+                        ProviderInput(label: "TEAM", placeholder: "", binding: .constant(""), pickerTeam: Binding(
+                            get: { settingsStore.madridSelectedTeam },
+                            set: { settingsStore.madridSelectedTeam = $0 }
+                        )),
                         ProviderInput(label: "RSS URL", placeholder: "https://...", binding: $settingsStore.madridRSSURL),
-                        ProviderInput(label: "TEAM ID", placeholder: "133738", binding: $settingsStore.madridTeamID),
-                        ProviderInput(label: "LEAGUE ID", placeholder: "4335", binding: $settingsStore.madridLeagueID),
                     ]
                 )
 
