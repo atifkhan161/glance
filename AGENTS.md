@@ -52,6 +52,12 @@ The `IntelligenceRouter` actor routes through multiple backends:
 - **Simulator**: iPhone 17 Pro Max
 - **Build command**: `cd Glance && xcodebuild -project Glance.xcodeproj -scheme Glance -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max' build`
 
+## graphify
+
+- Use `/graphify` to build/query a knowledge graph of the codebase for architecture understanding, code review, and feature planning
+- Graph output lives in `graphify-out/` (gitignored)
+- Commit hook auto-rebuilds graph after each `git commit`
+
 ## Common Build Pitfalls
 
 - **Xcode project registration** — New `.swift` files must be added to `project.pbxproj`. Git tracking alone is not enough — Xcode only compiles files registered in the project. The `.gitignore` blocks `*.xcodeproj` changes, so use `git add -f` when committing pbxproj updates.
