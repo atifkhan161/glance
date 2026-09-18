@@ -88,8 +88,8 @@ struct GitHubTrendingClient: GitHubTrendingClientProtocol, Sendable {
         let name = String(parts[1])
         let fullName = "\(owner)/\(name)"
 
-        // Description — <p> tag
-        let description = extractTextContent(from: article, pattern: #"<p[^>]*>(.*?)</p>"#, options: .dotMatchesLineSeparators)
+        // Description — <p> tag with color-fg-muted class (the actual description, not header elements)
+        let description = extractTextContent(from: article, pattern: #"<p[^>]*class="[^"]*color-fg-muted[^"]*"[^>]*>(.*?)</p>"#, options: .dotMatchesLineSeparators)
 
         // Language — itemprop="programmingLanguage"
         let language = extractTextContent(from: article, pattern: #"[itemprop="programmingLanguage"][^>]*>([^<]*)<"#)

@@ -484,18 +484,12 @@ struct GlanceCardView: View {
                         .foregroundStyle(Theme.Colors.textSecondary)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
-                        .background(.red.opacity(0.3))
-                        .onAppear { print("[DEBUG] githubPreviewRow: \(item.fullName) desc=\"\(desc.prefix(80))\"") }
                 } else if let lang = item.language {
                     Text(lang)
                         .font(Theme.Fonts.manrope(13))
                         .foregroundStyle(Theme.Colors.textSecondary)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
-                        .background(.red.opacity(0.3))
-                        .onAppear { print("[DEBUG] githubPreviewRow: \(item.fullName) desc=nil, fallback lang=\"\(lang)\"") }
-                } else {
-                    Color.clear.onAppear { print("[DEBUG] githubPreviewRow: \(item.fullName) desc=nil, no fallback") }
                 }
 
                 HStack(spacing: 6) {
