@@ -8,7 +8,12 @@ struct AiIntelArticleView: View {
         var parts = [article.headline]
         parts.append(contentsOf: article.bullets)
         parts.append(contentsOf: article.highlights)
-        return parts.joined(separator: "\n")
+        let content = parts.joined(separator: "\n")
+        NSLog("[AI][AiIntel] headline: '%@', content: %d chars", article.headline, content.count)
+        if content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            NSLog("[AI][AiIntel] ⚠️ CONTENT EMPTY")
+        }
+        return content
     }
 
     var body: some View {

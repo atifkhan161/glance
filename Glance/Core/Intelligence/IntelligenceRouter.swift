@@ -73,16 +73,21 @@ actor IntelligenceRouter {
     }
 
     func checkArticleIntelligenceAvailability() async -> (available: Bool, reason: String) {
-        await foundationModels.availabilityStatus()
+        let result = await foundationModels.availabilityStatus()
+        NSLog("[AI][Router] checkAvailability — available: %@, reason: %@", result.available ? "YES" : "NO", result.reason)
+        return result
     }
 
     func articleIntelligence(content: String, type: ArticleIntelligenceType) async -> ArticleIntelligenceResult? {
-        guard await foundationModels.isAvailable() else { return nil }
+        let available = await foundationModels.isAvailable()
+        NSLog("[AI][Router] articleIntelligence — available: %@, type: %@, content: %d chars", available ? "YES" : "NO", "\(type)", content.count)
+        guard available else { return nil }
         return try? await foundationModels.summarizeArticle(content: content, prompt: type.systemPrompt)
     }
 
     func streamArticleIntelligence(content: String, type: ArticleIntelligenceType) -> AsyncStream<String> {
-        foundationModels.streamSummary(content: content, prompt: type.systemPrompt)
+        NSLog("[AI][Router] streamArticleIntelligence — type: %@, content: %d chars", "\(type)", content.count)
+        return foundationModels.streamSummary(content: content, prompt: type.systemPrompt)
     }
 
     private func truncate(_ text: String, maxChars: Int = 6000) -> String {

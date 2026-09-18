@@ -4,6 +4,8 @@ import Foundation
     import FoundationModels
 
     struct FoundationModelsClient: Sendable {
+        private let permissiveModel = SystemLanguageModel(guardrails: .permissiveContentTransformations)
+
         func isAvailable() async -> Bool {
             SystemLanguageModel.default.isAvailable
         }
@@ -74,42 +76,38 @@ import Foundation
         }
 
         func streamSummary(content: String, prompt: String) -> AsyncStream<String> {
-            let session = LanguageModelSession()
+            let session = LanguageModelSession(model: permissiveModel)
             let fullPrompt = "\(prompt)\n\nArticle:\n\(content)"
+            NSLog("[AI][FM] streamSummary — prompt: %d chars, content: %d chars (permissive mode)", prompt.count, content.count)
             return AsyncStream { continuation in
                 Task {
-                    #if DEBUG
-                    let status = SystemLanguageModel.default.availability
-                    switch status {
-                    case .available:
-                        print("[FM] Model available, starting stream")
-                    case .unavailable(let reason):
-                        print("[FM] Model unavailable: \(reason)")
-                    @unknown default:
-                        print("[FM] Model unknown state")
-                    }
-                    #endif
+                    let status = permissiveModel.availability
+                    NSLog("[AI][FM] permissiveModel availability: %@", "\(status)")
+
                     do {
-                        var currentSections: [String: String] = [:]
-                        for try await partial in session.streamResponse(to: fullPrompt, generating: ArticleIntelligenceResult.self) {
-                            guard let sections = partial.content.sections else { continue }
-                            for section in sections {
-                                guard let key = section.title, let newContent = section.content else { continue }
-                                if let existing = currentSections[key], newContent.count > existing.count {
-                                    let delta = String(newContent.dropFirst(existing.count))
-                                    continuation.yield(delta)
-                                    currentSections[key] = newContent
-                                } else if currentSections[key] == nil {
-                                    currentSections[key] = newContent
-                                    continuation.yield(newContent)
-                                }
+                        NSLog("[AI][FM] Calling streamResponse (String mode, no @Generable)...")
+                        var lastLength = 0
+                        var partialCount = 0
+                        for try await snapshot in session.streamResponse(to: fullPrompt) {
+                            partialCount += 1
+                            let text = snapshot.content
+                            if text.count > lastLength {
+                                let delta = String(text.dropFirst(lastLength))
+                                continuation.yield(delta)
+                                lastLength = text.count
                             }
+                            if partialCount <= 3 || partialCount % 10 == 0 {
+                                NSLog("[AI][FM] partial #%d — text: %d chars", partialCount, text.count)
+                            }
+                        }
+                        NSLog("[AI][FM] Stream done — %d partials, total: %d chars", partialCount, lastLength)
+                        if partialCount == 0 {
+                            NSLog("[AI][FM] ZERO partials — streamResponse returned nothing")
                         }
                         continuation.finish()
                     } catch {
-                        #if DEBUG
-                        print("[FM] streamSummary error: \(error.localizedDescription)")
-                        #endif
+                        NSLog("[AI][FM] ERROR: %@", "\(error)")
+                        NSLog("[AI][FM] error type: %@", "\(type(of: error))")
                         continuation.finish()
                     }
                 }
