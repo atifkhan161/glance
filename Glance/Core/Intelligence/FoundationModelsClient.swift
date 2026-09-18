@@ -78,36 +78,21 @@ import Foundation
         func streamSummary(content: String, prompt: String) -> AsyncStream<String> {
             let session = LanguageModelSession(model: permissiveModel)
             let fullPrompt = "\(prompt)\n\nArticle:\n\(content)"
-            NSLog("[AI][FM] streamSummary — prompt: %d chars, content: %d chars (permissive mode)", prompt.count, content.count)
             return AsyncStream { continuation in
                 Task {
-                    let status = permissiveModel.availability
-                    NSLog("[AI][FM] permissiveModel availability: %@", "\(status)")
-
                     do {
-                        NSLog("[AI][FM] Calling streamResponse (String mode, no @Generable)...")
                         var lastLength = 0
-                        var partialCount = 0
                         for try await snapshot in session.streamResponse(to: fullPrompt) {
-                            partialCount += 1
                             let text = snapshot.content
                             if text.count > lastLength {
                                 let delta = String(text.dropFirst(lastLength))
                                 continuation.yield(delta)
                                 lastLength = text.count
                             }
-                            if partialCount <= 3 || partialCount % 10 == 0 {
-                                NSLog("[AI][FM] partial #%d — text: %d chars", partialCount, text.count)
-                            }
-                        }
-                        NSLog("[AI][FM] Stream done — %d partials, total: %d chars", partialCount, lastLength)
-                        if partialCount == 0 {
-                            NSLog("[AI][FM] ZERO partials — streamResponse returned nothing")
                         }
                         continuation.finish()
                     } catch {
-                        NSLog("[AI][FM] ERROR: %@", "\(error)")
-                        NSLog("[AI][FM] error type: %@", "\(type(of: error))")
+                        NSLog("[AI] streamSummary error: %@", "\(error.localizedDescription)")
                         continuation.finish()
                     }
                 }

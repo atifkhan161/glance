@@ -34,21 +34,6 @@ enum ArticleIntelligenceType {
     case poGoRaid
     case generic
 
-    var debugLabel: String {
-        switch self {
-        case .madrid(let type):
-            return "madrid(\(type))"
-        case .aiIntel:
-            return "aiIntel"
-        case .poGoEvent:
-            return "poGoEvent"
-        case .poGoRaid:
-            return "poGoRaid"
-        case .generic:
-            return "generic"
-        }
-    }
-
     var systemPrompt: String {
         let formatHeader = "FORMAT: Use numbered sections exactly like this:\n1. Title: content here\n2. Title: content here\nVerdict: one sentence\nDo NOT use markdown bold or headings. Use plain numbered text.\n\n"
 

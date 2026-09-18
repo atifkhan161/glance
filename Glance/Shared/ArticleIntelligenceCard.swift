@@ -132,25 +132,16 @@ struct ArticleIntelligenceCard: View {
     }
 
     private func generate() async {
-        NSLog("[AI][Card] generate() called — content count: %d, type: %@", content.count, "\(type)")
-
         let router = IntelligenceRouter()
         let status = await router.checkArticleIntelligenceAvailability()
-
-        NSLog("[AI][Card] availability — available: %@, reason: %@", status.available ? "YES" : "NO", status.reason)
 
         guard status.available else {
             isGenerating = false
             unavailableReason = status.reason
-            NSLog("[AI][Card] ❌ BLOCKED: %@", status.reason)
             return
         }
 
-        NSLog("[AI][Card] ✅ Model available — creating stream...")
-
         let stream = await router.streamArticleIntelligence(content: content, type: type)
-
-        NSLog("[AI][Card] Stream created — starting iteration...")
 
         var sectionTexts: [String: String] = [:]
         var sectionOrder: [String] = []
@@ -161,11 +152,6 @@ struct ArticleIntelligenceCard: View {
         for await chunk in stream {
             chunkCount += 1
             rawAccumulator += chunk
-            if chunkCount <= 5 {
-                NSLog("[AI][Card] chunk #%d — %d chars: %@", chunkCount, chunk.count, String(chunk.prefix(100)))
-            } else if chunkCount % 10 == 0 {
-                NSLog("[AI][Card] chunk #%d — %d chars", chunkCount, chunk.count)
-            }
 
             parseChunk(chunk, into: &sectionTexts, order: &sectionOrder, verdict: &currentVerdict)
 
@@ -178,18 +164,8 @@ struct ArticleIntelligenceCard: View {
 
         isGenerating = false
 
-        NSLog("[AI][Card] Stream DONE — chunks: %d, sections: %d, verdict empty: %@", chunkCount, sectionOrder.count, currentVerdict.isEmpty ? "YES" : "NO")
-        if streamedSections.isEmpty {
-            if !rawAccumulator.isEmpty {
-                rawFallbackText = rawAccumulator
-                NSLog("[AI][Card] Using raw fallback — %d chars", rawAccumulator.count)
-            } else {
-                NSLog("[AI][Card] ⚠️ NO CONTENT — nothing to display")
-            }
-        } else {
-            for s in streamedSections {
-                NSLog("[AI][Card] section '%@': %d chars", s.title, s.content.count)
-            }
+        if streamedSections.isEmpty && !rawAccumulator.isEmpty {
+            rawFallbackText = rawAccumulator
         }
     }
 

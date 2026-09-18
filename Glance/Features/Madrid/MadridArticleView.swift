@@ -8,12 +8,7 @@ struct MadridArticleView: View {
     }
 
     private var strippedContent: String {
-        let stripped = HTMLStripper.stripMedia(from: article.content)
-        NSLog("[AI][Madrid] title: '%@', raw: %d chars, stripped: %d chars", article.title, article.content.count, stripped.count)
-        if stripped.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            NSLog("[AI][Madrid] ⚠️ STRIPPED CONTENT EMPTY")
-        }
-        return stripped
+        HTMLStripper.stripMedia(from: article.content)
     }
 
     private var paragraphs: [String] {

@@ -88,7 +88,7 @@ struct MadridPipeline: Sendable {
 
             let lastMatch = matchTimeline.first(where: { $0.isFinished }).flatMap { Self.convertToLastMatch($0) }
             let nextFixture = matchTimeline.first(where: { !$0.isFinished }).flatMap { Self.convertToFixture($0) }
-            let form = Self.parseForm(from: madridRecentEvents)
+            let form = Self.parseForm(from: madridRecentEvents, teamID: teamID)
             let standing = Self.parseStanding(from: table, teamID: teamID)
 
             // 3. Fetch Exa for related articles
@@ -207,23 +207,23 @@ struct MadridPipeline: Sendable {
     // MARK: - Parsing Helpers
 
     /// Split event badge URLs into (Real Madrid, opponent) based on which side RM is on.
-    private static func badges(for match: SDBEvent) -> (rm: String?, opponent: String?) {
-        let isHome = match.idHomeTeam == SportsDB.realMadridID
+    private static func badges(for match: SDBEvent, teamID: String) -> (rm: String?, opponent: String?) {
+        let isHome = match.idHomeTeam == teamID
         return isHome
             ? (match.strHomeTeamBadge, match.strAwayTeamBadge)
             : (match.strAwayTeamBadge, match.strHomeTeamBadge)
     }
 
-    static func parseLastMatch(from events: [SDBEvent]) -> LastMatch? {
+    static func parseLastMatch(from events: [SDBEvent], teamID: String) -> LastMatch? {
         // eventslast returns the most recent events first
         guard let match = events.first(where: { $0.isFinished }) else { return nil }
 
-        let isHome = match.idHomeTeam == SportsDB.realMadridID
+        let isHome = match.idHomeTeam == teamID
         let opponent = isHome ? match.strAwayTeam : match.strHomeTeam
         let homeGoals = match.intHomeScore ?? 0
         let awayGoals = match.intAwayScore ?? 0
         let datetime = match.strTimestamp ?? match.dateEvent ?? ""
-        let badges = Self.badges(for: match)
+        let badges = Self.badges(for: match, teamID: teamID)
 
         return LastMatch(
             opponent: opponent,
@@ -240,10 +240,10 @@ struct MadridPipeline: Sendable {
         )
     }
 
-    static func parseNextFixture(from event: SDBEvent?) -> Fixture? {
+    static func parseNextFixture(from event: SDBEvent?, teamID: String) -> Fixture? {
         guard let match = event else { return nil }
 
-        let isHome = match.idHomeTeam == SportsDB.realMadridID
+        let isHome = match.idHomeTeam == teamID
         let opponent = isHome ? match.strAwayTeam : match.strHomeTeam
         let venue = match.strVenue ?? ""
 
@@ -258,7 +258,7 @@ struct MadridPipeline: Sendable {
             ?? (match.dateEvent.map { "\($0)T\(match.strTime ?? "00:00:00")" })
             ?? match.dateEvent
             ?? ""
-        let badges = Self.badges(for: match)
+        let badges = Self.badges(for: match, teamID: teamID)
 
         return Fixture(
             opponent: opponent,
@@ -305,7 +305,7 @@ struct MadridPipeline: Sendable {
     private static func timelineItem(from event: SDBEvent, teamID: String) -> MatchTimelineItem? {
         let isHome = event.idHomeTeam == teamID
         let opponent = isHome ? event.strAwayTeam : event.strHomeTeam
-        let badges = Self.badges(for: event)
+        let badges = Self.badges(for: event, teamID: teamID)
         let datetime = event.strTimestamp
             ?? (event.dateEvent.map { "\($0)T\(event.strTime ?? "00:00:00")" })
             ?? event.dateEvent
@@ -379,12 +379,12 @@ struct MadridPipeline: Sendable {
         )
     }
 
-    static func parseForm(from events: [SDBEvent]) -> [FormEntry] {
+    static func parseForm(from events: [SDBEvent], teamID: String) -> [FormEntry] {
         // Form from last 5 finished matches (most recent first)
         let finished = events.filter { $0.isFinished }.prefix(5)
 
         return finished.map { match in
-            let isHome = match.idHomeTeam == SportsDB.realMadridID
+            let isHome = match.idHomeTeam == teamID
             let homeGoals = match.intHomeScore ?? 0
             let awayGoals = match.intAwayScore ?? 0
 
