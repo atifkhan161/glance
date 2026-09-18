@@ -36,6 +36,33 @@ Glance/
 └── Shared/           # Enums, extensions
 ```
 
+## Apple Intelligence
+
+Glance runs AI entirely on-device using Apple's Foundation Models framework — zero cost, zero latency, fully private. No data leaves your phone.
+
+### AI Features
+
+| Feature | What it does |
+|---------|-------------|
+| **Article Summaries** | Streaming numbered sections + verdict on any article |
+| **Real Madrid** | Match form, La Liga standing, tactical intel from web search |
+| **Pokémon GO** | Top priority raid/event recommendation |
+| **AI Intel** | Classifies news as Frontier Labs vs Open Weights |
+
+### How It Works
+
+1. **On-device** — Uses `SystemLanguageModel` with permissive guardrails for content summarization
+2. **Fallback** — If Apple Intelligence is unavailable, routes to Gemini cloud (API key in Settings)
+3. **Graceful degradation** — If both fail, feature hides silently — no crashes, no empty cards
+
+### Requirements
+
+- iPhone 15 Pro / iPhone 16 / iPhone 17 (A17 Pro or later)
+- iOS 18+ with Apple Intelligence enabled
+- ~1.6 GB model download (auto-downloads on first use)
+
+Check status in **Settings > Sources > ON-DEVICE AI**.
+
 ## API Keys
 
 Glance requires the following API keys, configured in Settings:
