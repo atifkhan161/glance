@@ -37,6 +37,10 @@ struct RepoDetailView: View {
                 }
                 .padding(Theme.cardPadding)
                 .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+                .overlay(
+                    RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                        .stroke(Theme.Colors.cardEmerald.opacity(0.3), lineWidth: 1)
+                )
 
                 // Stats grid
                 LazyVGrid(columns: [
@@ -51,19 +55,6 @@ struct RepoDetailView: View {
                         statCell("Trending", value: "+\(starsPeriod)", icon: "bolt.fill", color: Theme.Colors.cardAmber)
                     }
                     statCell("Rank", value: "#\(repository.rank)", icon: "chart.bar.fill", color: Theme.Colors.cardCyan)
-                }
-
-                // Period stars pill
-                if let starsPeriod = repository.starsPeriod, starsPeriod > 0 {
-                    HStack(spacing: 6) {
-                        Image(systemName: "bolt.fill")
-                        Text("+\(starsPeriod) stars \(repository.periodLabel ?? "today")")
-                    }
-                    .font(Theme.Fonts.manrope(13, weight: .semibold))
-                    .foregroundStyle(Theme.Colors.cardEmerald)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Theme.Colors.cardEmerald.opacity(0.15), in: .capsule)
                 }
 
                 // Language card
@@ -118,7 +109,7 @@ struct RepoDetailView: View {
                         .padding(.vertical, 12)
                         .background(Theme.Colors.cardEmerald.opacity(0.15), in: RoundedRectangle(cornerRadius: Theme.Radius.medium))
                     }
-                    .padding(.top, 24)
+                    .padding(.top, 12)
                 }
             }
             .padding(.horizontal, Theme.cardPadding)
@@ -145,7 +136,7 @@ struct RepoDetailView: View {
                 .foregroundStyle(Theme.Colors.textMuted)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
+        .padding(.vertical, 12)
         .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.medium))
     }
 

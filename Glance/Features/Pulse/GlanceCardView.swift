@@ -480,34 +480,34 @@ struct GlanceCardView: View {
 
                 if let desc = item.description, !desc.isEmpty {
                     Text(desc)
-                        .font(Theme.Fonts.manrope(12))
+                        .font(Theme.Fonts.manrope(13))
                         .foregroundStyle(Theme.Colors.textSecondary)
                         .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else if let lang = item.language {
+                    Text(lang)
+                        .font(Theme.Fonts.manrope(13))
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     Text("★ \(TimeFormat.stars(item.starsTotal))")
-                        .font(Theme.Fonts.manrope(12))
-                        .foregroundStyle(Theme.Colors.textSecondary)
-
                     if let starsPeriod = item.starsPeriod, starsPeriod > 0 {
                         Text("+\(starsPeriod)")
-                            .font(Theme.Fonts.manrope(11, weight: .bold))
                             .foregroundStyle(card.accentColor)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(card.accentColor.opacity(0.15), in: .capsule)
                     }
-
                     if let lang = item.language {
-                        HStack(spacing: 3) {
-                            Circle().fill(Theme.languageColor(for: lang)).frame(width: 6, height: 6)
+                        HStack(spacing: 2) {
+                            Circle().fill(Theme.languageColor(for: lang)).frame(width: 5, height: 5)
                             Text(lang)
-                                .font(Theme.Fonts.manrope(11))
-                                .foregroundStyle(Theme.Colors.textMuted)
                         }
                     }
+                    Text("⑂ \(TimeFormat.stars(item.forksTotal))")
                 }
+                .font(Theme.Fonts.manrope(11))
+                .foregroundStyle(Theme.Colors.textMuted)
             }
 
             Spacer()

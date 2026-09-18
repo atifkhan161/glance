@@ -101,7 +101,15 @@ final class PulseStore {
         let (m, p, g, a) = await (madridEnvelope, pogoEnvelope, githubEnvelope, aiIntelEnvelope)
         if let m { madrid = .ready(data: m.data, age: TimeFormat.age(from: Date(timeIntervalSince1970: TimeInterval(m.timestampMs) / 1000))) }
         if let p { pogo = .ready(data: p.data, age: TimeFormat.age(from: Date(timeIntervalSince1970: TimeInterval(p.timestampMs) / 1000))) }
-        if let g { github = .ready(data: g.data, age: TimeFormat.age(from: Date(timeIntervalSince1970: TimeInterval(g.timestampMs) / 1000))) }
+        if let g {
+            let hasDescriptions = g.data.repos.contains { $0.description != nil && !$0.description!.isEmpty }
+            if hasDescriptions {
+                github = .ready(data: g.data, age: TimeFormat.age(from: Date(timeIntervalSince1970: TimeInterval(g.timestampMs) / 1000)))
+             } else {
+                await cache.remove("cache_github_trending_\(selectedSince)")
+                github = .loading
+            }
+        }
         if let a { aiIntel = .ready(data: a.data, age: TimeFormat.age(from: Date(timeIntervalSince1970: TimeInterval(a.timestampMs) / 1000))) }
 
         for feed in settingsStore.customRSSFeeds where feed.isEnabled {

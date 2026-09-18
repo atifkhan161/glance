@@ -49,6 +49,16 @@ final class SettingsStore {
         set { defaults.set(newValue, forKey: "madrid_league_id") }
     }
 
+    var madridSelectedTeam: FootballTeam {
+        get {
+            FootballData.team(byID: madridTeamID) ?? FootballData.topChampionsLeagueTeams[0]
+        }
+        set {
+            madridTeamID = newValue.id
+            madridLeagueID = newValue.leagueID
+        }
+    }
+
     var pogoRaidsURL: String {
         get { defaults.string(forKey: "pogo_raids_url") ?? "https://raw.githubusercontent.com/bigfoott/ScrapedDuck/data/raids.json" }
         set { defaults.set(newValue, forKey: "pogo_raids_url") }
