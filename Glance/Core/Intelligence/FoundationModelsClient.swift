@@ -7,7 +7,8 @@ import Foundation
         private let permissiveModel = SystemLanguageModel(guardrails: .permissiveContentTransformations)
 
         func isAvailable() async -> Bool {
-            SystemLanguageModel.default.isAvailable
+            if case .available = SystemLanguageModel.default.availability { return true }
+            return false
         }
 
         func availabilityStatus() -> (available: Bool, reason: String) {
@@ -66,7 +67,8 @@ import Foundation
         }
 
         func isAvailableSync() -> Bool {
-            SystemLanguageModel.default.isAvailable
+            if case .available = SystemLanguageModel.default.availability { return true }
+            return false
         }
 
         func summarizeArticle(content: String, prompt: String) async throws -> ArticleIntelligenceResult {

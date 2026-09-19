@@ -98,6 +98,18 @@
 		FE86DACADCCAC95C40100576 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954888EEB9FC4A982A823CBE /* Theme.swift */; };
 		FEED1234FACEBEEF00000001 /* ArticleScraper.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEED1234FACEBEEF00000002 /* ArticleScraper.swift */; };
 		FOOTBALLDATA1234567890AC /* FootballData.swift in Sources */ = {isa = PBXBuildFile; fileRef = FOOTBALLDATA1234567890AB /* FootballData.swift */; };
+		AA0000000000000000000001 /* SmartSearchModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000011 /* SmartSearchModels.swift */; };
+		AA0000000000000000000002 /* SmartSearchPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000012 /* SmartSearchPipeline.swift */; };
+		AA0000000000000000000003 /* SmartSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000013 /* SmartSearchView.swift */; };
+		AA0000000000000000000004 /* QuickSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000014 /* QuickSearchView.swift */; };
+		AA0000000000000000000005 /* QuickSearchResultRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000015 /* QuickSearchResultRow.swift */; };
+		AA0000000000000000000006 /* DeepResearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000016 /* DeepResearchView.swift */; };
+		AA0000000000000000000007 /* ResearchListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000017 /* ResearchListView.swift */; };
+		AA0000000000000000000008 /* ResearchFileRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000018 /* ResearchFileRow.swift */; };
+		AA0000000000000000000009 /* MarkdownPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000019 /* MarkdownPreviewView.swift */; };
+		AA000000000000000000000A /* OpenRouterClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001A /* OpenRouterClient.swift */; };
+		AA000000000000000000000B /* ExaEnhancedClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001B /* ExaEnhancedClient.swift */; };
+		AA000000000000000000000C /* MarkdownStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001C /* MarkdownStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -213,6 +225,18 @@
 		FEED1234FACEBEEF00000002 /* ArticleScraper.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ArticleScraper.swift; sourceTree = "<group>"; };
 		FF22GG33HH44II55FF660080 /* GenericRSSPipeline.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GenericRSSPipeline.swift; sourceTree = "<group>"; };
 		FOOTBALLDATA1234567890AB /* FootballData.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = FootballData.swift; sourceTree = "<group>"; };
+		AA0000000000000000000011 /* SmartSearchModels.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SmartSearchModels.swift; sourceTree = "<group>"; };
+		AA0000000000000000000012 /* SmartSearchPipeline.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SmartSearchPipeline.swift; sourceTree = "<group>"; };
+		AA0000000000000000000013 /* SmartSearchView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SmartSearchView.swift; sourceTree = "<group>"; };
+		AA0000000000000000000014 /* QuickSearchView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = QuickSearchView.swift; sourceTree = "<group>"; };
+		AA0000000000000000000015 /* QuickSearchResultRow.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = QuickSearchResultRow.swift; sourceTree = "<group>"; };
+		AA0000000000000000000016 /* DeepResearchView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = DeepResearchView.swift; sourceTree = "<group>"; };
+		AA0000000000000000000017 /* ResearchListView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ResearchListView.swift; sourceTree = "<group>"; };
+		AA0000000000000000000018 /* ResearchFileRow.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ResearchFileRow.swift; sourceTree = "<group>"; };
+		AA0000000000000000000019 /* MarkdownPreviewView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = MarkdownPreviewView.swift; sourceTree = "<group>"; };
+		AA000000000000000000001A /* OpenRouterClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = OpenRouterClient.swift; sourceTree = "<group>"; };
+		AA000000000000000000001B /* ExaEnhancedClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ExaEnhancedClient.swift; sourceTree = "<group>"; };
+		AA000000000000000000001C /* MarkdownStore.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = MarkdownStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -278,6 +302,8 @@
 				761E28609E32E6E33EB2DC21 /* ManagingMadridClient.swift */,
 				FEED1234FACEBEEF00000002 /* ArticleScraper.swift */,
 				DD22EE33FF44GG55FF660079 /* GenericRSSClient.swift */,
+				AA000000000000000000001B /* ExaEnhancedClient.swift */,
+				AA000000000000000000001A /* OpenRouterClient.swift */,
 				C2D3E4F5A6B7C8D9E0F1A2B3 /* NetworkMonitor.swift */,
 			);
 			path = Network;
@@ -389,6 +415,7 @@
 				4F3610F406F35B78849DB8D2 /* CacheEnvelope.swift */,
 				2FCCD985E015E21DCCED8520 /* CacheStore.swift */,
 				5499D323A95C9D573A14BDD5 /* KeychainStore.swift */,
+				AA000000000000000000001C /* MarkdownStore.swift */,
 			);
 			path = Cache;
 			sourceTree = "<group>";
@@ -403,6 +430,7 @@
 				70D8BCC9BB56E4FDECD0DFAC /* AiIntel */,
 				GG33HH44II55JJ66KK77 /* GenericRSS */,
 				A1B2C3D400010001CA0001C1 /* CustomRSS */,
+				AA00000000000000000000AA /* SmartSearch */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -540,6 +568,22 @@
 				FF22GG33HH44II55FF660080 /* GenericRSSPipeline.swift */,
 			);
 			path = GenericRSS;
+			sourceTree = "<group>";
+		};
+		AA00000000000000000000AA /* SmartSearch */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000000000000000000011 /* SmartSearchModels.swift */,
+				AA0000000000000000000012 /* SmartSearchPipeline.swift */,
+				AA0000000000000000000013 /* SmartSearchView.swift */,
+				AA0000000000000000000014 /* QuickSearchView.swift */,
+				AA0000000000000000000015 /* QuickSearchResultRow.swift */,
+				AA0000000000000000000016 /* DeepResearchView.swift */,
+				AA0000000000000000000017 /* ResearchListView.swift */,
+				AA0000000000000000000018 /* ResearchFileRow.swift */,
+				AA0000000000000000000019 /* MarkdownPreviewView.swift */,
+			);
+			path = SmartSearch;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -773,6 +817,19 @@
 				D3E4F5A6B7C8D9E0F1A2B3C4 /* CachedAsyncImage.swift in Sources */,
 				4C5A4447575865357AA90C3A /* Enums.swift in Sources */,
 				258D90A7CF4894803C569D75 /* Extensions.swift in Sources */,
+				AA000000000000000000000C /* MarkdownStore.swift in Sources */,
+				AA000000000000000000000B /* ExaEnhancedClient.swift in Sources */,
+				AA000000000000000000000A /* OpenRouterClient.swift in Sources */,
+				AA0000000000000000000009 /* MarkdownPreviewView.swift in Sources */,
+				AA0000000000000000000008 /* ResearchFileRow.swift in Sources */,
+				AA0000000000000000000007 /* ResearchListView.swift in Sources */,
+				AA0000000000000000000006 /* DeepResearchView.swift in Sources */,
+				AA0000000000000000000005 /* QuickSearchResultRow.swift in Sources */,
+				AA0000000000000000000004 /* QuickSearchView.swift in Sources */,
+				AA0000000000000000000003 /* SmartSearchView.swift in Sources */,
+				AA0000000000000000000002 /* SmartSearchPipeline.swift in Sources */,
+				AA0000000000000000000001 /* SmartSearchModels.swift in Sources */,
+
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

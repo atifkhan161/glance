@@ -5,6 +5,7 @@ import Foundation
 final class SettingsStore {
     var exaAPIKey: String = ""
     var geminiAPIKey: String = ""
+    var openrouterAPIKey: String = ""
     var selectedModel: String = "gemini-3.6-flash"
 
     var leadCard: String {
@@ -110,6 +111,7 @@ final class SettingsStore {
     func loadFromKeychain() {
         exaAPIKey = ""
         geminiAPIKey = ""
+        openrouterAPIKey = ""
         selectedModel = defaults.string(forKey: "gemini_model") ?? "gemini-3.6-flash"
     }
 
@@ -120,6 +122,9 @@ final class SettingsStore {
         if !geminiAPIKey.isEmpty {
             try? keychain.save(geminiAPIKey, forKey: "keys_gemini")
         }
+        if !openrouterAPIKey.isEmpty {
+            try? keychain.save(openrouterAPIKey, forKey: "keys_openrouter")
+        }
         defaults.set(selectedModel, forKey: "gemini_model")
     }
 
@@ -128,6 +133,7 @@ final class SettingsStore {
         switch service {
         case "Exa": key = "keys_exa"
         case "Gemini": key = "keys_gemini"
+        case "OpenRouter": key = "keys_openrouter"
         default: return nil
         }
         guard let value = keychain.load(forKey: key) else { return nil }

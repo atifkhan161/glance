@@ -56,7 +56,7 @@ struct CustomRSSCardView: View {
                     .frame(width: 8, height: 8)
                     .accessibilityHidden(true)
 
-                Image(systemName: "rss")
+                Image(systemName: "dot.rss")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(accentColor)
                     .accessibilityHidden(true)

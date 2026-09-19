@@ -226,6 +226,36 @@ struct SettingsView: View {
                 .pickerStyle(.segmented)
             }
 
+            // OpenRouter
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("OPENROUTER")
+                        .font(Theme.Fonts.manrope(10, weight: .bold))
+                        .foregroundStyle(Theme.Colors.textMuted)
+                        .tracking(1.2)
+                    Spacer()
+                    Text(settingsStore.openrouterAPIKey.isEmpty ? "Missing" : "Configured ✓")
+                        .font(Theme.Fonts.manrope(10, weight: .medium))
+                        .foregroundStyle(settingsStore.openrouterAPIKey.isEmpty ? Theme.Colors.cardAmber : Theme.Colors.success)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(
+                            (settingsStore.openrouterAPIKey.isEmpty ? Theme.Colors.cardAmber : Theme.Colors.success).opacity(0.15),
+                            in: .capsule
+                        )
+                }
+
+                SecureField("Enter OpenRouter API key", text: $settingsStore.openrouterAPIKey)
+                    .font(Theme.Fonts.manrope(14))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .padding(12)
+                    .background(Theme.Colors.canvasDeep, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.Radius.small)
+                            .stroke(Theme.Colors.borderSubtle, lineWidth: 1)
+                    )
+            }
+
             // Football Data info
             VStack(alignment: .leading, spacing: 8) {
                 HStack {

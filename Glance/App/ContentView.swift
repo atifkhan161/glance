@@ -21,6 +21,9 @@ struct ContentView: View {
                 case .settings:
                     NavigationStack(path: $bindable.settingsPath) { SettingsView() }
                         .tint(Theme.Colors.accent)
+                case .search:
+                    NavigationStack(path: $bindable.searchPath) { SmartSearchView() }
+                        .tint(Theme.Colors.accent)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -103,6 +106,7 @@ extension GlanceTab {
         switch self {
         case .pulse: "bolt.fill"
         case .provider: "antenna.radiowaves.left.and.right"
+        case .search: "magnifyingglass"
         case .settings: "gearshape.fill"
         }
     }
@@ -111,6 +115,7 @@ extension GlanceTab {
         switch self {
         case .pulse: "Feed"
         case .provider: "Providers"
+        case .search: "Search"
         case .settings: "Settings"
         }
     }
@@ -119,6 +124,7 @@ extension GlanceTab {
         switch self {
         case .pulse: Theme.Colors.cardEmerald
         case .provider: Theme.Colors.cardAmber
+        case .search: Theme.Colors.cardCyan
         case .settings: Theme.Colors.textMuted
         }
     }
@@ -127,6 +133,7 @@ extension GlanceTab {
         switch self {
         case .pulse: "Pulse feed"
         case .provider: "Data providers"
+        case .search: "Smart search"
         case .settings: "Settings"
         }
     }

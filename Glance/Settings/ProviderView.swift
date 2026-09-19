@@ -141,7 +141,7 @@ struct ProviderView: View {
                     ForEach(Array(settingsStore.customRSSFeeds.enumerated()), id: \.element.id) { index, feed in
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
-                                Image(systemName: "rss")
+                                Image(systemName: "dot.rss")
                                     .foregroundStyle(Theme.Colors.cardAmber)
 
                                 TextField("Feed Name", text: Binding(

@@ -3,6 +3,7 @@ import Foundation
 enum GlanceTab: String, CaseIterable, Hashable, Sendable {
     case pulse
     case provider
+    case search
     case settings
 }
 
