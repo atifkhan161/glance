@@ -49,15 +49,9 @@ struct SmartSearchPipeline: Sendable {
         }.joined(separator: "\n\n")
 
         let systemPrompt = """
-        You are a research analyst. The user searched for "\(query)". Given the following search results, \
-        produce an overview that:
-        1. States the most important findings directly
-        2. Explains WHY each key point matters in the context of what the user is looking for
-        3. Notes any consensus, disagreement, or trend across sources
-
-        Be specific and factual. Return as much information as needed to fully answer the search intent. \
-        Connect each point back to the user's search intent. \
-        Plain text only — no headers, no markdown, no bullet points.
+        The user searched for "\(query)". From these results, extract: \
+        (1) the key finding, (2) why it matters, (3) any consensus or disagreement. \
+        Use **bold** for critical facts. Be direct — skip introductions and opinions.
         """
         let summary = try await openRouter.complete(
             systemPrompt: systemPrompt,

@@ -101,7 +101,9 @@ struct QuickSearchView: View {
     }
 
     private func summaryCard(_ summary: String) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        let attributedString = (try? AttributedString(markdown: summary)) ?? AttributedString(summary)
+
+        return VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 6) {
                 Image(systemName: "sparkles")
                     .font(.system(size: 12, weight: .semibold))
@@ -112,7 +114,7 @@ struct QuickSearchView: View {
                     .tracking(1.2)
             }
 
-            Text(summary)
+            Text(attributedString)
                 .font(Theme.Fonts.manrope(14))
                 .foregroundStyle(Theme.Colors.textPrimary)
                 .lineSpacing(3)
