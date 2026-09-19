@@ -4,8 +4,6 @@ struct QuickSearchView: View {
     @State private var pipeline = SmartSearchPipeline()
     @State private var query = ""
     @State private var state: QuickSearchState = .idle
-    @State private var searchTask: Task<Void, Never>?
-
     var body: some View {
         VStack(spacing: 0) {
             searchBar
@@ -37,18 +35,6 @@ struct QuickSearchView: View {
                 .foregroundStyle(Theme.Colors.textPrimary)
                 .autocorrectionDisabled()
                 .onSubmit { performSearch() }
-                .onChange(of: query) { _, newValue in
-                    searchTask?.cancel()
-                    guard !newValue.isEmpty else {
-                        state = .idle
-                        return
-                    }
-                    searchTask = Task {
-                        try? await Task.sleep(for: .milliseconds(500))
-                        guard !Task.isCancelled else { return }
-                        performSearch()
-                    }
-                }
 
             if !query.isEmpty {
                 Button {
@@ -59,6 +45,17 @@ struct QuickSearchView: View {
                         .foregroundStyle(Theme.Colors.textMuted)
                 }
             }
+
+            Button {
+                performSearch()
+            } label: {
+                Image(systemName: "arrow.up")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 32, height: 32)
+                    .background(query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Theme.Colors.textMuted : Theme.Colors.cardCyan, in: Circle())
+            }
+            .disabled(query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
         .padding(12)
         .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.medium))
