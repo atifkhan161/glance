@@ -77,7 +77,7 @@ struct QuickSearchView: View {
 
     private func resultsList(_ results: [ExaResult]) -> some View {
         ScrollView {
-            LazyVStack(spacing: 8) {
+            LazyVStack(spacing: Theme.spacing) {
                 ForEach(results, id: \.url) { result in
                     if let url = URL(string: result.url) {
                         Link(destination: url) {
@@ -87,7 +87,8 @@ struct QuickSearchView: View {
                     }
                 }
             }
-            .padding(Theme.cardPadding)
+            .padding(.horizontal, Theme.cardPadding)
+            .padding(.top, 8)
             .padding(.bottom, 100)
         }
     }
