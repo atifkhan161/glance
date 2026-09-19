@@ -28,6 +28,9 @@ struct SmartSearchView: View {
         .navigationDestination(isPresented: $showResearchList) {
             ResearchListView()
         }
+        .navigationDestination(for: ExaResult.self) { result in
+            SearchResultDetailView(result: result)
+        }
     }
 
     private var researchListLink: some View {

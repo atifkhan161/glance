@@ -110,6 +110,7 @@
 		AA000000000000000000000A /* OpenRouterClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001A /* OpenRouterClient.swift */; };
 		AA000000000000000000000B /* ExaEnhancedClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001B /* ExaEnhancedClient.swift */; };
 		AA000000000000000000000C /* MarkdownStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001C /* MarkdownStore.swift */; };
+		AA000000000000000000001D /* SearchResultDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001E /* SearchResultDetailView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -237,6 +238,7 @@
 		AA000000000000000000001A /* OpenRouterClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = OpenRouterClient.swift; sourceTree = "<group>"; };
 		AA000000000000000000001B /* ExaEnhancedClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ExaEnhancedClient.swift; sourceTree = "<group>"; };
 		AA000000000000000000001C /* MarkdownStore.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = MarkdownStore.swift; sourceTree = "<group>"; };
+		AA000000000000000000001E /* SearchResultDetailView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SearchResultDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -582,6 +584,7 @@
 				AA0000000000000000000017 /* ResearchListView.swift */,
 				AA0000000000000000000018 /* ResearchFileRow.swift */,
 				AA0000000000000000000019 /* MarkdownPreviewView.swift */,
+				AA000000000000000000001E /* SearchResultDetailView.swift */,
 			);
 			path = SmartSearch;
 			sourceTree = "<group>";
@@ -829,6 +832,7 @@
 				AA0000000000000000000003 /* SmartSearchView.swift in Sources */,
 				AA0000000000000000000002 /* SmartSearchPipeline.swift in Sources */,
 				AA0000000000000000000001 /* SmartSearchModels.swift in Sources */,
+				AA000000000000000000001D /* SearchResultDetailView.swift in Sources */,
 
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -79,12 +79,10 @@ struct QuickSearchView: View {
         ScrollView {
             LazyVStack(spacing: Theme.spacing) {
                 ForEach(results, id: \.url) { result in
-                    if let url = URL(string: result.url) {
-                        Link(destination: url) {
-                            QuickSearchResultRow(result: result)
-                        }
-                        .buttonStyle(.plain)
+                    NavigationLink(value: result) {
+                        QuickSearchResultRow(result: result)
                     }
+                    .buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, Theme.cardPadding)

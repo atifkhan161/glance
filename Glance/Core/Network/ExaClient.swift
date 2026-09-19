@@ -4,7 +4,7 @@ protocol ExaClientProtocol: Sendable {
     func search(query: String, apiKey: String) async throws -> [ExaResult]
 }
 
-struct ExaResult: Codable, Sendable, Equatable {
+struct ExaResult: Codable, Sendable, Equatable, Hashable {
     let title: String
     let url: String
     let text: String?
