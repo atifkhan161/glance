@@ -24,7 +24,7 @@ struct SmartSearchPipeline: Sendable {
             type: "auto",
             numResults: 10,
             contentsHighlights: true,
-            contentsText: false,
+            contentsText: includeDomains != nil,
             includeDomains: includeDomains
         )
         let results = try await exa.search(request: request, apiKey: exaKey)
@@ -45,8 +45,8 @@ struct SmartSearchPipeline: Sendable {
         }
 
         let combinedHighlights = results.enumerated().map { index, result in
-            let snippets = result.highlights.prefix(3).joined(separator: " ")
-            return "[\(index + 1)] \(result.title): \(snippets)"
+            let content = result.highlights.isEmpty ? (result.text ?? "") : result.highlights.prefix(3).joined(separator: " ")
+            return "[\(index + 1)] \(result.title): \(content)"
         }.joined(separator: "\n\n")
 
         let systemPrompt = """
