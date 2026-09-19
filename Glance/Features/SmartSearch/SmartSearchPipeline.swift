@@ -1,12 +1,21 @@
 import Foundation
+import CryptoKit
 
 struct SmartSearchPipeline: Sendable {
     private let exa = ExaEnhancedClient()
     private let openRouter = OpenRouterClient()
     private let markdownStore = MarkdownStore.shared
     private let keychain = KeychainStore.shared
+    private let cache = CacheStore.shared
 
     func quickSearch(query: String) async throws -> [ExaResult] {
+        let cacheKey = searchCacheKey(query)
+
+        if let cached: CacheEnvelope<[ExaResult]> = await cache.load(cacheKey),
+           !cached.isExpired {
+            return cached.data
+        }
+
         guard let exaKey = keychain.load(forKey: "keys_exa") else {
             throw GlanceError.keyMissing("Exa API key not configured")
         }
@@ -17,7 +26,41 @@ struct SmartSearchPipeline: Sendable {
             contentsHighlights: true,
             contentsText: false
         )
-        return try await exa.search(request: request, apiKey: exaKey)
+        let results = try await exa.search(request: request, apiKey: exaKey)
+        await cache.save(cacheKey, envelope: CacheEnvelope(data: results, ttlMs: 24 * 3_600 * 1000))
+        return results
+    }
+
+    func generateAggregatedSummary(query: String, results: [ExaResult]) async throws -> String {
+        let cacheKey = summaryCacheKey(query)
+
+        if let cached: CacheEnvelope<String> = await cache.load(cacheKey),
+           !cached.isExpired {
+            return cached.data
+        }
+
+        guard let openRouterKey = keychain.load(forKey: "keys_openrouter") else {
+            throw GlanceError.keyMissing("OpenRouter API key not configured")
+        }
+
+        let combinedHighlights = results.enumerated().map { index, result in
+            let snippets = result.highlights.prefix(3).joined(separator: " ")
+            return "[\(index + 1)] \(result.title): \(snippets)"
+        }.joined(separator: "\n\n")
+
+        let systemPrompt = """
+        You are a research summarizer. Given search results about a query, produce a concise \
+        2-3 sentence overview covering the key findings, trends, or consensus across the sources. \
+        Be factual and specific. Do not use headers or markdown formatting — just plain text.
+        """
+        let summary = try await openRouter.complete(
+            systemPrompt: systemPrompt,
+            userPrompt: "Query: \(query)\n\nSearch results:\n\(combinedHighlights)",
+            apiKey: openRouterKey
+        )
+
+        await cache.save(cacheKey, envelope: CacheEnvelope(data: summary, ttlMs: 24 * 3_600 * 1000))
+        return summary
     }
 
     func generateSubQueries(topic: String, count: Int) async throws -> [String] {
@@ -85,5 +128,19 @@ struct SmartSearchPipeline: Sendable {
 
     func deleteResearchFile(url: URL) async throws {
         try await markdownStore.delete(url: url)
+    }
+
+    private func searchCacheKey(_ query: String) -> String {
+        let normalized = query.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        let hash = SHA256.hash(data: Data(normalized.utf8))
+        let hex = hash.map { String(format: "%02x", $0) }.joined()
+        return "cache_exa_search_\(hex.prefix(16))"
+    }
+
+    private func summaryCacheKey(_ query: String) -> String {
+        let normalized = query.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        let hash = SHA256.hash(data: Data(normalized.utf8))
+        let hex = hash.map { String(format: "%02x", $0) }.joined()
+        return "cache_exa_summary_\(hex.prefix(16))"
     }
 }

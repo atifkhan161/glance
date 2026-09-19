@@ -15,6 +15,8 @@ actor CacheStore {
         "cache_pogo": 6 * 3_600,      // 6 hours
         "cache_github": 24 * 3_600,   // 24 hours
         "cache_aiintel": 12 * 3_600,  // 12 hours
+        "cache_exa_search": 24 * 3_600,   // 24 hours
+        "cache_exa_summary": 24 * 3_600,  // 24 hours
     ]
 
     func hydrate() {
@@ -106,6 +108,8 @@ actor CacheStore {
         "cache_scrapedd",
         "cache_github_raw",
         "gemini_model",
+        "cache_exa_search",
+        "cache_exa_summary",
     ]
 }
 

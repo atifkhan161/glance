@@ -10,13 +10,13 @@ struct OpenRouterClient: Sendable {
         request.addValue("Glance-iOS", forHTTPHeaderField: "HTTP-Referer")
 
         let body: [String: Any] = [
-            "model": "openrouter/free",
+            "model": "openrouter/free:floor",
             "messages": [
                 ["role": "system", "content": systemPrompt],
                 ["role": "user", "content": userPrompt],
             ],
             "temperature": 0.7,
-            "max_tokens": 4096,
+            "max_tokens": 512,
         ]
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
