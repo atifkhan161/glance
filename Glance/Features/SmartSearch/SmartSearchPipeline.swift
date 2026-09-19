@@ -49,9 +49,15 @@ struct SmartSearchPipeline: Sendable {
         }.joined(separator: "\n\n")
 
         let systemPrompt = """
-        You are a research summarizer. Given search results about a query, produce a concise \
-        2-3 sentence overview covering the key findings, trends, or consensus across the sources. \
-        Be factual and specific. Do not use headers or markdown formatting — just plain text.
+        You are a research analyst. The user searched for "\(query)". Given the following search results, \
+        produce an overview that:
+        1. States the most important findings directly
+        2. Explains WHY each key point matters in the context of what the user is looking for
+        3. Notes any consensus, disagreement, or trend across sources
+
+        Be specific and factual. Return as much information as needed to fully answer the search intent. \
+        Connect each point back to the user's search intent. \
+        Plain text only — no headers, no markdown, no bullet points.
         """
         let summary = try await openRouter.complete(
             systemPrompt: systemPrompt,
