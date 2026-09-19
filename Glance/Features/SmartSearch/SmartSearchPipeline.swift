@@ -8,8 +8,8 @@ struct SmartSearchPipeline: Sendable {
     private let keychain = KeychainStore.shared
     private let cache = CacheStore.shared
 
-    func quickSearch(query: String) async throws -> [ExaResult] {
-        let cacheKey = searchCacheKey(query)
+    func quickSearch(query: String, includeDomains: [String]? = nil) async throws -> [ExaResult] {
+        let cacheKey = searchCacheKey(query, domains: includeDomains)
 
         if let cached: CacheEnvelope<[ExaResult]> = await cache.load(cacheKey),
            !cached.isExpired {
@@ -24,7 +24,8 @@ struct SmartSearchPipeline: Sendable {
             type: "auto",
             numResults: 10,
             contentsHighlights: true,
-            contentsText: false
+            contentsText: false,
+            includeDomains: includeDomains
         )
         let results = try await exa.search(request: request, apiKey: exaKey)
         await cache.save(cacheKey, envelope: CacheEnvelope(data: results, ttlMs: 24 * 3_600 * 1000))
@@ -130,9 +131,11 @@ struct SmartSearchPipeline: Sendable {
         try await markdownStore.delete(url: url)
     }
 
-    private func searchCacheKey(_ query: String) -> String {
+    private func searchCacheKey(_ query: String, domains: [String]?) -> String {
         let normalized = query.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        let hash = SHA256.hash(data: Data(normalized.utf8))
+        let domainPart = domains?.sorted().joined(separator: ",") ?? ""
+        let combined = "\(normalized)|\(domainPart)"
+        let hash = SHA256.hash(data: Data(combined.utf8))
         let hex = hash.map { String(format: "%02x", $0) }.joined()
         return "cache_exa_search_\(hex.prefix(16))"
     }

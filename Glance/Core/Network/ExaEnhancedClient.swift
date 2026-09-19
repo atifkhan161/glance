@@ -7,6 +7,7 @@ struct ExaEnhancedSearchRequest {
     let contentsHighlights: Bool
     let contentsText: Bool
     let systemPrompt: String?
+    let includeDomains: [String]?
 
     init(
         query: String,
@@ -14,7 +15,8 @@ struct ExaEnhancedSearchRequest {
         numResults: Int = 10,
         contentsHighlights: Bool = true,
         contentsText: Bool = false,
-        systemPrompt: String? = nil
+        systemPrompt: String? = nil,
+        includeDomains: [String]? = nil
     ) {
         self.query = query
         self.type = type
@@ -22,6 +24,7 @@ struct ExaEnhancedSearchRequest {
         self.contentsHighlights = contentsHighlights
         self.contentsText = contentsText
         self.systemPrompt = systemPrompt
+        self.includeDomains = includeDomains
     }
 }
 
@@ -44,6 +47,9 @@ struct ExaEnhancedClient: Sendable {
             "contents": contents,
         ]
         if let sp = request.systemPrompt { body["systemPrompt"] = sp }
+        if let domains = request.includeDomains, !domains.isEmpty {
+            body["includeDomains"] = domains
+        }
 
         urlRequest.httpBody = try JSONSerialization.data(withJSONObject: body)
 

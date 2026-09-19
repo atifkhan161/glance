@@ -7,9 +7,19 @@ struct QuickSearchView: View {
     @State private var aggregatedSummary: String?
     @State private var isSummarizing = false
     @State private var currentSearchQuery = ""
+    @State private var selectedDomains: Set<String> = []
+
+    private let availableDomains: [(label: String, domain: String)] = [
+        ("Reddit", "reddit.com"),
+        ("Quora", "quora.com"),
+        ("YouTube", "youtube.com"),
+        ("MyDramaList", "mydramalist.com"),
+    ]
+
     var body: some View {
         VStack(spacing: 0) {
             searchBar
+            domainChips
 
             switch state {
             case .idle:
@@ -64,6 +74,52 @@ struct QuickSearchView: View {
         .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.medium))
         .padding(.horizontal, Theme.cardPadding)
         .padding(.top, 8)
+    }
+
+    private var domainChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(availableDomains, id: \.domain) { item in
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            if selectedDomains.contains(item.domain) {
+                                selectedDomains.remove(item.domain)
+                            } else {
+                                selectedDomains.insert(item.domain)
+                            }
+                        }
+                    } label: {
+                        Text(item.label)
+                            .font(Theme.Fonts.manrope(12, weight: .medium))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                selectedDomains.contains(item.domain)
+                                    ? Theme.Colors.cardCyan.opacity(0.2)
+                                    : Theme.Colors.surface1,
+                                in: Capsule()
+                            )
+                            .foregroundStyle(
+                                selectedDomains.contains(item.domain)
+                                    ? Theme.Colors.cardCyan
+                                    : Theme.Colors.textMuted
+                            )
+                            .overlay(
+                                Capsule()
+                                    .strokeBorder(
+                                        selectedDomains.contains(item.domain)
+                                            ? Theme.Colors.cardCyan.opacity(0.4)
+                                            : Theme.Colors.borderSubtle,
+                                        lineWidth: 1
+                                    )
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, Theme.cardPadding)
+            .padding(.vertical, 8)
+        }
     }
 
     private var emptyState: some View {
@@ -146,9 +202,10 @@ struct QuickSearchView: View {
         aggregatedSummary = nil
         isSummarizing = false
         currentSearchQuery = query
+        let domains = selectedDomains.isEmpty ? nil : Array(selectedDomains)
         Task {
             do {
-                let results = try await pipeline.quickSearch(query: query)
+                let results = try await pipeline.quickSearch(query: query, includeDomains: domains)
                 state = .results(results)
                 generateSummary(for: results)
             } catch {
