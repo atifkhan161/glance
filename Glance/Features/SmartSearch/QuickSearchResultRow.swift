@@ -37,18 +37,35 @@ struct QuickSearchResultRow: View {
                 }
             }
 
-            Text(result.title)
-                .font(Theme.Fonts.manrope(15, weight: .semibold))
-                .foregroundStyle(Theme.Colors.textPrimary)
-                .lineLimit(3)
-                .multilineTextAlignment(.leading)
+            HStack(alignment: .top, spacing: 12) {
+                if let image = result.image, let imageURL = URL(string: image) {
+                    AsyncImage(url: imageURL) { phase in
+                        switch phase {
+                        case .success(let img):
+                            img.resizable().scaledToFill()
+                        default:
+                            Color.clear
+                        }
+                    }
+                    .frame(width: 56, height: 56)
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.small))
+                }
 
-            if let highlight = result.highlights.first {
-                Text(highlight)
-                    .font(Theme.Fonts.manrope(13))
-                    .foregroundStyle(Theme.Colors.textSecondary)
-                    .lineLimit(3)
-                    .multilineTextAlignment(.leading)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(result.title)
+                        .font(Theme.Fonts.manrope(15, weight: .semibold))
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .lineLimit(3)
+                        .multilineTextAlignment(.leading)
+
+                    if let highlight = result.highlights.first {
+                        Text(highlight)
+                            .font(Theme.Fonts.manrope(13))
+                            .foregroundStyle(Theme.Colors.textSecondary)
+                            .lineLimit(3)
+                            .multilineTextAlignment(.leading)
+                    }
+                }
             }
 
             HStack(spacing: 4) {
