@@ -14,6 +14,9 @@ struct QuickSearchView: View {
         ("Quora", "quora.com"),
         ("YouTube", "youtube.com"),
         ("MyDramaList", "mydramalist.com"),
+        ("IMDb", "imdb.com"),
+        ("Rotten Tomatoes", "rottentomatoes.com"),
+        ("TMDb", "themoviedb.org"),
     ]
 
     var body: some View {
