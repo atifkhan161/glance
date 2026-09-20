@@ -132,6 +132,26 @@ struct SettingsView: View {
                 }
                 .padding(12)
                 .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
+
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Deep Research")
+                            .font(Theme.Fonts.manrope(14))
+                            .foregroundStyle(Theme.Colors.textPrimary)
+                        Text("(WIP)")
+                            .font(Theme.Fonts.manrope(10))
+                            .foregroundStyle(Theme.Colors.cardAmber)
+                    }
+                    Spacer()
+                    Toggle("", isOn: Binding(
+                        get: { settingsStore.showDeepResearch },
+                        set: { settingsStore.showDeepResearch = $0 }
+                    ))
+                    .labelsHidden()
+                    .tint(Theme.Colors.accent)
+                }
+                .padding(12)
+                .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
             }
         }
     }

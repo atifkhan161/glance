@@ -3,19 +3,24 @@ import SwiftUI
 struct SmartSearchView: View {
     @State private var selectedTab: SmartSearchTab = .quickSearch
     @State private var showResearchList = false
+    @State private var settingsStore = SettingsStore()
 
     var body: some View {
         VStack(spacing: 0) {
-            researchListLink
-
-            Picker("Mode", selection: $selectedTab) {
-                ForEach(SmartSearchTab.allCases, id: \.self) { tab in
-                    Text(tab.rawValue).tag(tab)
-                }
+            if settingsStore.showDeepResearch {
+                researchListLink
             }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, Theme.cardPadding)
-            .padding(.vertical, 8)
+
+            if settingsStore.showDeepResearch {
+                Picker("Mode", selection: $selectedTab) {
+                    ForEach(SmartSearchTab.allCases, id: \.self) { tab in
+                        Text(tab.rawValue).tag(tab)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal, Theme.cardPadding)
+                .padding(.vertical, 8)
+            }
 
             switch selectedTab {
             case .quickSearch:
