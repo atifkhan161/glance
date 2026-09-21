@@ -156,7 +156,8 @@ struct ArticleIntelligenceCard: View {
                             .foregroundStyle(accentColor)
                             .tracking(1.2)
 
-                        Text(section.content)
+                        let attributed = try? AttributedString(markdown: section.content)
+                        Text(attributed ?? AttributedString(section.content))
                             .font(Theme.Fonts.manrope(15))
                             .foregroundStyle(Theme.Colors.textPrimary)
                             .lineSpacing(4)

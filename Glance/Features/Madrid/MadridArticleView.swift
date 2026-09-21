@@ -4,7 +4,7 @@ struct MadridArticleView: View {
     let article: MMArticle
 
     private var articleType: MadridArticleType {
-        MadridArticleType(title: article.title)
+        MadridArticleType(title: article.title, category: article.category)
     }
 
     private var strippedContent: String {
