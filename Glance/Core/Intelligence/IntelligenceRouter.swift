@@ -85,6 +85,27 @@ actor IntelligenceRouter {
         foundationModels.streamSummary(content: content, prompt: type.systemPrompt)
     }
 
+    func streamCloudArticleIntelligence(content: String, type: ArticleIntelligenceType) -> AsyncStream<String> {
+        AsyncStream { continuation in
+            Task {
+                guard let apiKey = keychain.load(forKey: "keys_openrouter") else {
+                    continuation.finish()
+                    return
+                }
+                let client = OpenRouterClient()
+                do {
+                    let result = try await client.complete(
+                        systemPrompt: type.systemPrompt,
+                        userPrompt: content,
+                        apiKey: apiKey
+                    )
+                    continuation.yield(result)
+                } catch {}
+                continuation.finish()
+            }
+        }
+    }
+
     private func truncate(_ text: String, maxChars: Int = 6000) -> String {
         text.count > maxChars ? String(text.prefix(maxChars)) : text
     }

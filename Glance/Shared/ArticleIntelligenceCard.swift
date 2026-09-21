@@ -11,28 +11,52 @@ struct ArticleIntelligenceCard: View {
     @State private var isExpanded = true
     @State private var unavailableReason: String?
     @State private var rawFallbackText = ""
+    @State private var useCloudAI = false
+    @State private var cloudError: String?
+    @State private var localError: String?
 
     var body: some View {
-        if unavailableReason != nil {
-            EmptyView()
-        } else {
-            VStack(alignment: .leading, spacing: 12) {
-                header
+        VStack(alignment: .leading, spacing: 12) {
+            header
 
-                if isExpanded {
-                    if isGenerating && streamedSections.isEmpty {
-                        skeletonView
-                    } else {
-                        streamingContent
+            if let error = cloudError {
+                Text(error)
+                    .font(Theme.Fonts.manrope(13))
+                    .foregroundStyle(.red)
+                    .transition(.opacity)
+            } else if let error = localError {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(error)
+                        .font(Theme.Fonts.manrope(13))
+                        .foregroundStyle(Theme.Colors.textMuted)
+
+                    Button {
+                        useCloudAI = true
+                        localError = nil
+                        isGenerating = true
+                    } label: {
+                        Text("Retry with Cloud")
+                            .font(Theme.Fonts.manrope(13, weight: .semibold))
+                            .foregroundStyle(accentColor)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(accentColor.opacity(0.1), in: .capsule)
                     }
                 }
+                .transition(.opacity)
+            } else if isExpanded {
+                if isGenerating && streamedSections.isEmpty {
+                    skeletonView
+                } else {
+                    streamingContent
+                }
             }
-            .padding(Theme.cardPadding)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
-            .task(id: content) {
-                await generate()
-            }
+        }
+        .padding(Theme.cardPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
+        .task(id: "\(content)_\(useCloudAI)") {
+            await generate()
         }
     }
 
@@ -45,6 +69,16 @@ struct ArticleIntelligenceCard: View {
                 .foregroundStyle(accentColor)
                 .tracking(1.2)
 
+            if useCloudAI {
+                Text("CLOUD")
+                    .font(Theme.Fonts.manrope(8, weight: .bold))
+                    .foregroundStyle(accentColor)
+                    .tracking(1.2)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(accentColor.opacity(0.1), in: .capsule)
+            }
+
             Spacer()
 
             if isGenerating {
@@ -52,6 +86,21 @@ struct ArticleIntelligenceCard: View {
                     .scaleEffect(0.7)
                     .tint(accentColor)
             }
+
+            Button {
+                useCloudAI = true
+                streamedSections = []
+                streamedVerdict = ""
+                rawFallbackText = ""
+                cloudError = nil
+                localError = nil
+                isGenerating = true
+            } label: {
+                Image(systemName: "cloud.fill")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(useCloudAI ? accentColor : Theme.Colors.textMuted)
+            }
+            .accessibilityLabel("Generate with cloud AI")
 
             Button {
                 withAnimation(.easeInOut(duration: 0.2)) {
@@ -133,6 +182,35 @@ struct ArticleIntelligenceCard: View {
 
     private func generate() async {
         let router = IntelligenceRouter()
+
+        if useCloudAI {
+            let stream = await router.streamCloudArticleIntelligence(content: content, type: type)
+            var sectionTexts: [String: String] = [:]
+            var sectionOrder: [String] = []
+            var currentVerdict = ""
+            var rawAccumulator = ""
+
+            for await chunk in stream {
+                rawAccumulator += chunk
+                parseChunk(chunk, into: &sectionTexts, order: &sectionOrder, verdict: &currentVerdict)
+
+                streamedSections = sectionOrder.compactMap { key in
+                    guard let text = sectionTexts[key], !text.isEmpty else { return nil }
+                    return (title: key, content: text)
+                }
+                streamedVerdict = currentVerdict
+            }
+
+            isGenerating = false
+
+            if streamedSections.isEmpty && rawAccumulator.isEmpty {
+                cloudError = "Add OpenRouter API key in Settings to use cloud summaries."
+            } else if streamedSections.isEmpty && !rawAccumulator.isEmpty {
+                rawFallbackText = rawAccumulator
+            }
+            return
+        }
+
         let status = await router.checkArticleIntelligenceAvailability()
 
         guard status.available else {
@@ -148,8 +226,13 @@ struct ArticleIntelligenceCard: View {
         var currentVerdict = ""
         var chunkCount = 0
         var rawAccumulator = ""
+        var hitError = false
 
         for await chunk in stream {
+            if chunk == "__FM_ERROR__" {
+                hitError = true
+                break
+            }
             chunkCount += 1
             rawAccumulator += chunk
 
@@ -164,7 +247,9 @@ struct ArticleIntelligenceCard: View {
 
         isGenerating = false
 
-        if streamedSections.isEmpty && !rawAccumulator.isEmpty {
+        if hitError {
+            localError = "Apple Intelligence model not ready. Download it in Settings, or use cloud."
+        } else if streamedSections.isEmpty && !rawAccumulator.isEmpty {
             rawFallbackText = rawAccumulator
         }
     }

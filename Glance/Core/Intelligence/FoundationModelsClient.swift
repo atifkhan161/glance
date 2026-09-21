@@ -95,6 +95,7 @@ import Foundation
                         continuation.finish()
                     } catch {
                         NSLog("[AI] streamSummary error: %@", "\(error.localizedDescription)")
+                        continuation.yield("__FM_ERROR__")
                         continuation.finish()
                     }
                 }

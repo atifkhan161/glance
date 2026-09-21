@@ -16,7 +16,7 @@ struct OpenRouterClient: Sendable {
                 ["role": "user", "content": userPrompt],
             ],
             "temperature": 0.7,
-            "max_tokens": 512,
+            "max_tokens": 1024,
         ]
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
