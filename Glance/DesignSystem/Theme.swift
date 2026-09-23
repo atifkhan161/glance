@@ -1,119 +1,70 @@
 import SwiftUI
 
 enum Theme {
-    static let canvas = Colors.canvas
-    static let surface1 = Colors.surface1
-    static let surface2 = Colors.surface2
-    static let surface3 = Colors.surface3
-    static let borderSubtle = Colors.borderSubtle
-    static let borderStrong = Colors.borderStrong
-    static let textPrimary = Colors.textPrimary
-    static let textSecondary = Colors.textSecondary
-    static let textMuted = Colors.textMuted
-    static let cardAmber = Colors.cardAmber
-    static let cardRose = Colors.cardRose
-    static let cardEmerald = Colors.cardEmerald
-    static let cardCyan = Colors.cardCyan
-    static let primary = Colors.accent
-    static let error = Colors.error
+    static var canvas: Color { Colors.canvas }
+    static var surface1: Color { Colors.surface1 }
+    static var surface2: Color { Colors.surface2 }
+    static var surface3: Color { Colors.surface3 }
+    static var borderSubtle: Color { Colors.borderSubtle }
+    static var borderStrong: Color { Colors.borderStrong }
+    static var textPrimary: Color { Colors.textPrimary }
+    static var textSecondary: Color { Colors.textSecondary }
+    static var textMuted: Color { Colors.textMuted }
+    static var cardAmber: Color { Colors.cardAmber }
+    static var cardRose: Color { Colors.cardRose }
+    static var cardEmerald: Color { Colors.cardEmerald }
+    static var cardCyan: Color { Colors.cardCyan }
+    static var primary: Color { Colors.accent }
+    static var error: Color { Colors.error }
 
-    static let cornerRadius: CGFloat = 20
-    static let cardPadding: CGFloat = 16
-    static let spacing: CGFloat = 12
+    static var cornerRadius: CGFloat { ThemeManager.shared.current.metrics.cornerRadius }
+    static var cardPadding: CGFloat { ThemeManager.shared.current.metrics.cardPadding }
+    static var spacing: CGFloat { ThemeManager.shared.current.metrics.spacing }
 
     enum Radius {
-        static let small: CGFloat = 8
-        static let medium: CGFloat = 12
-        static let card: CGFloat = 20
-        static let hero: CGFloat = 28
-        static let sheet: CGFloat = 32
+        static var small: CGFloat { ThemeManager.shared.current.metrics.radiusSmall }
+        static var medium: CGFloat { ThemeManager.shared.current.metrics.radiusMedium }
+        static var card: CGFloat { ThemeManager.shared.current.metrics.radiusCard }
+        static var hero: CGFloat { ThemeManager.shared.current.metrics.radiusHero }
+        static var sheet: CGFloat { ThemeManager.shared.current.metrics.radiusSheet }
     }
 
     enum Colors {
-        static let canvas = Color("Canvas")
-        static let canvasDeep = Color(uiColor: UIColor { traits in
-            traits.userInterfaceStyle == .dark
-                ? UIColor(red: 0.04, green: 0.055, blue: 0.094, alpha: 1)
-                : UIColor(red: 0.929, green: 0.941, blue: 0.957, alpha: 1)
-        })
-        static let surface1 = Color("Surface1")
-        static let surface2 = Color("Surface2")
-        static let surface3 = Color("Surface3")
-        static let borderSubtle = Color("BorderSubtle")
-        static let borderStrong = Color("BorderStrong")
-        static let textPrimary = Color("TextPrimary")
-        static let textSecondary = Color("TextSecondary")
-        static let textMuted = Color("TextMuted")
-        static let accent = Color("AccentColor")
-        static let cardAmber = Color("CardAmber")
-        static let cardRose = Color("CardRose")
-        static let cardEmerald = Color("CardEmerald")
-        static let cardCyan = Color("CardCyan")
-        static let error = Color("Error")
-        static let success = Color(uiColor: UIColor { traits in
-            traits.userInterfaceStyle == .dark
-                ? UIColor(red: 0.204, green: 0.827, blue: 0.600, alpha: 1)
-                : UIColor(red: 0.024, green: 0.588, blue: 0.412, alpha: 1)
-        })
-        static let warning = Color(uiColor: UIColor { traits in
-            traits.userInterfaceStyle == .dark
-                ? UIColor(red: 0.961, green: 0.651, blue: 0.137, alpha: 1)
-                : UIColor(red: 0.706, green: 0.325, blue: 0.035, alpha: 1)
-        })
-        static let starGold = Color(uiColor: UIColor { traits in
-            traits.userInterfaceStyle == .dark
-                ? UIColor(red: 0.98, green: 0.80, blue: 0.20, alpha: 1)
-                : UIColor(red: 0.72, green: 0.45, blue: 0.02, alpha: 1)
-        })
-        static let tierPurple = Color(uiColor: UIColor { traits in
-            traits.userInterfaceStyle == .dark
-                ? UIColor(red: 0.66, green: 0.48, blue: 1.0, alpha: 1)
-                : UIColor(red: 0.42, green: 0.24, blue: 0.80, alpha: 1)
-        })
+        static var canvas: Color { ThemeManager.shared.current.colors.canvas }
+        static var canvasDeep: Color { ThemeManager.shared.current.colors.canvasDeep }
+        static var surface1: Color { ThemeManager.shared.current.colors.surface1 }
+        static var surface2: Color { ThemeManager.shared.current.colors.surface2 }
+        static var surface3: Color { ThemeManager.shared.current.colors.surface3 }
+        static var borderSubtle: Color { ThemeManager.shared.current.colors.borderSubtle }
+        static var borderStrong: Color { ThemeManager.shared.current.colors.borderStrong }
+        static var textPrimary: Color { ThemeManager.shared.current.colors.textPrimary }
+        static var textSecondary: Color { ThemeManager.shared.current.colors.textSecondary }
+        static var textMuted: Color { ThemeManager.shared.current.colors.textMuted }
+        static var accent: Color { ThemeManager.shared.current.colors.accent }
+        static var cardAmber: Color { ThemeManager.shared.current.colors.cardAmber }
+        static var cardRose: Color { ThemeManager.shared.current.colors.cardRose }
+        static var cardEmerald: Color { ThemeManager.shared.current.colors.cardEmerald }
+        static var cardCyan: Color { ThemeManager.shared.current.colors.cardCyan }
+        static var error: Color { ThemeManager.shared.current.colors.error }
+        static var success: Color { ThemeManager.shared.current.colors.success }
+        static var warning: Color { ThemeManager.shared.current.colors.warning }
+        static var starGold: Color { ThemeManager.shared.current.colors.starGold }
+        static var tierPurple: Color { ThemeManager.shared.current.colors.tierPurple }
     }
 
     enum Fonts {
-        enum FontRole {
-            case display
-            case title1
-            case title2
-            case title3
-            case headline
-            case body
-            case callout
-            case footnote
-            case caption1
-            case caption2
-            case badge
-        }
+        typealias FontRole = Glance.FontRole
 
         static func scale(_ role: FontRole) -> Font {
-            switch role {
-            case .display:  manrope(40, weight: .black)
-            case .title1:   manrope(28, weight: .bold)
-            case .title2:   manrope(22, weight: .bold)
-            case .title3:   manrope(18, weight: .semibold)
-            case .headline: manrope(16, weight: .semibold)
-            case .body:     manrope(14, weight: .regular)
-            case .callout:  manrope(13, weight: .medium)
-            case .footnote: manrope(12, weight: .regular)
-            case .caption1: manrope(11, weight: .medium)
-            case .caption2: manrope(10, weight: .bold)
-            case .badge:    manrope(10, weight: .black)
-            }
+            ThemeManager.shared.current.typography.font(for: role)
         }
 
         static func manrope(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-            Font.custom("Manrope", size: scaledSize(size)).weight(weight)
+            ThemeManager.shared.current.typography.custom(size, weight: weight)
         }
 
         static func hankenGrotesk(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-            Font.custom("Hanken Grotesk", size: scaledSize(size)).weight(weight)
-        }
-
-        private static func scaledSize(_ size: CGFloat) -> CGFloat {
-            let factor = UIFont.preferredFont(forTextStyle: .body).pointSize / 17.0
-            return size * factor
+            ThemeManager.shared.current.typography.custom(size, weight: weight)
         }
     }
 }

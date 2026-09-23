@@ -7,8 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA000000000000000000F101 /* JetBrainsMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F001 /* JetBrainsMono-Regular.ttf */; };
+		AA000000000000000000F102 /* JetBrainsMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F002 /* JetBrainsMono-Medium.ttf */; };
+		AA000000000000000000F103 /* JetBrainsMono-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F003 /* JetBrainsMono-SemiBold.ttf */; };
+		AA000000000000000000F104 /* JetBrainsMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F004 /* JetBrainsMono-Bold.ttf */; };
+		AA000000000000000000F105 /* JetBrainsMono-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F005 /* JetBrainsMono-ExtraBold.ttf */; };
 		0293474C8BAA89D4AD8F170F /* TimeFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0F51D16A6D39FCFAB1EE51 /* TimeFormat.swift */; };
 		5857340F517F43F189F6A9C1 /* CardOrderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89C539EE7B074787A42B5258 /* CardOrderTests.swift */; };
+		AA000000000000000000T002 /* ThemeManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000T001 /* ThemeManagerTests.swift */; };
 		05D69E71AEAF0796329FCB70 /* EventDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 274E1FF781DE1E99CE883CB1 /* EventDetailView.swift */; };
 		096DB724932563428E9C79B3 /* ExaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032774EA8666009381F3C760 /* ExaClient.swift */; };
 		0BE13B387270F4520E4FC24E /* Glance.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FE51DADF51E57ECD0B40BE8F /* Glance.xcassets */; };
@@ -97,6 +103,13 @@
 		FCE22EADB5AD23EA6857653C /* RepoDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 864D49570619C81F73AAA049 /* RepoDetailView.swift */; };
 		FD126FB78D62980E618E9470 /* GitHubHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B92DC84F647A42D0148EDD88 /* GitHubHubView.swift */; };
 		FE86DACADCCAC95C40100576 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954888EEB9FC4A982A823CBE /* Theme.swift */; };
+		AA0000000000000000000102 /* ThemeDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000101 /* ThemeDefinition.swift */; };
+		AA0000000000000000000104 /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000103 /* ThemeManager.swift */; };
+		AA0000000000000000000106 /* ThemeRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000105 /* ThemeRegistry.swift */; };
+		AA0000000000000000000108 /* DefaultTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000107 /* DefaultTheme.swift */; };
+		AA000000000000000000010A /* GlanceWebTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000109 /* GlanceWebTheme.swift */; };
+		AA000000000000000000010C /* GlancePreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000010B /* GlancePreset.swift */; };
+		AA000000000000000000010E /* GlancePresetThemes.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000010D /* GlancePresetThemes.swift */; };
 		FEED1234FACEBEEF00000001 /* ArticleScraper.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEED1234FACEBEEF00000002 /* ArticleScraper.swift */; };
 		FOOTBALLDATA1234567890AC /* FootballData.swift in Sources */ = {isa = PBXBuildFile; fileRef = FOOTBALLDATA1234567890AB /* FootballData.swift */; };
 		AA0000000000000000000001 /* SmartSearchModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000011 /* SmartSearchModels.swift */; };
@@ -132,6 +145,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		AA000000000000000000F001 /* JetBrainsMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Regular.ttf"; sourceTree = "<group>"; };
+		AA000000000000000000F002 /* JetBrainsMono-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Medium.ttf"; sourceTree = "<group>"; };
+		AA000000000000000000F003 /* JetBrainsMono-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-SemiBold.ttf"; sourceTree = "<group>"; };
+		AA000000000000000000F004 /* JetBrainsMono-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Bold.ttf"; sourceTree = "<group>"; };
+		AA000000000000000000F005 /* JetBrainsMono-ExtraBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-ExtraBold.ttf"; sourceTree = "<group>"; };
 		0062F9E61C96E727A4D59E9C /* HankenGrotesk-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = file; path = "HankenGrotesk-SemiBold.ttf"; sourceTree = "<group>"; };
 		032774EA8666009381F3C760 /* ExaClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ExaClient.swift; sourceTree = "<group>"; };
 		06B010D9C40163AF882E9554 /* PulseStore.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = PulseStore.swift; sourceTree = "<group>"; };
@@ -178,6 +196,13 @@
 		864D49570619C81F73AAA049 /* RepoDetailView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = RepoDetailView.swift; sourceTree = "<group>"; };
 		8FE05B7D2F09CD7EFD3A9EE2 /* madrid-search.json */ = {isa = PBXFileReference; explicitFileType = text.json; path = "madrid-search.json"; sourceTree = "<group>"; };
 		954888EEB9FC4A982A823CBE /* Theme.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		AA0000000000000000000101 /* ThemeDefinition.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ThemeDefinition.swift; sourceTree = "<group>"; };
+		AA0000000000000000000103 /* ThemeManager.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
+		AA0000000000000000000105 /* ThemeRegistry.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ThemeRegistry.swift; sourceTree = "<group>"; };
+		AA0000000000000000000107 /* DefaultTheme.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = DefaultTheme.swift; sourceTree = "<group>"; };
+		AA0000000000000000000109 /* GlanceWebTheme.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GlanceWebTheme.swift; sourceTree = "<group>"; };
+		AA000000000000000000010B /* GlancePreset.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GlancePreset.swift; sourceTree = "<group>"; };
+		AA000000000000000000010D /* GlancePresetThemes.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GlancePresetThemes.swift; sourceTree = "<group>"; };
 		A1B2C3D400010001AA0001B1 /* AddRSSFeedSheet.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AddRSSFeedSheet.swift; sourceTree = "<group>"; };
 		A1B2C3D400010001AC0001B3 /* CustomRSSDetailView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CustomRSSDetailView.swift; sourceTree = "<group>"; };
 		A1B2C3D400010001AE0001B5 /* CustomRSSFeedRef.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CustomRSSFeedRef.swift; sourceTree = "<group>"; };
@@ -224,6 +249,7 @@
 		F457B157FC966D801CD62CE1 /* SkeletonView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SkeletonView.swift; sourceTree = "<group>"; };
 		F65672F62EC7DA587E61CBB6 /* CacheStoreTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CacheStoreTests.swift; sourceTree = "<group>"; };
 		89C539EE7B074787A42B5258 /* CardOrderTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CardOrderTests.swift; sourceTree = "<group>"; };
+		AA000000000000000000T001 /* ThemeManagerTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ThemeManagerTests.swift; sourceTree = "<group>"; };
 		FE51DADF51E57ECD0B40BE8F /* Glance.xcassets */ = {isa = PBXFileReference; explicitFileType = folder.assetcatalog; path = Glance.xcassets; sourceTree = "<group>"; };
 		FEED1234FACEBEEF00000002 /* ArticleScraper.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ArticleScraper.swift; sourceTree = "<group>"; };
 		FF22GG33HH44II55FF660080 /* GenericRSSPipeline.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GenericRSSPipeline.swift; sourceTree = "<group>"; };
@@ -281,6 +307,7 @@
 				A6B7C8D9E0F1A2B3C4D5E6F7 /* IntelligenceRouterTests.swift */,
 				C8D9E0F1A2B3C4D5E6F7A8B9 /* CacheTTTests.swift */,
 				89C539EE7B074787A42B5258 /* CardOrderTests.swift */,
+				AA000000000000000000T001 /* ThemeManagerTests.swift */,
 			);
 			path = GlanceTests;
 			sourceTree = "<group>";
@@ -478,6 +505,11 @@
 				75197729187B4AE302A61239 /* HankenGrotesk-Regular.ttf */,
 				0062F9E61C96E727A4D59E9C /* HankenGrotesk-SemiBold.ttf */,
 				2701DBE7D4E0F8FCE87C65C8 /* HankenGrotesk-Bold.ttf */,
+				AA000000000000000000F001 /* JetBrainsMono-Regular.ttf */,
+				AA000000000000000000F002 /* JetBrainsMono-Medium.ttf */,
+				AA000000000000000000F003 /* JetBrainsMono-SemiBold.ttf */,
+				AA000000000000000000F004 /* JetBrainsMono-Bold.ttf */,
+				AA000000000000000000F005 /* JetBrainsMono-ExtraBold.ttf */,
 			);
 			path = Fonts;
 			sourceTree = "<group>";
@@ -558,6 +590,10 @@
 			isa = PBXGroup;
 			children = (
 				954888EEB9FC4A982A823CBE /* Theme.swift */,
+				AA0000000000000000000101 /* ThemeDefinition.swift */,
+				AA0000000000000000000103 /* ThemeManager.swift */,
+				AA0000000000000000000105 /* ThemeRegistry.swift */,
+				AA000000000000000000010F /* Themes */,
 				33B8021DC59DAC0AAA0673BE /* GlanceBadge.swift */,
 				F457B157FC966D801CD62CE1 /* SkeletonView.swift */,
 				BE285836ED3E944296D83FED /* PulseDot.swift */,
@@ -565,6 +601,17 @@
 				E4F5A6B7C8D9E0F1A2B3C4D5 /* CachedAsyncImage.swift */,
 			);
 			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		AA000000000000000000010F /* Themes */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000000000000000000107 /* DefaultTheme.swift */,
+				AA0000000000000000000109 /* GlanceWebTheme.swift */,
+				AA000000000000000000010B /* GlancePreset.swift */,
+				AA000000000000000000010D /* GlancePresetThemes.swift */,
+			);
+			path = Themes;
 			sourceTree = "<group>";
 		};
 		GG33HH44II55JJ66KK77 /* GenericRSS */ = {
@@ -720,6 +767,11 @@
 				9279122F2F95E997FB8B8E7D /* HankenGrotesk-Regular.ttf in Resources */,
 				5FD49C9004AF5858C3D6E7D3 /* HankenGrotesk-SemiBold.ttf in Resources */,
 				2804A8BFF0857B24507ACC2A /* HankenGrotesk-Bold.ttf in Resources */,
+				AA000000000000000000F101 /* JetBrainsMono-Regular.ttf in Resources */,
+				AA000000000000000000F102 /* JetBrainsMono-Medium.ttf in Resources */,
+				AA000000000000000000F103 /* JetBrainsMono-SemiBold.ttf in Resources */,
+				AA000000000000000000F104 /* JetBrainsMono-Bold.ttf in Resources */,
+				AA000000000000000000F105 /* JetBrainsMono-ExtraBold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -740,6 +792,7 @@
 				F5A6B7C8D9E0F1A2B3C4D5E6 /* IntelligenceRouterTests.swift in Sources */,
 				B7C8D9E0F1A2B3C4D5E6F7A8 /* CacheTTTests.swift in Sources */,
 				5857340F517F43F189F6A9C1 /* CardOrderTests.swift in Sources */,
+				AA000000000000000000T002 /* ThemeManagerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -816,6 +869,13 @@
 				D1E2F3A4B5C6D7E8F9A0B1C8 /* RawArticleCard.swift in Sources */,
 				D1E2F3A4B5C6D7E8F9A0B1D0 /* CustomRSSArticleView.swift in Sources */,
 				FE86DACADCCAC95C40100576 /* Theme.swift in Sources */,
+				AA0000000000000000000102 /* ThemeDefinition.swift in Sources */,
+				AA0000000000000000000104 /* ThemeManager.swift in Sources */,
+				AA0000000000000000000106 /* ThemeRegistry.swift in Sources */,
+				AA0000000000000000000108 /* DefaultTheme.swift in Sources */,
+				AA000000000000000000010A /* GlanceWebTheme.swift in Sources */,
+				AA000000000000000000010C /* GlancePreset.swift in Sources */,
+				AA000000000000000000010E /* GlancePresetThemes.swift in Sources */,
 				F92EC9784909D6464A009A36 /* GlanceBadge.swift in Sources */,
 				E5CB8D9BFF379C4E8765123A /* SkeletonView.swift in Sources */,
 				20C65BD7D4E849F2ABC8E612 /* PulseDot.swift in Sources */,

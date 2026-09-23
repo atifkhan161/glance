@@ -4,12 +4,14 @@ import SwiftUI
 struct GlanceApp: App {
     @State private var appState = AppState()
     @State private var networkMonitor = NetworkMonitor.shared
+    @State private var themeManager = ThemeManager.shared
     @AppStorage("colorScheme") private var colorScheme = "dark"
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(appState)
+                .environment(themeManager)
                 .preferredColorScheme(resolvedColorScheme)
                 .overlay(alignment: .top) {
                     offlineBanner
@@ -21,10 +23,13 @@ struct GlanceApp: App {
     }
 
     private var resolvedColorScheme: ColorScheme? {
+        if let override = themeManager.current.colorSchemeOverride {
+            return override
+        }
         switch colorScheme {
-        case "light": .light
-        case "dark": .dark
-        default: nil // system
+        case "light": return .light
+        case "dark": return .dark
+        default: return nil
         }
     }
 

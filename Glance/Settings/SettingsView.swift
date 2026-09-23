@@ -5,6 +5,7 @@ struct SettingsView: View {
     @State private var showClearConfirm = false
     @State private var cacheAges: [String: String] = [:]
     @State private var settingsStore = SettingsStore()
+    @Environment(ThemeManager.self) private var themeManager
     @AppStorage("colorScheme") private var colorScheme = "dark"
     @State private var saveSuccess = false
     @State private var isSaving = false
@@ -49,7 +50,80 @@ struct SettingsView: View {
                 appearanceOption("Light", value: "light", icon: "sun.max.fill")
                 appearanceOption("System", value: "system", icon: "circle.lefthalf.filled")
             }
+
+            themePickerSection
         }
+    }
+
+    private var themePickerSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SectionHeader("THEME")
+
+            LazyVGrid(columns: [
+                GridItem(.flexible(), spacing: 10),
+                GridItem(.flexible(), spacing: 10),
+                GridItem(.flexible(), spacing: 10)
+            ], spacing: 10) {
+                ForEach(ThemeRegistry.all) { theme in
+                    themeCard(theme)
+                }
+            }
+        }
+        .padding(.top, 4)
+    }
+
+    private func themeCard(_ theme: ThemeDefinition) -> some View {
+        let selected = themeManager.selectedID == theme.id
+        return Button {
+            withAnimation(.easeInOut(duration: 0.15)) {
+                themeManager.select(id: theme.id)
+            }
+        } label: {
+            VStack(spacing: 8) {
+                Text(theme.name)
+                    .font(Theme.Fonts.manrope(11, weight: selected ? .bold : .medium))
+                    .foregroundStyle(selected ? Theme.Colors.accent : Theme.Colors.textSecondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+
+                HStack(spacing: 4) {
+                    ForEach(Array(theme.previewSwatches.enumerated()), id: \.offset) { _, swatch in
+                        Circle()
+                            .fill(swatch)
+                            .frame(width: 12, height: 12)
+                            .overlay(
+                                Circle().stroke(Theme.Colors.borderSubtle, lineWidth: 0.5)
+                            )
+                    }
+                }
+
+                if theme.colorSchemeOverride == .light {
+                    Text("Light")
+                        .font(Theme.Fonts.manrope(9, weight: .semibold))
+                        .foregroundStyle(Theme.Colors.textMuted)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Theme.Colors.surface3, in: .capsule)
+                } else {
+                    Text(" ")
+                        .font(Theme.Fonts.manrope(9))
+                        .frame(height: 14)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .padding(.horizontal, 6)
+            .background(
+                selected ? Theme.Colors.accent.opacity(0.12) : Theme.Colors.surface1,
+                in: RoundedRectangle(cornerRadius: Theme.Radius.small)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.Radius.small)
+                    .stroke(selected ? Theme.Colors.accent : Theme.Colors.borderSubtle, lineWidth: selected ? 1.5 : 1)
+            )
+        }
+        .accessibilityLabel("\(theme.name) theme")
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     private func appearanceOption(_ label: String, value: String, icon: String) -> some View {
@@ -582,5 +656,8 @@ struct CardOrderListView: View {
 }
 
 #Preview {
-    NavigationStack { SettingsView() }
+    NavigationStack {
+        SettingsView()
+            .environment(ThemeManager.shared)
+    }
 }
