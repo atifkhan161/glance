@@ -18,6 +18,7 @@ enum FeedValidationState: Equatable {
 
 struct AddRSSFeedSheet: View {
     @Environment(\.dismiss) private var dismiss
+    let settingsStore: SettingsStore
     @Binding var feeds: [CustomRSSFeed]
 
     @State private var urlText = ""
@@ -235,6 +236,7 @@ struct AddRSSFeedSheet: View {
         var updated = feeds
         updated.append(feed)
         feeds = updated
+        settingsStore.appendFeedToCardOrder(feed)
         dismiss()
     }
 }

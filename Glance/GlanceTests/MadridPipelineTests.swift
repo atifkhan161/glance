@@ -29,9 +29,10 @@ struct MadridPipelineTests {
         #expect(result == nil)
     }
 
-    @Test("parseMatchTimeline returns last 2 finished and next 3 upcoming")
+    @Test("parseMatchTimeline returns upcoming first then recent finished")
     func parseMatchTimeline_basic() {
         let teamID = "133738"
+        let teamName = "Real Madrid"
 
         let finished1 = SDBEvent(
             idEvent: "1", strEvent: "Elche vs Real Madrid", strLeague: "La Liga",
@@ -72,27 +73,28 @@ struct MadridPipelineTests {
         let timeline = MadridPipeline.parseMatchTimeline(
             recentEvents: recentEvents,
             nextEvents: nextEvents,
-            teamID: teamID
+            teamID: teamID,
+            teamName: teamName
         )
 
         #expect(timeline.count == 3)
-        #expect(timeline[0].opponent == "Elche")
-        #expect(timeline[0].isFinished == true)
-        #expect(timeline[0].result == "W")
-        #expect(timeline[0].homeScore == 2)
-        #expect(timeline[0].awayScore == 3)
+        #expect(timeline[0].opponent == "Atlético Madrid")
+        #expect(timeline[0].isFinished == false)
+        #expect(timeline[0].result == nil)
+        #expect(timeline[0].homeScore == nil)
         #expect(timeline[0].isHome == false)
 
-        #expect(timeline[1].opponent == "Rayo Vallecano")
+        #expect(timeline[1].opponent == "Elche")
         #expect(timeline[1].isFinished == true)
         #expect(timeline[1].result == "W")
-        #expect(timeline[1].isHome == true)
+        #expect(timeline[1].homeScore == 2)
+        #expect(timeline[1].awayScore == 3)
+        #expect(timeline[1].isHome == false)
 
-        #expect(timeline[2].opponent == "Atlético Madrid")
-        #expect(timeline[2].isFinished == false)
-        #expect(timeline[2].result == nil)
-        #expect(timeline[2].homeScore == nil)
-        #expect(timeline[2].isHome == false)
+        #expect(timeline[2].opponent == "Rayo Vallecano")
+        #expect(timeline[2].isFinished == true)
+        #expect(timeline[2].result == "W")
+        #expect(timeline[2].isHome == true)
     }
 
     @Test("parseMatchTimeline handles empty events")
@@ -100,15 +102,17 @@ struct MadridPipelineTests {
         let timeline = MadridPipeline.parseMatchTimeline(
             recentEvents: [],
             nextEvents: [],
-            teamID: "133738"
+            teamID: "133738",
+            teamName: "Real Madrid"
         )
         #expect(timeline.isEmpty)
     }
 
-    @Test("parseMatchTimeline limits to 2 finished and 3 upcoming")
+    @Test("parseMatchTimeline limits to 4 finished and 3 upcoming")
     func parseMatchTimeline_limits() {
         let teamID = "133738"
-        let finishedEvents = (1...5).map { i in
+        let teamName = "Real Madrid"
+        let finishedEvents = (1...6).map { i in
             SDBEvent(
                 idEvent: "\(i)", strEvent: "Match \(i)", strLeague: "La Liga",
                 strSeason: "2026-2027", strTimestamp: "2026-09-\(10 + i)T19:00:00Z",
@@ -122,11 +126,11 @@ struct MadridPipelineTests {
                 strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
             )
         }
-        let upcomingEvents = (6...10).map { i in
+        let upcomingEvents = (1...5).map { i in
             SDBEvent(
-                idEvent: "\(i)", strEvent: "Match \(i)", strLeague: "La Liga",
-                strSeason: "2026-2027", strTimestamp: "2026-09-\(10 + i)T19:00:00Z",
-                dateEvent: "2026-09-\(10 + i)", strTime: "19:00:00",
+                idEvent: "up-\(i)", strEvent: "Upcoming \(i)", strLeague: "La Liga",
+                strSeason: "2026-2027", strTimestamp: "2026-10-\(10 + i)T19:00:00Z",
+                dateEvent: "2026-10-\(10 + i)", strTime: "19:00:00",
                 strHomeTeam: i % 2 == 0 ? "Real Madrid" : "Opponent \(i)",
                 strAwayTeam: i % 2 == 0 ? "Opponent \(i)" : "Real Madrid",
                 idHomeTeam: i % 2 == 0 ? "133738" : "13400\(i)",
@@ -140,10 +144,11 @@ struct MadridPipelineTests {
         let timeline = MadridPipeline.parseMatchTimeline(
             recentEvents: finishedEvents,
             nextEvents: upcomingEvents,
-            teamID: teamID
+            teamID: teamID,
+            teamName: teamName
         )
 
-        #expect(timeline.filter(\.isFinished).count == 2)
-        #expect(timeline.filter({ !$0.isFinished }).count == 3)
+        #expect(timeline.filter { $0.isFinished }.count == 4)
+        #expect(timeline.filter { !$0.isFinished }.count == 3)
     }
 }

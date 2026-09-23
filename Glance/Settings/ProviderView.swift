@@ -205,15 +205,16 @@ struct ProviderView: View {
         .navigationTitle("Providers")
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showAddSheet) {
-            AddRSSFeedSheet(feeds: $settingsStore.customRSSFeeds)
+            AddRSSFeedSheet(settingsStore: settingsStore, feeds: $settingsStore.customRSSFeeds)
         }
     }
 
     private func removeFeed(at index: Int) {
         var feeds = settingsStore.customRSSFeeds
         guard feeds.indices.contains(index) else { return }
-        feeds.remove(at: index)
+        let removed = feeds.remove(at: index)
         settingsStore.customRSSFeeds = feeds
+        settingsStore.removeFeedFromCardOrder(feedID: removed.id.uuidString)
     }
 }
 

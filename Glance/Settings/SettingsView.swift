@@ -33,6 +33,9 @@ struct SettingsView: View {
         .task {
             await loadCacheAges()
         }
+        .onChange(of: settingsStore.customRSSFeeds) { _, _ in
+            Task { await loadCacheAges() }
+        }
     }
 
     // MARK: - Appearance Section
@@ -153,6 +156,22 @@ struct SettingsView: View {
                 .padding(12)
                 .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
             }
+
+            cardOrderSection
+        }
+    }
+
+    // MARK: - Card Order Section
+
+    private var cardOrderSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SectionHeader("CARD ORDER")
+
+            Text("Drag to reorder cards on your home feed.")
+                .font(Theme.Fonts.manrope(11))
+                .foregroundStyle(Theme.Colors.textMuted)
+
+            CardOrderListView(settingsStore: settingsStore)
         }
     }
 
@@ -335,15 +354,50 @@ struct SettingsView: View {
 
     // MARK: - Cache Section
 
+    private var githubCacheKey: String {
+        "cache_github_trending_\(settingsStore.githubTrendingSince)"
+    }
+
+    private var providerCacheRows: [(name: String, key: String)] {
+        [
+            ("Real Madrid", "cache_madrid"),
+            ("Pokémon GO", "cache_pogo"),
+            ("GitHub Trending", githubCacheKey),
+            ("AI Intel", "cache_aiintel"),
+        ]
+    }
+
+    private var customRSSCacheRows: [(name: String, key: String)] {
+        settingsStore.customRSSFeeds.filter(\.isEnabled).map { feed in
+            (feed.name, CacheStore.customRSSKey(feedID: feed.id.uuidString))
+        }
+    }
+
+    private var allDisplayCacheKeys: [String] {
+        providerCacheRows.map(\.key) + customRSSCacheRows.map(\.key)
+    }
+
     private var cacheSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             SectionHeader("CACHE")
 
             VStack(spacing: 8) {
-                cacheRow("Real Madrid", key: "cache_madrid")
-                cacheRow("Pokémon GO", key: "cache_pogo")
-                cacheRow("GitHub Trending", key: "cache_github")
-                cacheRow("AI Intel", key: "cache_aiintel")
+                ForEach(providerCacheRows, id: \.key) { row in
+                    cacheRow(row.name, key: row.key)
+                }
+
+                if !customRSSCacheRows.isEmpty {
+                    ForEach(customRSSCacheRows, id: \.key) { row in
+                        cacheRow(row.name, key: row.key)
+                    }
+                } else {
+                    Text("No custom RSS feeds")
+                        .font(Theme.Fonts.manrope(12))
+                        .foregroundStyle(Theme.Colors.textMuted)
+                        .padding(12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
+                }
             }
 
             Button {
@@ -420,23 +474,32 @@ struct SettingsView: View {
     // MARK: - Helpers
 
     private func loadCacheAges() async {
-        let keys = ["cache_madrid", "cache_pogo", "cache_github", "cache_aiintel"]
-        for key in keys {
-            if let data = UserDefaults.standard.data(forKey: key),
-               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let timestampMs = json["timestampMs"] as? Int64 {
-                let date = Date(timeIntervalSince1970: TimeInterval(timestampMs) / 1000)
-                cacheAges[key] = TimeFormat.age(from: date)
-            } else {
-                cacheAges[key] = "No data"
-            }
+        for key in allDisplayCacheKeys {
+            cacheAges[key] = cacheAgeLabel(for: key)
         }
+    }
+
+    private func cacheAgeLabel(for key: String) -> String {
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let timestampMs = (json["timestampMs"] as? Int64) ?? (json["timestampMs"] as? Int).map(Int64.init) else {
+            return "No data"
+        }
+        let ttlMs = (json["ttlMs"] as? Int64) ?? (json["ttlMs"] as? Int).map(Int64.init)
+        if let ttlMs, Date.now.millisecondsSinceEpoch - timestampMs >= ttlMs {
+            return "Expired"
+        }
+        let date = Date(timeIntervalSince1970: TimeInterval(timestampMs) / 1000)
+        return TimeFormat.age(from: date)
     }
 
     private func clearCache() async {
         await cacheStore.clearAll()
-        // Refresh ages immediately after clearing
-        cacheAges = ["cache_madrid": "Cleared", "cache_pogo": "Cleared", "cache_github": "Cleared", "cache_aiintel": "Cleared"]
+        let keys = Set(allDisplayCacheKeys).union([
+            "cache_madrid", "cache_pogo", "cache_aiintel",
+            "cache_github", githubCacheKey,
+        ])
+        cacheAges = Dictionary(uniqueKeysWithValues: keys.map { ($0, "Cleared") })
         try? await Task.sleep(for: .seconds(2))
         await loadCacheAges()
     }
@@ -453,6 +516,68 @@ struct SettingsView: View {
                 saveSuccess = false
             }
         }
+    }
+}
+
+// MARK: - Card Order List
+
+struct CardOrderListView: View {
+    let settingsStore: SettingsStore
+
+    private struct CardOrderItem: Identifiable {
+        let id: String
+        let title: String
+        let icon: String
+        let accent: Color
+    }
+
+    private var items: [CardOrderItem] {
+        settingsStore.normalizeCardOrder(settingsStore.cardOrder).compactMap { key in
+            if let card = CardID(rawValue: key) {
+                return CardOrderItem(id: key, title: card.badgeLabel, icon: card.icon, accent: card.accentColor)
+            }
+            if key.hasPrefix(SettingsStore.customOrderPrefix) {
+                let feedID = String(key.dropFirst(SettingsStore.customOrderPrefix.count))
+                guard let feed = settingsStore.customRSSFeeds.first(where: { $0.id.uuidString == feedID }) else {
+                    return nil
+                }
+                return CardOrderItem(id: key, title: feed.name, icon: "dot.rss", accent: Theme.Colors.cardAmber)
+            }
+            return nil
+        }
+    }
+
+    var body: some View {
+        List {
+            ForEach(items) { item in
+                HStack(spacing: 12) {
+                    Image(systemName: item.icon)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(item.accent)
+                        .frame(width: 24)
+
+                    Text(item.title)
+                        .font(Theme.Fonts.manrope(14))
+                        .foregroundStyle(Theme.Colors.textPrimary)
+
+                    Spacer()
+                }
+                .padding(.vertical, 4)
+                .listRowBackground(Theme.Colors.surface1)
+            }
+            .onMove(perform: move)
+        }
+        .listStyle(.plain)
+        .environment(\.editMode, .constant(.active))
+        .scrollDisabled(true)
+        .frame(height: CGFloat(max(items.count, 1)) * 52 + 8)
+        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
+    }
+
+    private func move(from source: IndexSet, to destination: Int) {
+        var order = settingsStore.normalizeCardOrder(settingsStore.cardOrder)
+        order.move(fromOffsets: source, toOffset: destination)
+        settingsStore.cardOrder = order
     }
 }
 

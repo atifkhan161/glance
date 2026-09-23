@@ -10,17 +10,37 @@ actor CacheStore {
     private static let maxCacheSize = 10 * 1_024 * 1_024 // 10 MB
     private static let evictionThreshold = 8 * 1_024 * 1_024 // 8 MB
 
+    static let customRSSPrefix = "cache_custom_rss_"
+    static let customRSSFreshTTL: TimeInterval = 24 * 3_600
+
     static let defaultTTLs: [String: TimeInterval] = [
         "cache_madrid": 6 * 3_600,    // 6 hours
         "cache_pogo": 6 * 3_600,      // 6 hours
-        "cache_github": 24 * 3_600,   // 24 hours
+        "cache_github": 24 * 3_600,   // 24 hours (legacy)
+        "cache_github_trending_daily": 24 * 3_600,
+        "cache_github_trending_weekly": 24 * 3_600,
+        "cache_github_trending_monthly": 24 * 3_600,
         "cache_aiintel": 12 * 3_600,  // 12 hours
         "cache_exa_search": 24 * 3_600,   // 24 hours
         "cache_exa_summary": 24 * 3_600,  // 24 hours
+        customRSSPrefix + "*": 24 * 3_600, // custom RSS feeds
     ]
 
+    static func customRSSKey(feedID: String) -> String {
+        customRSSPrefix + feedID
+    }
+
+    private func allKeys() -> [String] {
+        var keys = Set(Self.allCacheKeys)
+        let defaultsKeys = defaults.dictionaryRepresentation().keys
+        for key in defaultsKeys where key.hasPrefix("cache_") && !key.hasSuffix("_meta") {
+            keys.insert(key)
+        }
+        return Array(keys)
+    }
+
     func hydrate() {
-        for key in Self.allCacheKeys {
+        for key in allKeys() {
             if let data = defaults.data(forKey: key) {
                 memory[key] = data
             }
@@ -61,7 +81,7 @@ actor CacheStore {
     }
 
     func clearAll() {
-        for key in Self.allCacheKeys {
+        for key in allKeys() {
             memory.removeValue(forKey: key)
             defaults.removeObject(forKey: key)
             defaults.removeObject(forKey: "\(key)_meta")
@@ -78,7 +98,10 @@ actor CacheStore {
     }
 
     func ttl(for key: String) -> TimeInterval {
-        Self.defaultTTLs[key] ?? 6 * 3_600
+        if key.hasPrefix(Self.customRSSPrefix) {
+            return Self.customRSSFreshTTL
+        }
+        return Self.defaultTTLs[key] ?? 6 * 3_600
     }
 
     var currentSize: Int {

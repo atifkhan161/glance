@@ -5,67 +5,38 @@ struct PulseView: View {
     let store: PulseStore
     @State private var settingsStore = SettingsStore()
 
-    private var sortedCards: [CardID] {
-        var visible: [CardID] = []
-        if settingsStore.showMadrid { visible.append(.madrid) }
-        if settingsStore.showPoGo { visible.append(.pogo) }
-        if settingsStore.showGithub { visible.append(.github) }
-        if settingsStore.showAiIntel { visible.append(.aiIntel) }
-        guard let lead = CardID(rawValue: settingsStore.leadCard),
-              visible.contains(lead) else { return visible }
-        return [lead] + visible.filter { $0 != lead }
+    private var orderedCardIDs: [String] {
+        settingsStore.normalizeCardOrder(settingsStore.cardOrder)
+    }
+
+    private func visibleProviderID(_ raw: String) -> CardID? {
+        guard let id = CardID(rawValue: raw) else { return nil }
+        switch id {
+        case .madrid: return settingsStore.showMadrid ? id : nil
+        case .pogo: return settingsStore.showPoGo ? id : nil
+        case .github: return settingsStore.showGithub ? id : nil
+        case .aiIntel: return settingsStore.showAiIntel ? id : nil
+        }
+    }
+
+    private func customFeedID(forOrderKey key: String) -> String? {
+        guard key.hasPrefix(SettingsStore.customOrderPrefix) else { return nil }
+        let feedID = String(key.dropFirst(SettingsStore.customOrderPrefix.count))
+        guard settingsStore.customRSSFeeds.contains(where: { $0.id.uuidString == feedID && $0.isEnabled }) else {
+            return nil
+        }
+        return feedID
     }
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 10) {
-                ForEach(sortedCards, id: \.self) { card in
-                    let isLead = card.rawValue == settingsStore.leadCard
-                    Button {
-                        appState.pulsePath.append(card)
-                    } label: {
-                        GlanceCardView(card: card, store: store)
-                    }
-                    .buttonStyle(.plain)
-                    .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: Theme.Radius.card)
-                            .stroke(Theme.Colors.borderSubtle.opacity(0.6), lineWidth: 1)
-                    )
-                    .shadow(color: isLead ? card.accentColor.opacity(0.25) : Color(uiColor: UIColor { traits in traits.userInterfaceStyle == .dark ? UIColor.black.withAlphaComponent(0.35) : UIColor.black.withAlphaComponent(0.06) }), radius: isLead ? 14 : 8, y: isLead ? 4 : 2)
-                    .scaleEffect(isLead ? 1.02 : 1.0)
-                    .padding(.horizontal, Theme.cardPadding)
-                }
-
-                // Custom RSS Feed Cards
-                ForEach(Array(store.customRSSCards.keys.sorted()), id: \.self) { feedID in
-                    let feedName = settingsStore.customRSSFeeds.first(where: { $0.id.uuidString == feedID })?.name ?? "Custom Feed"
-                    switch store.customRSSCards[feedID] {
-                    case .loading:
-                        CustomRSSSkeletonView()
-                            .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: Theme.Radius.card)
-                                    .stroke(Theme.Colors.borderSubtle.opacity(0.6), lineWidth: 1)
-                            )
-                            .padding(.horizontal, Theme.cardPadding)
-                    case .ready:
-                        Button {
-                            let ref = CustomRSSFeedRef(feedID: feedID, feedName: feedName)
-                            appState.pulsePath.append(ref)
-                        } label: {
-                            CustomRSSCardView(feedID: feedID, feedName: feedName, store: store)
-                        }
-                        .buttonStyle(.plain)
-                        .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: Theme.Radius.card)
-                                .stroke(Theme.Colors.borderSubtle.opacity(0.6), lineWidth: 1)
-                        )
-                        .shadow(color: Color(uiColor: UIColor { traits in traits.userInterfaceStyle == .dark ? UIColor.black.withAlphaComponent(0.35) : UIColor.black.withAlphaComponent(0.06) }), radius: 8, y: 2)
-                        .padding(.horizontal, Theme.cardPadding)
-                    default:
-                        EmptyView()
+                ForEach(orderedCardIDs, id: \.self) { key in
+                    if let card = visibleProviderID(key) {
+                        providerCard(card)
+                    } else if let feedID = customFeedID(forOrderKey: key) {
+                        customRSSCard(feedID: feedID)
+                            .id(feedID)
                     }
                 }
             }
@@ -134,6 +105,12 @@ struct PulseView: View {
                 if case .ready(let data, _) = store.customRSSCards[ref.feedID] {
                     return data
                 }
+                if case .stale(let data, _) = store.customRSSCards[ref.feedID] {
+                    return data
+                }
+                if case .offline(let data, _) = store.customRSSCards[ref.feedID] {
+                    return data
+                }
                 return []
             }()
             CustomRSSDetailView(feedName: ref.feedName, articles: articles)
@@ -143,11 +120,9 @@ struct PulseView: View {
         }
         .task {
             await store.loadFromCache()
-            // Refresh any cards whose cache has expired
             if store.needsRefresh {
                 await store.refreshAll()
             } else {
-                // Check each card's cache validity individually
                 var cardsToRefresh: [CardID] = []
                 for card in CardID.allCases {
                     let valid = await store.isCacheValid(for: card)
@@ -159,9 +134,92 @@ struct PulseView: View {
                     await store.refreshCard(card)
                 }
             }
-            await Task.yield()
-            await store.refreshCustomRSS()
+            await refreshStaleCustomRSS()
         }
+    }
+
+    private func refreshStaleCustomRSS() async {
+        for feed in settingsStore.customRSSFeeds where feed.isEnabled {
+            let feedID = feed.id.uuidString
+            let hasData: Bool
+            switch store.customRSSCards[feedID] {
+            case .ready, .stale, .offline:
+                hasData = true
+            default:
+                hasData = false
+            }
+            if !hasData {
+                await store.refreshCustomRSS(feedID: feedID)
+                continue
+            }
+            let valid = await store.customRSSIsCacheValid(feedID: feedID)
+            if !valid {
+                await store.refreshCustomRSS(feedID: feedID)
+            }
+        }
+    }
+
+    // MARK: - Provider Card
+
+    private func providerCard(_ card: CardID) -> some View {
+        let isLead = card.rawValue == settingsStore.leadCard
+        return Button {
+            appState.pulsePath.append(card)
+        } label: {
+            GlanceCardView(card: card, store: store)
+        }
+        .buttonStyle(.plain)
+        .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.Radius.card)
+                .stroke(Theme.Colors.borderSubtle.opacity(0.6), lineWidth: 1)
+        )
+        .shadow(color: isLead ? card.accentColor.opacity(0.25) : Color(uiColor: UIColor { traits in traits.userInterfaceStyle == .dark ? UIColor.black.withAlphaComponent(0.35) : UIColor.black.withAlphaComponent(0.06) }), radius: isLead ? 14 : 8, y: isLead ? 4 : 2)
+        .scaleEffect(isLead ? 1.02 : 1.0)
+        .padding(.horizontal, Theme.cardPadding)
+    }
+
+    // MARK: - Custom RSS Card
+
+    private func feedHasContent(_ feedID: String) -> Bool {
+        switch store.customRSSCards[feedID] {
+        case .ready, .stale, .offline, .degraded:
+            return true
+        default:
+            return false
+        }
+    }
+
+    private func customRSSCard(feedID: String) -> some View {
+        let feedName = settingsStore.customRSSFeeds.first(where: { $0.id.uuidString == feedID })?.name ?? "Custom Feed"
+        let card = CustomRSSCardView(feedID: feedID, feedName: feedName, store: store)
+        let styled = AnyView(
+            card
+                .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
+                .overlay(
+                    RoundedRectangle(cornerRadius: Theme.Radius.card)
+                        .stroke(Theme.Colors.borderSubtle.opacity(0.6), lineWidth: 1)
+                )
+                .shadow(color: Color(uiColor: UIColor { traits in traits.userInterfaceStyle == .dark ? UIColor.black.withAlphaComponent(0.35) : UIColor.black.withAlphaComponent(0.06) }), radius: 8, y: 2)
+                .padding(.horizontal, Theme.cardPadding)
+        )
+        guard feedHasContent(feedID) else { return styled }
+        return AnyView(
+            Button {
+                let ref = CustomRSSFeedRef(feedID: feedID, feedName: feedName)
+                appState.pulsePath.append(ref)
+            } label: {
+                card
+            }
+            .buttonStyle(.plain)
+            .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.Radius.card)
+                    .stroke(Theme.Colors.borderSubtle.opacity(0.6), lineWidth: 1)
+            )
+            .shadow(color: Color(uiColor: UIColor { traits in traits.userInterfaceStyle == .dark ? UIColor.black.withAlphaComponent(0.35) : UIColor.black.withAlphaComponent(0.06) }), radius: 8, y: 2)
+            .padding(.horizontal, Theme.cardPadding)
+        )
     }
 
     @ViewBuilder

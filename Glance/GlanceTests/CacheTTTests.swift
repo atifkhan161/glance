@@ -14,6 +14,8 @@ struct CacheTTTests {
     func githubTTL() {
         let ttl = CacheStore.defaultTTLs["cache_github"] ?? 0
         #expect(ttl == 24 * 3_600)
+        let trending = CacheStore.defaultTTLs["cache_github_trending_daily"] ?? 0
+        #expect(trending == 24 * 3_600)
     }
 
     @Test("Default TTL for aiintel cache")
@@ -46,5 +48,11 @@ struct CacheTTTests {
     func nilTTLNeverExpires() {
         let envelope = CacheEnvelope(data: "permanent", ttlMs: nil)
         #expect(envelope.isExpired == false)
+    }
+
+    @Test("defaultTTLs includes custom RSS wildcard entry")
+    func customRSSDefaultTTL() {
+        let ttl = CacheStore.defaultTTLs[CacheStore.customRSSPrefix + "*"]
+        #expect(ttl == 24 * 3_600)
     }
 }

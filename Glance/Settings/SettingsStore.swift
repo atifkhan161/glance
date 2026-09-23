@@ -13,6 +13,50 @@ final class SettingsStore {
         set { defaults.set(newValue, forKey: "leadCard") }
     }
 
+    var cardOrder: [String] {
+        get {
+            guard let data = defaults.data(forKey: "cardOrder"),
+                  let order = try? JSONDecoder().decode([String].self, from: data) else {
+                return defaultCardOrder
+            }
+            return normalizeCardOrder(order)
+        }
+        set {
+            if let data = try? JSONEncoder().encode(newValue) {
+                defaults.set(data, forKey: "cardOrder")
+            }
+        }
+    }
+
+    var defaultCardOrder: [String] {
+        CardID.allCases.map(\.rawValue) + customRSSFeeds.filter(\.isEnabled).map { Self.customOrderPrefix + $0.id.uuidString }
+    }
+
+    static let customOrderPrefix = "custom:"
+
+    func normalizeCardOrder(_ order: [String]) -> [String] {
+        let providerIDs = Set(CardID.allCases.map(\.rawValue))
+        let feedIDs = Set(customRSSFeeds.map { Self.customOrderPrefix + $0.id.uuidString })
+        let known = providerIDs.union(feedIDs)
+        var seen = Set<String>()
+        var result = order.filter { known.contains($0) && seen.insert($0).inserted }
+        for id in defaultCardOrder where !seen.contains(id) {
+            result.append(id)
+            seen.insert(id)
+        }
+        return result
+    }
+
+    func appendFeedToCardOrder(_ feed: CustomRSSFeed) {
+        var order = cardOrder
+        order.append(Self.customOrderPrefix + feed.id.uuidString)
+        cardOrder = order
+    }
+
+    func removeFeedFromCardOrder(feedID: String) {
+        cardOrder = cardOrder.filter { $0 != Self.customOrderPrefix + feedID }
+    }
+
     var showMadrid: Bool {
         get { defaults.object(forKey: "showMadrid") as? Bool ?? true }
         set { defaults.set(newValue, forKey: "showMadrid") }

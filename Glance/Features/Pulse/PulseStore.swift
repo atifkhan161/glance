@@ -93,6 +93,7 @@ final class PulseStore {
     }
 
     func loadFromCache() async {
+        await cache.hydrate()
         async let madridEnvelope: CacheEnvelope<MadridData>? = cache.load("cache_madrid")
         async let pogoEnvelope: CacheEnvelope<PoGoData>? = cache.load("cache_pogo")
         let selectedSince = settingsStore.githubTrendingSince
@@ -106,8 +107,8 @@ final class PulseStore {
             if hasDescriptions {
                 github = .ready(data: g.data, age: TimeFormat.age(from: Date(timeIntervalSince1970: TimeInterval(g.timestampMs) / 1000)))
              } else {
-                await cache.remove("cache_github_trending_\(selectedSince)")
-                github = .loading
+                 await cache.remove("cache_github_trending_\(selectedSince)")
+                 github = .loading
             }
         }
         if let a { aiIntel = .ready(data: a.data, age: TimeFormat.age(from: Date(timeIntervalSince1970: TimeInterval(a.timestampMs) / 1000))) }
@@ -116,6 +117,31 @@ final class PulseStore {
             if customRSSCards[feed.id.uuidString] == nil {
                 customRSSCards[feed.id.uuidString] = .loading
             }
+        }
+        await loadCustomRSSFromCache()
+    }
+
+    private func loadCustomRSSFromCache() async {
+        for feed in settingsStore.customRSSFeeds {
+            let feedID = feed.id.uuidString
+            guard feed.isEnabled else {
+                customRSSCards[feedID] = nil
+                continue
+            }
+            if let envelope = await genericRSSPipeline.loadCached(feed: feed) {
+                let age = TimeFormat.age(from: Date(timeIntervalSince1970: TimeInterval(envelope.timestampMs) / 1000))
+                if envelope.isExpired {
+                    customRSSCards[feedID] = .stale(data: envelope.data, age: age)
+                } else {
+                    customRSSCards[feedID] = .ready(data: envelope.data, age: age)
+                }
+            } else if customRSSCards[feedID] == nil {
+                customRSSCards[feedID] = .loading
+            }
+        }
+        let activeIDs = Set(settingsStore.customRSSFeeds.filter(\.isEnabled).map(\.id.uuidString))
+        for key in customRSSCards.keys where !activeIDs.contains(key) {
+            customRSSCards.removeValue(forKey: key)
         }
     }
 
@@ -128,25 +154,49 @@ final class PulseStore {
     }
 
     func refreshCustomRSS() async {
-        let feeds = settingsStore.customRSSFeeds
+        let feeds = settingsStore.customRSSFeeds.filter(\.isEnabled)
         for feed in feeds {
-            guard feed.isEnabled else {
-                customRSSCards[feed.id.uuidString] = nil
-                continue
-            }
-            customRSSCards[feed.id.uuidString] = .loading
-            let articles = await genericRSSPipeline.refresh(feed: feed)
-            if articles.isEmpty {
-                customRSSCards[feed.id.uuidString] = .error(message: "No articles found")
-            } else {
-                customRSSCards[feed.id.uuidString] = .ready(data: articles, age: "just now")
-            }
+            await refreshCustomRSS(feedID: feed.id.uuidString)
         }
-        // Remove cards for deleted feeds
         let activeIDs = Set(feeds.map(\.id.uuidString))
         for key in customRSSCards.keys where !activeIDs.contains(key) {
             customRSSCards.removeValue(forKey: key)
         }
+    }
+
+    func refreshCustomRSS(feedID: String) async {
+        guard let feed = settingsStore.customRSSFeeds.first(where: { $0.id.uuidString == feedID }),
+              feed.isEnabled else {
+            customRSSCards[feedID] = nil
+            return
+        }
+
+        var fallbackData: ([MMArticle], String)?
+        switch customRSSCards[feedID] {
+        case .ready(let data, let age)?, .stale(let data, let age)?, .offline(let data, let age)?:
+            fallbackData = (data, age)
+            customRSSCards[feedID] = .stale(data: data, age: age)
+        default:
+            customRSSCards[feedID] = .loading
+        }
+
+        let articles = await genericRSSPipeline.refresh(feed: feed)
+        if articles.isEmpty {
+            if let (data, age) = fallbackData {
+                customRSSCards[feedID] = .offline(data: data, age: age)
+            } else {
+                customRSSCards[feedID] = .error(message: "Could not load \(feed.name)")
+            }
+        } else {
+            customRSSCards[feedID] = .ready(data: articles, age: "just now")
+        }
+    }
+
+    func customRSSIsCacheValid(feedID: String) async -> Bool {
+        guard settingsStore.customRSSFeeds.contains(where: { $0.id.uuidString == feedID }) else {
+            return false
+        }
+        return await cache.isValid(key: CacheStore.customRSSKey(feedID: feedID))
     }
 
     func refreshCard(_ card: CardID) async {

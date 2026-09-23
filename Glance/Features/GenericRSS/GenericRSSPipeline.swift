@@ -11,7 +11,18 @@ struct GenericRSSPipeline: Sendable {
 
     func refresh(feed: CustomRSSFeed) async -> [MMArticle] {
         guard feed.isEnabled, !feed.url.isEmpty else { return [] }
-        return (try? await client.fetchArticles(from: feed.url)) ?? []
+        guard let articles = try? await client.fetchArticles(from: feed.url), !articles.isEmpty else {
+            return []
+        }
+        let envelope = CacheEnvelope(data: articles, ttlMs: Int64(CacheStore.customRSSFreshTTL * 1000))
+        await cache.save(CacheStore.customRSSKey(feedID: feed.id.uuidString), envelope: envelope)
+        return articles
+    }
+
+    func loadCached(feed: CustomRSSFeed) async -> CacheEnvelope<[MMArticle]>? {
+        let key = CacheStore.customRSSKey(feedID: feed.id.uuidString)
+        let envelope: CacheEnvelope<[MMArticle]>? = await cache.load(key)
+        return envelope
     }
 
     func refreshAll(feeds: [CustomRSSFeed]) async -> [String: [MMArticle]] {
