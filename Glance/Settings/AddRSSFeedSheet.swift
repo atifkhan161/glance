@@ -17,6 +17,27 @@ enum FeedValidationState: Equatable {
 }
 
 struct AddRSSFeedSheet: View {
+    static let redditSorts = ["hot", "new", "top", "rising"]
+
+    static func redditFeedURL(subreddit: String, sort: String) -> String {
+        var name = subreddit.trimmingCharacters(in: .whitespacesAndNewlines)
+        while name.hasPrefix("/") || name.hasPrefix("r/") {
+            if name.hasPrefix("/") {
+                name.removeFirst()
+            }
+            if name.hasPrefix("r/") {
+                name.removeFirst(2)
+            }
+        }
+        name = name.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let safeSort = Self.redditSorts.contains(sort) ? sort : "hot"
+        var url = "https://www.reddit.com/r/\(name)/\(safeSort).rss"
+        if safeSort == "top" {
+            url += "?t=day"
+        }
+        return url
+    }
+
     @Environment(\.dismiss) private var dismiss
     let settingsStore: SettingsStore
     @Binding var feeds: [CustomRSSFeed]

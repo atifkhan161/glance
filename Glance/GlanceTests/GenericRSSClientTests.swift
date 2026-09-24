@@ -126,3 +126,30 @@ struct GenericRSSParseTests {
         #expect(articles.first?.title == "RSS title")
     }
 }
+
+@Suite("Reddit feed URL")
+struct RedditFeedURLTests {
+    @Test("Normalizes r/technology + hot")
+    func normalizesRPrefix() {
+        let url = AddRSSFeedSheet.redditFeedURL(subreddit: "r/technology", sort: "hot")
+        #expect(url == "https://www.reddit.com/r/technology/hot.rss")
+    }
+
+    @Test("Bare subreddit name")
+    func bareSubreddit() {
+        let url = AddRSSFeedSheet.redditFeedURL(subreddit: "technology", sort: "hot")
+        #expect(url == "https://www.reddit.com/r/technology/hot.rss")
+    }
+
+    @Test("Trims whitespace and leading slash variants")
+    func trimsInput() {
+        let url = AddRSSFeedSheet.redditFeedURL(subreddit: "  /r/selfhosted/  ", sort: "new")
+        #expect(url == "https://www.reddit.com/r/selfhosted/new.rss")
+    }
+
+    @Test("Sort top includes day window")
+    func topSortIncludesDay() {
+        let url = AddRSSFeedSheet.redditFeedURL(subreddit: "technology", sort: "top")
+        #expect(url == "https://www.reddit.com/r/technology/top.rss?t=day")
+    }
+}
