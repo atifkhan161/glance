@@ -15,6 +15,7 @@
 		0293474C8BAA89D4AD8F170F /* TimeFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0F51D16A6D39FCFAB1EE51 /* TimeFormat.swift */; };
 		5857340F517F43F189F6A9C1 /* CardOrderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89C539EE7B074787A42B5258 /* CardOrderTests.swift */; };
 		A1B2C3D400020001AAAA0002 /* GenericRSSClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D400020001AAAA0001 /* GenericRSSClientTests.swift */; };
+		A1B2C3D400020002AAAA0002 /* RedditLinkResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D400020002AAAA0001 /* RedditLinkResolverTests.swift */; };
 		AA000000000000000000T002 /* ThemeManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000T001 /* ThemeManagerTests.swift */; };
 		05D69E71AEAF0796329FCB70 /* EventDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 274E1FF781DE1E99CE883CB1 /* EventDetailView.swift */; };
 		096DB724932563428E9C79B3 /* ExaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032774EA8666009381F3C760 /* ExaClient.swift */; };
@@ -81,6 +82,7 @@
 		CC11DD22EE33FF44GG55FF79 /* GenericRSSClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD22EE33FF44GG55FF660079 /* GenericRSSClient.swift */; };
 		D1E2F3A4B5C6D7E8F9A0B1C2 /* ArticleModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A4B5C6D7E8F9A0B1C3 /* ArticleModels.swift */; };
 		D1E2F3A4B5C6D7E8F9A0B1C4 /* HTMLStripper.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A4B5C6D7E8F9A0B1C5 /* HTMLStripper.swift */; };
+		A1B2C3D400020003AAAA0002 /* RedditLinkResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D400020003AAAA0001 /* RedditLinkResolver.swift */; };
 		D1E2F3A4B5C6D7E8F9A0B1C6 /* ArticleIntelligenceCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A4B5C6D7E8F9A0B1C7 /* ArticleIntelligenceCard.swift */; };
 		D1E2F3A4B5C6D7E8F9A0B1C8 /* RawArticleCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A4B5C6D7E8F9A0B1C9 /* RawArticleCard.swift */; };
 		D1E2F3A4B5C6D7E8F9A0B1D0 /* CustomRSSArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A4B5C6D7E8F9A0B1D1 /* CustomRSSArticleView.swift */; };
@@ -232,6 +234,7 @@
 		CF0F51D16A6D39FCFAB1EE51 /* TimeFormat.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = TimeFormat.swift; sourceTree = "<group>"; };
 		D1E2F3A4B5C6D7E8F9A0B1C3 /* ArticleModels.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ArticleModels.swift; sourceTree = "<group>"; };
 		D1E2F3A4B5C6D7E8F9A0B1C5 /* HTMLStripper.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = HTMLStripper.swift; sourceTree = "<group>"; };
+		A1B2C3D400020003AAAA0001 /* RedditLinkResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedditLinkResolver.swift; sourceTree = "<group>"; };
 		D1E2F3A4B5C6D7E8F9A0B1C7 /* ArticleIntelligenceCard.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ArticleIntelligenceCard.swift; sourceTree = "<group>"; };
 		D1E2F3A4B5C6D7E8F9A0B1C9 /* RawArticleCard.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = RawArticleCard.swift; sourceTree = "<group>"; };
 		D1E2F3A4B5C6D7E8F9A0B1D1 /* CustomRSSArticleView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CustomRSSArticleView.swift; sourceTree = "<group>"; };
@@ -251,6 +254,7 @@
 		F65672F62EC7DA587E61CBB6 /* CacheStoreTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CacheStoreTests.swift; sourceTree = "<group>"; };
 		89C539EE7B074787A42B5258 /* CardOrderTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CardOrderTests.swift; sourceTree = "<group>"; };
 		A1B2C3D400020001AAAA0001 /* GenericRSSClientTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GenericRSSClientTests.swift; sourceTree = "<group>"; };
+		A1B2C3D400020002AAAA0001 /* RedditLinkResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedditLinkResolverTests.swift; sourceTree = "<group>"; };
 		AA000000000000000000T001 /* ThemeManagerTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ThemeManagerTests.swift; sourceTree = "<group>"; };
 		FE51DADF51E57ECD0B40BE8F /* Glance.xcassets */ = {isa = PBXFileReference; explicitFileType = folder.assetcatalog; path = Glance.xcassets; sourceTree = "<group>"; };
 		FEED1234FACEBEEF00000002 /* ArticleScraper.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ArticleScraper.swift; sourceTree = "<group>"; };
@@ -310,6 +314,7 @@
 				C8D9E0F1A2B3C4D5E6F7A8B9 /* CacheTTTests.swift */,
 				89C539EE7B074787A42B5258 /* CardOrderTests.swift */,
 				A1B2C3D400020001AAAA0001 /* GenericRSSClientTests.swift */,
+				A1B2C3D400020002AAAA0001 /* RedditLinkResolverTests.swift */,
 				AA000000000000000000T001 /* ThemeManagerTests.swift */,
 			);
 			path = GlanceTests;
@@ -521,6 +526,7 @@
 			isa = PBXGroup;
 			children = (
 				D1E2F3A4B5C6D7E8F9A0B1C5 /* HTMLStripper.swift */,
+				A1B2C3D400020003AAAA0001 /* RedditLinkResolver.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -796,6 +802,7 @@
 				B7C8D9E0F1A2B3C4D5E6F7A8 /* CacheTTTests.swift in Sources */,
 				5857340F517F43F189F6A9C1 /* CardOrderTests.swift in Sources */,
 				A1B2C3D400020001AAAA0002 /* GenericRSSClientTests.swift in Sources */,
+				A1B2C3D400020002AAAA0002 /* RedditLinkResolverTests.swift in Sources */,
 				AA000000000000000000T002 /* ThemeManagerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -869,6 +876,7 @@
 				A1B2C3D400010001B10001B8 /* CustomRSSCardView.swift in Sources */,
 				D1E2F3A4B5C6D7E8F9A0B1C2 /* ArticleModels.swift in Sources */,
 				D1E2F3A4B5C6D7E8F9A0B1C4 /* HTMLStripper.swift in Sources */,
+				A1B2C3D400020003AAAA0002 /* RedditLinkResolver.swift in Sources */,
 				D1E2F3A4B5C6D7E8F9A0B1C6 /* ArticleIntelligenceCard.swift in Sources */,
 				D1E2F3A4B5C6D7E8F9A0B1C8 /* RawArticleCard.swift in Sources */,
 				D1E2F3A4B5C6D7E8F9A0B1D0 /* CustomRSSArticleView.swift in Sources */,
