@@ -24,6 +24,15 @@ struct GenericRSSClient: Sendable {
         let (title, articles) = parser.parseWithFeedTitle(data: data)
         return RSSFeedInfo(title: title, articles: articles)
     }
+
+    func parseArticles(from data: Data) -> [MMArticle] {
+        GenericRSSParser().parse(data: data)
+    }
+
+    func parseFeedInfo(from data: Data) -> (title: String, articles: [MMArticle]) {
+        let (title, articles) = GenericRSSParser().parseWithFeedTitle(data: data)
+        return (title, articles)
+    }
 }
 
 private final class GenericRSSParser: NSObject, XMLParserDelegate {
@@ -48,6 +57,22 @@ private final class GenericRSSParser: NSObject, XMLParserDelegate {
         return (feedTitle, Array(articles.prefix(20)))
     }
 
+    static func firstImageURL(in html: String) -> String? {
+        let pattern = #"<img[^>]+src="([^"]+)""#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else { return nil }
+        let range = NSRange(html.startIndex..., in: html)
+        for match in regex.matches(in: html, options: [], range: range) {
+            guard let srcRange = Range(match.range(at: 1), in: html) else { continue }
+            let src = String(html[srcRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+            if src.isEmpty || src.lowercased().hasPrefix("data:") { continue }
+            if let decoded = src.removingPercentEncoding ?? Optional(src) {
+                return decoded.replacingOccurrences(of: "&amp;", with: "&")
+            }
+            return src.replacingOccurrences(of: "&amp;", with: "&")
+        }
+        return nil
+    }
+
     func parser(
         _ parser: XMLParser,
         didStartElement elementName: String,
@@ -69,6 +94,25 @@ private final class GenericRSSParser: NSObject, XMLParserDelegate {
             inFeedTitle = true
         }
         textBuffer = ""
+        let local = qName?.components(separatedBy: ":").last ?? elementName
+        if current != nil,
+           (elementName == "media:thumbnail" || local == "thumbnail"),
+           let url = attributeDict["url"],
+           !url.isEmpty {
+            current?.thumbnailURL = url
+        }
+        if current?.thumbnailURL == nil,
+           (elementName == "media:content" || (local == "content" && namespaceURI?.contains("mrss") == true)),
+           let url = attributeDict["url"],
+           !url.isEmpty {
+            current?.thumbnailURL = url
+        }
+        if current != nil, elementName == "img", current?.thumbnailURL == nil,
+           let src = attributeDict["src"], !src.isEmpty {
+            if !src.lowercased().hasPrefix("data:") {
+                current?.thumbnailURL = src
+            }
+        }
     }
 
     func parser(_ parser: XMLParser, foundCharacters string: String) {
@@ -105,6 +149,9 @@ private final class GenericRSSParser: NSObject, XMLParserDelegate {
             item.category = textBuffer.trimmingCharacters(in: .whitespacesAndNewlines)
         case "description", "summary", "content", "content:encoded":
             item.content = textBuffer.trimmingCharacters(in: .whitespacesAndNewlines)
+            if item.thumbnailURL == nil {
+                item.thumbnailURL = Self.firstImageURL(in: item.content)
+            }
         case "item", "entry":
             let article = MMArticle(
                 id: item.url.isEmpty ? UUID().uuidString : item.url,
@@ -114,7 +161,8 @@ private final class GenericRSSParser: NSObject, XMLParserDelegate {
                 author: item.author,
                 category: item.category,
                 content: item.content,
-                scrapedContent: ""
+                scrapedContent: "",
+                thumbnailURL: item.thumbnailURL
             )
             articles.append(article)
             current = nil
@@ -133,4 +181,5 @@ private struct GenericRSSItem {
     var category = ""
     var content = ""
     var scrapedContent = ""
+    var thumbnailURL: String? = nil
 }
