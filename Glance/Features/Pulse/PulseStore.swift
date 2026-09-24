@@ -155,13 +155,25 @@ final class PulseStore {
 
     func refreshCustomRSS() async {
         let feeds = settingsStore.customRSSFeeds.filter(\.isEnabled)
-        for feed in feeds {
+        for (index, feed) in feeds.enumerated() {
             await refreshCustomRSS(feedID: feed.id.uuidString)
+            if index < feeds.count - 1 {
+                let isReddit = Self.isRedditFeed(feed)
+                let nextIsReddit = feeds.dropFirst(index + 1).contains(where: Self.isRedditFeed)
+                if isReddit && nextIsReddit {
+                    try? await Task.sleep(nanoseconds: 1_000_000_000)
+                }
+            }
         }
         let activeIDs = Set(feeds.map(\.id.uuidString))
         for key in customRSSCards.keys where !activeIDs.contains(key) {
             customRSSCards.removeValue(forKey: key)
         }
+    }
+
+    private static func isRedditFeed(_ feed: CustomRSSFeed) -> Bool {
+        guard let url = URL(string: feed.url), let host = url.host else { return false }
+        return RedditLinkResolver.isRedditHost(host)
     }
 
     func refreshCustomRSS(feedID: String) async {

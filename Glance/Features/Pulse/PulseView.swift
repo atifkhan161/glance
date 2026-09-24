@@ -113,7 +113,11 @@ struct PulseView: View {
                 }
                 return []
             }()
-            CustomRSSDetailView(feedName: ref.feedName, articles: articles)
+            CustomRSSDetailView(
+                feedName: ref.feedName,
+                articles: articles,
+                showThumbnails: settingsStore.customRSSFeeds.first(where: { $0.id.uuidString == ref.feedID })?.showThumbnails ?? true
+            )
         }
         .navigationDestination(for: CustomRSSArticleRef.self) { ref in
             CustomRSSArticleView(article: ref.article, feedName: ref.feedName)

@@ -7,18 +7,24 @@ struct CustomRSSCardView: View {
     @Environment(AppState.self) private var appState
     @State private var settingsStore = SettingsStore()
 
-    private var accentColor: Color { Theme.Colors.cardAmber }
-
-    private var feedURL: String? {
-        settingsStore.customRSSFeeds.first(where: { $0.id.uuidString == feedID })?.url
+    private var feed: CustomRSSFeed? {
+        settingsStore.customRSSFeeds.first(where: { $0.id.uuidString == feedID })
     }
 
-    private var sourceDomain: String? {
-        guard let urlString = feedURL,
-              let url = URL(string: urlString),
-              let host = url.host else { return nil }
-        return host
+    private var feedURL: String? { feed?.url }
+
+    private var showThumbnails: Bool { feed?.showThumbnails ?? true }
+
+    private var isRedditFeed: Bool {
+        guard let host = feedURL.flatMap({ URL(string: $0)?.host }) else { return false }
+        return RedditLinkResolver.isRedditHost(host)
     }
+
+    private var headerSymbol: String {
+        isRedditFeed ? "bubble.left.and.bubble.right" : "dot.rss"
+    }
+
+    private var accentColor: Color { isRedditFeed ? Theme.Colors.cardAmber : Theme.Colors.cardAmber }
 
     private var cardState: CardState<[MMArticle]>? {
         store.customRSSCards[feedID]
@@ -82,7 +88,7 @@ struct CustomRSSCardView: View {
                     .frame(width: 8, height: 8)
                     .accessibilityHidden(true)
 
-                Image(systemName: "dot.rss")
+                Image(systemName: headerSymbol)
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(accentColor)
                     .accessibilityHidden(true)
@@ -197,7 +203,10 @@ struct CustomRSSCardView: View {
                     let ref = CustomRSSArticleRef(article: article, feedName: feedName)
                     appState.pulsePath.append(ref)
                 } label: {
-                    HStack {
+                    HStack(spacing: 10) {
+                        if showThumbnails, let thumb = article.thumbnailURL, let url = URL(string: thumb) {
+                            articleThumb(url)
+                        }
                         VStack(alignment: .leading, spacing: 2) {
                             Text(article.title)
                                 .font(Theme.Fonts.manrope(13, weight: .medium))
@@ -222,6 +231,19 @@ struct CustomRSSCardView: View {
         }
         .padding(.horizontal, Theme.cardPadding)
         .padding(.bottom, 8)
+    }
+
+    private func articleThumb(_ url: URL) -> some View {
+        CachedAsyncImage(url: url) { image in
+            image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+        } placeholder: {
+            Rectangle().fill(Theme.Colors.canvasDeep)
+        }
+        .frame(width: 48, height: 48)
+        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.small))
+        .accessibilityHidden(true)
     }
 
     // MARK: - Footer
@@ -250,6 +272,13 @@ struct CustomRSSCardView: View {
             .padding(.vertical, 10)
         }
         .contentShape(Rectangle())
+    }
+
+    private var sourceDomain: String? {
+        guard let urlString = feedURL,
+              let url = URL(string: urlString),
+              let host = url.host else { return nil }
+        return host
     }
 }
 
