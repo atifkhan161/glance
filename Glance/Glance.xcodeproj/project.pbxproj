@@ -14,6 +14,7 @@
 		AA000000000000000000F105 /* JetBrainsMono-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F005 /* JetBrainsMono-ExtraBold.ttf */; };
 		0293474C8BAA89D4AD8F170F /* TimeFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0F51D16A6D39FCFAB1EE51 /* TimeFormat.swift */; };
 		5857340F517F43F189F6A9C1 /* CardOrderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89C539EE7B074787A42B5258 /* CardOrderTests.swift */; };
+		A1B2C3D400020001AAAA0002 /* GenericRSSClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D400020001AAAA0001 /* GenericRSSClientTests.swift */; };
 		AA000000000000000000T002 /* ThemeManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000T001 /* ThemeManagerTests.swift */; };
 		05D69E71AEAF0796329FCB70 /* EventDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 274E1FF781DE1E99CE883CB1 /* EventDetailView.swift */; };
 		096DB724932563428E9C79B3 /* ExaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032774EA8666009381F3C760 /* ExaClient.swift */; };
@@ -249,6 +250,7 @@
 		F457B157FC966D801CD62CE1 /* SkeletonView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SkeletonView.swift; sourceTree = "<group>"; };
 		F65672F62EC7DA587E61CBB6 /* CacheStoreTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CacheStoreTests.swift; sourceTree = "<group>"; };
 		89C539EE7B074787A42B5258 /* CardOrderTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CardOrderTests.swift; sourceTree = "<group>"; };
+		A1B2C3D400020001AAAA0001 /* GenericRSSClientTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GenericRSSClientTests.swift; sourceTree = "<group>"; };
 		AA000000000000000000T001 /* ThemeManagerTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ThemeManagerTests.swift; sourceTree = "<group>"; };
 		FE51DADF51E57ECD0B40BE8F /* Glance.xcassets */ = {isa = PBXFileReference; explicitFileType = folder.assetcatalog; path = Glance.xcassets; sourceTree = "<group>"; };
 		FEED1234FACEBEEF00000002 /* ArticleScraper.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ArticleScraper.swift; sourceTree = "<group>"; };
@@ -307,6 +309,7 @@
 				A6B7C8D9E0F1A2B3C4D5E6F7 /* IntelligenceRouterTests.swift */,
 				C8D9E0F1A2B3C4D5E6F7A8B9 /* CacheTTTests.swift */,
 				89C539EE7B074787A42B5258 /* CardOrderTests.swift */,
+				A1B2C3D400020001AAAA0001 /* GenericRSSClientTests.swift */,
 				AA000000000000000000T001 /* ThemeManagerTests.swift */,
 			);
 			path = GlanceTests;
@@ -792,6 +795,7 @@
 				F5A6B7C8D9E0F1A2B3C4D5E6 /* IntelligenceRouterTests.swift in Sources */,
 				B7C8D9E0F1A2B3C4D5E6F7A8 /* CacheTTTests.swift in Sources */,
 				5857340F517F43F189F6A9C1 /* CardOrderTests.swift in Sources */,
+				A1B2C3D400020001AAAA0002 /* GenericRSSClientTests.swift in Sources */,
 				AA000000000000000000T002 /* ThemeManagerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

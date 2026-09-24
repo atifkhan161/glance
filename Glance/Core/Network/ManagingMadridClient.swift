@@ -13,6 +13,7 @@ struct MMArticle: Codable, Sendable, Identifiable, Equatable, Hashable {
     let category: String
     let content: String
     var scrapedContent: String
+    var thumbnailURL: String? = nil
 }
 
 struct ManagingMadridClient: ManagingMadridClientProtocol, Sendable {

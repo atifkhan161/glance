@@ -198,11 +198,32 @@ struct CustomRSSFeed: Codable, Identifiable, Hashable {
     var name: String
     var url: String
     var isEnabled: Bool
+    var showThumbnails: Bool
 
-    init(id: UUID = UUID(), name: String, url: String, isEnabled: Bool = true) {
+    init(
+        id: UUID = UUID(),
+        name: String,
+        url: String,
+        isEnabled: Bool = true,
+        showThumbnails: Bool = true
+    ) {
         self.id = id
         self.name = name
         self.url = url
         self.isEnabled = isEnabled
+        self.showThumbnails = showThumbnails
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, url, isEnabled, showThumbnails
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        url = try container.decode(String.self, forKey: .url)
+        isEnabled = try container.decode(Bool.self, forKey: .isEnabled)
+        showThumbnails = try container.decodeIfPresent(Bool.self, forKey: .showThumbnails) ?? true
     }
 }
