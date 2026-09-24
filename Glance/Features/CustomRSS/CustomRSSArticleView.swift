@@ -8,6 +8,20 @@ struct CustomRSSArticleView: View {
     @State private var isScraping = false
     @State private var scrapeError: String?
 
+    private var scrapeTarget: URL? {
+        RedditLinkResolver.scrapeTarget(for: article)
+    }
+
+    private var commentsURL: URL? {
+        RedditLinkResolver.commentsURL(for: article)
+    }
+
+    private var primaryArticleURL: URL? {
+        if scrapeTarget != nil { return scrapeTarget }
+        if let comments = commentsURL { return comments }
+        return URL(string: article.url)
+    }
+
     private var displayContent: String {
         if !scrapedContent.isEmpty {
             return scrapedContent
@@ -16,13 +30,25 @@ struct CustomRSSArticleView: View {
     }
 
     private var sourceDomain: String? {
-        guard let url = URL(string: article.url), let host = url.host else { return nil }
-        return host
+        primaryArticleURL?.host
+    }
+
+    private var isRedditOnly: Bool {
+        RedditLinkResolver.isRedditPermalink(article.url) && scrapeTarget == nil
+    }
+
+    private var thumbnailURL: URL? {
+        guard let s = article.thumbnailURL, let u = URL(string: s) else { return nil }
+        return u
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                if let thumbnailURL {
+                    heroImage(thumbnailURL)
+                }
+
                 Text(article.title)
                     .font(Theme.Fonts.manrope(26, weight: .heavy))
                     .foregroundStyle(Theme.Colors.textPrimary)
@@ -81,7 +107,7 @@ struct CustomRSSArticleView: View {
                         accentColor: Theme.Colors.accent
                     )
 
-                    RawArticleCard(headerTitle: "FULL ARTICLE") {
+                    RawArticleCard(headerTitle: isRedditOnly ? "REDDIT POST" : "FULL ARTICLE") {
                         VStack(alignment: .leading, spacing: 14) {
                             ForEach(Array(paragraphs.enumerated()), id: \.offset) { _, paragraph in
                                 Text(paragraph)
@@ -102,10 +128,10 @@ struct CustomRSSArticleView: View {
                         .padding(.top, 8)
                 }
 
-                if let url = URL(string: article.url) {
-                    Link(destination: url) {
+                if let primaryArticleURL {
+                    Link(destination: primaryArticleURL) {
                         HStack {
-                            Text("Read on \(sourceDomain ?? feedName)")
+                            Text(primaryCTALabel)
                             Image(systemName: "arrow.up.right")
                         }
                         .font(Theme.Fonts.manrope(14, weight: .semibold))
@@ -116,6 +142,18 @@ struct CustomRSSArticleView: View {
                     }
                     .padding(.top, 24)
                 }
+
+                if let commentsURL, primaryArticleURL?.absoluteString != commentsURL.absoluteString {
+                    Link(destination: commentsURL) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "bubble.left.and.bubble.right")
+                            Text("Open comments")
+                        }
+                        .font(Theme.Fonts.manrope(13, weight: .medium))
+                        .foregroundStyle(Theme.Colors.textMuted)
+                    }
+                    .accessibilityLabel("Open Reddit comments")
+                }
             }
             .padding(.horizontal, Theme.cardPadding)
             .padding(.bottom, 100)
@@ -125,16 +163,56 @@ struct CustomRSSArticleView: View {
         .navigationTitle(feedName)
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            guard scrapedContent.isEmpty, !article.url.isEmpty else { return }
-            isScraping = true
+            await loadArticleBody()
+        }
+    }
+
+    private var primaryCTALabel: String {
+        if isRedditOnly {
+            return "Open on Reddit"
+        }
+        if let domain = sourceDomain, scrapeTarget != nil {
+            return "Read on \(domain)"
+        }
+        if RedditLinkResolver.isRedditPermalink(article.url) {
+            return "Open on Reddit"
+        }
+        return "Read on \(sourceDomain ?? feedName)"
+    }
+
+    private func heroImage(_ url: URL) -> some View {
+        CachedAsyncImage(url: url) { image in
+            image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+        } placeholder: {
+            Rectangle()
+                .fill(Theme.Colors.canvasDeep)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 180)
+        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.medium))
+        .accessibilityHidden(true)
+    }
+
+    private func loadArticleBody() async {
+        guard scrapedContent.isEmpty else { return }
+        guard let target = scrapeTarget else {
             scrapeError = nil
-            do {
-                scrapedContent = try await ArticleScraper().scrape(urlString: article.url)
-            } catch {
+            isScraping = false
+            return
+        }
+        isScraping = true
+        scrapeError = nil
+        do {
+            scrapedContent = try await ArticleScraper().scrape(urlString: target.absoluteString)
+            if scrapedContent.isEmpty {
                 scrapeError = "Could not load full article"
             }
-            isScraping = false
+        } catch {
+            scrapeError = "Could not load full article"
         }
+        isScraping = false
     }
 
     private var paragraphs: [String] {
