@@ -38,14 +38,33 @@ struct AddRSSFeedSheet: View {
         return url
     }
 
+    private enum FeedSourceMode: String, CaseIterable, Identifiable {
+        case rss = "RSS URL"
+        case reddit = "Reddit"
+        var id: String { rawValue }
+    }
+
     @Environment(\.dismiss) private var dismiss
     let settingsStore: SettingsStore
     @Binding var feeds: [CustomRSSFeed]
 
+    @State private var sourceMode: FeedSourceMode = .rss
     @State private var urlText = ""
+    @State private var subredditText = ""
+    @State private var redditSort = "hot"
     @State private var feedName = ""
     @State private var isEnabled = true
+    @State private var showThumbnails = true
     @State private var validationState: FeedValidationState = .idle
+
+    private var effectiveFeedURL: String {
+        switch sourceMode {
+        case .rss:
+            return urlText.trimmingCharacters(in: .whitespacesAndNewlines)
+        case .reddit:
+            return Self.redditFeedURL(subreddit: subredditText, sort: redditSort)
+        }
+    }
 
     private var canAdd: Bool {
         if case .success = validationState { return !feedName.isEmpty }
@@ -56,10 +75,16 @@ struct AddRSSFeedSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    urlSection
+                    sourceModeSection
+                    if sourceMode == .reddit {
+                        redditSection
+                    } else {
+                        urlSection
+                    }
                     validationSection
                     if case .success = validationState {
                         nameSection
+                        thumbnailToggleSection
                         toggleSection
                     }
                 }
@@ -77,10 +102,27 @@ struct AddRSSFeedSheet: View {
                         .disabled(!canAdd)
                 }
             }
+            .onChange(of: sourceMode) { _ in
+                validationState = .idle
+            }
         }
     }
 
-    // MARK: - Sections
+    private var sourceModeSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("SOURCE")
+                .font(Theme.Fonts.manrope(10, weight: .bold))
+                .foregroundStyle(Theme.Colors.textMuted)
+                .tracking(1.2)
+
+            Picker("Source", selection: $sourceMode) {
+                ForEach(FeedSourceMode.allCases) { mode in
+                    Text(mode.rawValue).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+        }
+    }
 
     private var urlSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -115,6 +157,48 @@ struct AddRSSFeedSheet: View {
         }
     }
 
+    private var redditSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("SUBREDDIT")
+                .font(Theme.Fonts.manrope(10, weight: .bold))
+                .foregroundStyle(Theme.Colors.textMuted)
+                .tracking(1.2)
+
+            HStack(spacing: 8) {
+                Text("r/")
+                    .font(Theme.Fonts.manrope(13))
+                    .foregroundStyle(Theme.Colors.textMuted)
+                TextField("technology", text: $subredditText)
+                    .font(Theme.Fonts.manrope(13))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .padding(10)
+                    .background(Theme.Colors.canvasDeep, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.Radius.small)
+                            .stroke(Theme.Colors.borderSubtle, lineWidth: 1)
+                    )
+
+                Button {
+                    Task { await validateFeed() }
+                } label: {
+                    Text("Fetch")
+                        .font(Theme.Fonts.manrope(13, weight: .medium))
+                        .foregroundStyle(subredditText.isEmpty ? Theme.Colors.textMuted : Theme.Colors.accent)
+                }
+                .disabled(subredditText.isEmpty || validationState == .loading)
+            }
+
+            Picker("Sort", selection: $redditSort) {
+                ForEach(Self.redditSorts, id: \.self) { sort in
+                    Text(sort).tag(sort)
+                }
+            }
+            .pickerStyle(.segmented)
+        }
+    }
+
     @ViewBuilder
     private var validationSection: some View {
         switch validationState {
@@ -122,7 +206,7 @@ struct AddRSSFeedSheet: View {
             HStack(spacing: 8) {
                 ProgressView()
                     .tint(Theme.Colors.accent)
-                Text("Fetching feed…")
+                Text("Fetching feed\u{2026}")
                     .font(Theme.Fonts.manrope(13))
                     .foregroundStyle(Theme.Colors.textMuted)
             }
@@ -208,6 +292,24 @@ struct AddRSSFeedSheet: View {
         }
     }
 
+    private var thumbnailToggleSection: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Show thumbnails")
+                    .font(Theme.Fonts.manrope(14, weight: .medium))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                Text("Display post images on the card")
+                    .font(Theme.Fonts.manrope(11))
+                    .foregroundStyle(Theme.Colors.textMuted)
+            }
+            Spacer()
+            Toggle("", isOn: $showThumbnails)
+                .labelsHidden()
+        }
+        .padding(12)
+        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
+    }
+
     private var toggleSection: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
@@ -229,9 +331,8 @@ struct AddRSSFeedSheet: View {
     // MARK: - Actions
 
     private func validateFeed() async {
-        let trimmed = urlText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = effectiveFeedURL
         guard !trimmed.isEmpty else { return }
-
         validationState = .loading
         let client = GenericRSSClient()
 
@@ -243,17 +344,35 @@ struct AddRSSFeedSheet: View {
             }
             validationState = .success(title: info.title, articles: info.articles)
             if feedName.isEmpty {
-                feedName = info.title
+                feedName = defaultFeedName(from: info.title)
             }
         } catch {
             validationState = .error("Could not fetch feed. Check the URL and try again.")
         }
     }
 
+    private func defaultFeedName(from title: String) -> String {
+        switch sourceMode {
+        case .reddit:
+            var t = title.trimmingCharacters(in: .whitespacesAndNewlines)
+            if t.lowercased().hasPrefix("/r/") { t = String(t.dropFirst(3)) }
+            if t.lowercased().hasPrefix("r/") { t = String(t.dropFirst(2)) }
+            return t.isEmpty ? "r/\(subredditText)" : "r/\(t)"
+        case .rss:
+            return title
+        }
+    }
+
     private func addFeed() {
-        guard case .success(let title, _) = validationState else { return }
-        let nameToUse = feedName.isEmpty ? title : feedName
-        let feed = CustomRSSFeed(name: nameToUse, url: urlText.trimmingCharacters(in: .whitespacesAndNewlines), isEnabled: isEnabled)
+        guard case .success = validationState else { return }
+        let nameToUse = feedName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !nameToUse.isEmpty else { return }
+        let feed = CustomRSSFeed(
+            name: nameToUse,
+            url: effectiveFeedURL,
+            isEnabled: isEnabled,
+            showThumbnails: showThumbnails
+        )
         var updated = feeds
         updated.append(feed)
         feeds = updated
