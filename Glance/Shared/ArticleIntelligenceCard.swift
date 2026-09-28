@@ -1,55 +1,39 @@
 import SwiftUI
 
+struct StreamNotice: Equatable {
+    enum Action { case retryWithCloud, retry, none }
+
+    let message: String
+    let action: Action
+    let isBlocking: Bool
+}
+
 struct ArticleIntelligenceCard: View {
     let content: String
     let type: ArticleIntelligenceType
     let accentColor: Color
 
-    @State private var streamedSections: [(title: String, content: String)] = []
-    @State private var streamedVerdict = ""
+    @State private var accumulator = ArticleSummaryAccumulator(sectionLabels: [])
     @State private var isGenerating = true
     @State private var isExpanded = true
-    @State private var unavailableReason: String?
-    @State private var rawFallbackText = ""
     @State private var useCloudAI = false
-    @State private var cloudError: String?
-    @State private var localError: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             header
 
-            if let error = cloudError {
-                Text(error)
-                    .font(Theme.Fonts.manrope(13))
-                    .foregroundStyle(.red)
-                    .transition(.opacity)
-            } else if let error = localError {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(error)
-                        .font(Theme.Fonts.manrope(13))
-                        .foregroundStyle(Theme.Colors.textMuted)
-
-                    Button {
-                        useCloudAI = true
-                        localError = nil
-                        isGenerating = true
-                    } label: {
-                        Text("Retry with Cloud")
-                            .font(Theme.Fonts.manrope(13, weight: .semibold))
-                            .foregroundStyle(accentColor)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(accentColor.opacity(0.1), in: .capsule)
-                    }
-                }
-                .transition(.opacity)
-            } else if isExpanded {
-                if isGenerating && streamedSections.isEmpty {
+            // Content and notice are siblings, not alternatives. A failure partway
+            // through the stream must not unmount what has already rendered.
+            if isExpanded {
+                if isGenerating && accumulator.sections.isEmpty {
                     skeletonView
                 } else {
                     streamingContent
                 }
+            }
+
+            if let notice = resolveNotice() {
+                noticeFooter(notice)
             }
         }
         .padding(Theme.cardPadding)
@@ -88,19 +72,14 @@ struct ArticleIntelligenceCard: View {
             }
 
             Button {
-                useCloudAI = true
-                streamedSections = []
-                streamedVerdict = ""
-                rawFallbackText = ""
-                cloudError = nil
-                localError = nil
-                isGenerating = true
+                useCloudAI.toggle()
+                resetForRetry()
             } label: {
                 Image(systemName: "cloud.fill")
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(useCloudAI ? accentColor : Theme.Colors.textMuted)
             }
-            .accessibilityLabel("Generate with cloud AI")
+            .accessibilityLabel(useCloudAI ? "Switch to on-device AI" : "Generate with cloud AI")
 
             Button {
                 withAnimation(.easeInOut(duration: 0.2)) {
@@ -115,9 +94,112 @@ struct ArticleIntelligenceCard: View {
         }
     }
 
+    // MARK: - Content
+
+    private var streamingContent: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            if !accumulator.verdict.isEmpty {
+                verdictBlock
+            }
+
+            if accumulator.sections.isEmpty && !accumulator.raw.isEmpty {
+                Text(MarkdownText.attributed(accumulator.raw, accent: accentColor))
+                    .font(Theme.Fonts.manrope(15))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .lineSpacing(4)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .textSelection(.enabled)
+                    .transition(.opacity)
+            } else {
+                ForEach(accumulator.sections) { section in
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(section.title.uppercased())
+                            .font(Theme.Fonts.manrope(10, weight: .bold))
+                            .foregroundStyle(accentColor)
+                            .tracking(1.2)
+
+                        Text(MarkdownText.attributed(section.content, accent: accentColor))
+                            .font(Theme.Fonts.manrope(15))
+                            .foregroundStyle(Theme.Colors.textPrimary)
+                            .lineSpacing(4)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .textSelection(.enabled)
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+        }
+        .animation(.easeIn(duration: 0.15), value: accumulator.sections.count)
+    }
+
+    private var verdictBlock: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("TL;DR")
+                .font(Theme.Fonts.manrope(10, weight: .bold))
+                .foregroundStyle(accentColor)
+                .tracking(1.2)
+
+            Text(MarkdownText.attributed(accumulator.verdict, accent: accentColor))
+                .font(Theme.Fonts.manrope(15, weight: .semibold))
+                .foregroundStyle(Theme.Colors.textPrimary)
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+                .textSelection(.enabled)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(accentColor.opacity(0.1), in: RoundedRectangle(cornerRadius: Theme.Radius.medium))
+        .transition(.opacity)
+    }
+
+    private func noticeFooter(_ notice: StreamNotice) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(notice.isBlocking ? Theme.Colors.warning : Theme.Colors.textMuted)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text(notice.message)
+                    .font(Theme.Fonts.manrope(12))
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                switch notice.action {
+                case .retryWithCloud:
+                    retryButton(title: "Retry with Cloud") {
+                        useCloudAI = true
+                        resetForRetry()
+                    }
+                case .retry:
+                    retryButton(title: "Retry") {
+                        resetForRetry()
+                    }
+                case .none:
+                    EmptyView()
+                }
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.Colors.surface2, in: RoundedRectangle(cornerRadius: Theme.Radius.medium))
+        .transition(.opacity)
+    }
+
+    private func retryButton(title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(Theme.Fonts.manrope(12, weight: .semibold))
+                .foregroundStyle(accentColor)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .background(accentColor.opacity(0.1), in: .capsule)
+        }
+        .buttonStyle(.plain)
+    }
+
     private var skeletonView: some View {
         VStack(alignment: .leading, spacing: 10) {
-            ForEach(0..<5, id: \.self) { i in
+            ForEach(0 ..< 5, id: \.self) { i in
                 VStack(alignment: .leading, spacing: 6) {
                     Rectangle()
                         .fill(Theme.Colors.surface2)
@@ -137,210 +219,53 @@ struct ArticleIntelligenceCard: View {
         }
     }
 
-    private var streamingContent: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            if streamedSections.isEmpty && !rawFallbackText.isEmpty {
-                Text(rawFallbackText)
-                    .font(Theme.Fonts.manrope(15))
-                    .foregroundStyle(Theme.Colors.textPrimary)
-                    .lineSpacing(4)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .textSelection(.enabled)
-                    .transition(.opacity)
-            } else {
-                ForEach(streamedSections.indices, id: \.self) { index in
-                    let section = streamedSections[index]
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(section.title.uppercased())
-                            .font(Theme.Fonts.manrope(10, weight: .bold))
-                            .foregroundStyle(accentColor)
-                            .tracking(1.2)
+    // MARK: - Notice Resolution
 
-                        let attributed = try? AttributedString(markdown: section.content)
-                        Text(attributed ?? AttributedString(section.content))
-                            .font(Theme.Fonts.manrope(15))
-                            .foregroundStyle(Theme.Colors.textPrimary)
-                            .lineSpacing(4)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .textSelection(.enabled)
-                    }
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-                }
-            }
-
-            if !streamedVerdict.isEmpty {
-                Text(streamedVerdict)
-                    .font(Theme.Fonts.manrope(13, weight: .semibold))
-                    .foregroundStyle(accentColor)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(accentColor.opacity(0.1), in: .capsule)
-                    .transition(.opacity)
-            }
+    private func resolveNotice() -> StreamNotice? {
+        if let failure = accumulator.failure, !failure.isSilent {
+            return StreamNotice(
+                message: failure.message,
+                action: useCloudAI ? .retry : .retryWithCloud,
+                isBlocking: !accumulator.hasContent
+            )
         }
-        .animation(.easeIn(duration: 0.15), value: streamedSections.count)
+        guard !isGenerating, !accumulator.hasContent else { return nil }
+        return StreamNotice(
+            message: "No summary was generated for this article.",
+            action: useCloudAI ? .retry : .retryWithCloud,
+            isBlocking: true
+        )
     }
+
+    private func resetForRetry() {
+        accumulator = ArticleSummaryAccumulator(type: type)
+        isGenerating = true
+    }
+
+    // MARK: - Generation
 
     private func generate() async {
         let router = IntelligenceRouter()
+        accumulator = ArticleSummaryAccumulator(type: type)
+        isGenerating = true
 
-        if useCloudAI {
-            let stream = await router.streamCloudArticleIntelligence(content: content, type: type)
-            var sectionTexts: [String: String] = [:]
-            var sectionOrder: [String] = []
-            var currentVerdict = ""
-            var rawAccumulator = ""
-
-            for await chunk in stream {
-                rawAccumulator += chunk
-                parseChunk(chunk, into: &sectionTexts, order: &sectionOrder, verdict: &currentVerdict)
-
-                streamedSections = sectionOrder.compactMap { key in
-                    guard let text = sectionTexts[key], !text.isEmpty else { return nil }
-                    return (title: key, content: text)
-                }
-                streamedVerdict = currentVerdict
+        if !useCloudAI {
+            let status = await router.checkArticleIntelligenceAvailability()
+            guard status.available else {
+                accumulator.consume(.failed(.modelUnavailable(status.reason)))
+                isGenerating = false
+                return
             }
-
-            isGenerating = false
-
-            if streamedSections.isEmpty && rawAccumulator.isEmpty {
-                cloudError = "Add OpenRouter API key in Settings to use cloud summaries."
-            } else if streamedSections.isEmpty && !rawAccumulator.isEmpty {
-                rawFallbackText = rawAccumulator
-            }
-            return
         }
 
-        let status = await router.checkArticleIntelligenceAvailability()
+        let stream = useCloudAI
+            ? await router.streamCloudArticleIntelligence(content: content, type: type)
+            : await router.streamArticleIntelligence(content: content, type: type)
 
-        guard status.available else {
-            isGenerating = false
-            unavailableReason = status.reason
-            return
+        for await event in stream {
+            accumulator.consume(event)
         }
-
-        let stream = await router.streamArticleIntelligence(content: content, type: type)
-
-        var sectionTexts: [String: String] = [:]
-        var sectionOrder: [String] = []
-        var currentVerdict = ""
-        var chunkCount = 0
-        var rawAccumulator = ""
-        var hitError = false
-
-        for await chunk in stream {
-            if chunk == "__FM_ERROR__" {
-                hitError = true
-                break
-            }
-            chunkCount += 1
-            rawAccumulator += chunk
-
-            parseChunk(chunk, into: &sectionTexts, order: &sectionOrder, verdict: &currentVerdict)
-
-            streamedSections = sectionOrder.compactMap { key in
-                guard let text = sectionTexts[key], !text.isEmpty else { return nil }
-                return (title: key, content: text)
-            }
-            streamedVerdict = currentVerdict
-        }
-
+        accumulator.finish()
         isGenerating = false
-
-        if hitError {
-            localError = "Apple Intelligence model not ready. Download it in Settings, or use cloud."
-        } else if streamedSections.isEmpty && !rawAccumulator.isEmpty {
-            rawFallbackText = rawAccumulator
-        }
-    }
-
-    private func parseChunk(
-        _ chunk: String,
-        into texts: inout [String: String],
-        order: inout [String],
-        verdict: inout String
-    ) {
-        let lines = chunk.components(separatedBy: "\n")
-
-        for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            if trimmed.isEmpty { continue }
-
-            if trimmed.lowercased().hasPrefix("verdict:") {
-                verdict = String(trimmed.dropFirst(8)).trimmingCharacters(in: .whitespaces)
-                continue
-            }
-
-            if let (title, body) = extractSection(from: trimmed) {
-                if texts[title] == nil {
-                    order.append(title)
-                }
-                texts[title] = (texts[title] ?? "") + body
-            } else if let lastKey = order.last {
-                texts[lastKey] = (texts[lastKey] ?? "") + " " + trimmed
-            }
-        }
-    }
-
-    private func extractSection(from line: String) -> (title: String, body: String)? {
-        // Format 1: "1. Title: body" or "1. Title — body" — numbered
-        let numberedPrefixes = ["1.", "2.", "3.", "4.", "5.", "6."]
-        if numberedPrefixes.contains(where: { line.hasPrefix($0) }) {
-            let cleaned = String(line.dropFirst(2)).trimmingCharacters(in: .whitespaces)
-            if let (title, body) = splitTitleBody(cleaned) {
-                return (title, body)
-            }
-        }
-
-        // Format 2: "**Title**" or "**Title**: body" — markdown bold
-        if line.hasPrefix("**") {
-            let searchStart = line.index(line.startIndex, offsetBy: 2)
-            if let closeRange = line.range(of: "**", range: searchStart..<line.endIndex) {
-                let title = String(line[searchStart..<closeRange.lowerBound]).trimmingCharacters(in: .whitespaces)
-                let afterClose = String(line[closeRange.upperBound...]).trimmingCharacters(in: .whitespaces)
-                if !title.isEmpty {
-                    if afterClose.hasPrefix(":") {
-                        return (title, String(afterClose.dropFirst()).trimmingCharacters(in: .whitespaces))
-                    }
-                    return (title, afterClose)
-                }
-            }
-        }
-
-        // Format 3: "## Title" or "## Title: body" — markdown heading
-        if line.hasPrefix("## ") {
-            let rest = String(line.dropFirst(3)).trimmingCharacters(in: .whitespaces)
-            if let (title, body) = splitTitleBody(rest) {
-                return (title, body)
-            }
-            return (rest, "")
-        }
-
-        // Format 4: "Title:" at start of line (only if followed by content and title looks like a heading)
-        if line.count > 2, line.last == ":", !line.contains("  ") {
-            let title = String(line.dropLast()).trimmingCharacters(in: .whitespaces)
-            if !title.isEmpty, title.count < 50, !title.contains(".") {
-                return (title, "")
-            }
-        }
-
-        return nil
-    }
-
-    private func splitTitleBody(_ text: String) -> (title: String, body: String)? {
-        // Try colon first
-        if let colonIndex = text.firstIndex(of: ":") {
-            let title = String(text[text.startIndex..<colonIndex]).trimmingCharacters(in: .whitespaces)
-            let body = String(text[text.index(after: colonIndex)...]).trimmingCharacters(in: .whitespaces)
-            return (title, body)
-        }
-        // Try em dash
-        if let dashIndex = text.firstIndex(of: "\u{2014}") {
-            let title = String(text[text.startIndex..<dashIndex]).trimmingCharacters(in: .whitespaces)
-            let body = String(text[text.index(after: dashIndex)...]).trimmingCharacters(in: .whitespaces)
-            return (title, body)
-        }
-        return nil
     }
 }

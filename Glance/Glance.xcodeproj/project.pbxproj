@@ -81,6 +81,9 @@
 		CBD1DF44CC2583FF724E4AD7 /* Manrope-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4C6526E7C8F6E1FEA834BD90 /* Manrope-ExtraBold.ttf */; };
 		CC11DD22EE33FF44GG55FF79 /* GenericRSSClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD22EE33FF44GG55FF660079 /* GenericRSSClient.swift */; };
 		D1E2F3A4B5C6D7E8F9A0B1C2 /* ArticleModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A4B5C6D7E8F9A0B1C3 /* ArticleModels.swift */; };
+		BB1000000000000000000001 /* ArticleStreamEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1000000000000000000002 /* ArticleStreamEvent.swift */; };
+		BB1000000000000000000003 /* ArticleSummaryAccumulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1000000000000000000004 /* ArticleSummaryAccumulator.swift */; };
+		BB1000000000000000000005 /* MarkdownText.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1000000000000000000006 /* MarkdownText.swift */; };
 		D1E2F3A4B5C6D7E8F9A0B1C4 /* HTMLStripper.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A4B5C6D7E8F9A0B1C5 /* HTMLStripper.swift */; };
 		A1B2C3D400020003AAAA0002 /* RedditLinkResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D400020003AAAA0001 /* RedditLinkResolver.swift */; };
 		D1E2F3A4B5C6D7E8F9A0B1C6 /* ArticleIntelligenceCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A4B5C6D7E8F9A0B1C7 /* ArticleIntelligenceCard.swift */; };
@@ -100,6 +103,10 @@
 		EE11FF22GG33HH44II55FF80 /* GenericRSSPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF22GG33HH44II55FF660080 /* GenericRSSPipeline.swift */; };
 		F0A1B2C3D4E5F6A7B8C9D0E1 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* Components.swift */; };
 		F5A6B7C8D9E0F1A2B3C4D5E6 /* IntelligenceRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6B7C8D9E0F1A2B3C4D5E6F7 /* IntelligenceRouterTests.swift */; };
+		BB2000000000000000000001 /* ArticleSummaryAccumulatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000000000000000000002 /* ArticleSummaryAccumulatorTests.swift */; };
+		BB2000000000000000000003 /* ArticleModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000000000000000000004 /* ArticleModelsTests.swift */; };
+		BB2000000000000000000005 /* MarkdownTextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000000000000000000006 /* MarkdownTextTests.swift */; };
+		BB2000000000000000000007 /* OpenRouterStreamDecoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000000000000000000008 /* OpenRouterStreamDecoderTests.swift */; };
 		F6D002212AC3604CA4A5217C /* AiIntelArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0C5CA83E8935D20AEB0F7FD /* AiIntelArticleView.swift */; };
 		F92EC9784909D6464A009A36 /* GlanceBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33B8021DC59DAC0AAA0673BE /* GlanceBadge.swift */; };
 		FA080D8C8DBEBE1E0F6C6725 /* MadridHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 325CB57B76E82C3934F41946 /* MadridHubView.swift */; };
@@ -214,6 +221,10 @@
 		A1B2C3D4E5F6A7B8C9D0E1F2 /* Components.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		A6263EFE1565E274CD9BBE16 /* GitHubModels.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubModels.swift; sourceTree = "<group>"; };
 		A6B7C8D9E0F1A2B3C4D5E6F7 /* IntelligenceRouterTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = IntelligenceRouterTests.swift; sourceTree = "<group>"; };
+		BB2000000000000000000002 /* ArticleSummaryAccumulatorTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ArticleSummaryAccumulatorTests.swift; sourceTree = "<group>"; };
+		BB2000000000000000000004 /* ArticleModelsTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ArticleModelsTests.swift; sourceTree = "<group>"; };
+		BB2000000000000000000006 /* MarkdownTextTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = MarkdownTextTests.swift; sourceTree = "<group>"; };
+		BB2000000000000000000008 /* OpenRouterStreamDecoderTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = OpenRouterStreamDecoderTests.swift; sourceTree = "<group>"; };
 		AA11BB22CC33DD44EE55FF82 /* GitHubTrendingClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubTrendingClient.swift; sourceTree = "<group>"; };
 		AD625D7030DB8620C6D1D522 /* AppState.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		AD92B9173DCB62561A3E085A /* ContentView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -233,6 +244,9 @@
 		C9D0E1F2A3B4C5D6E7F8A9B0 /* MatchTimelineView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = MatchTimelineView.swift; sourceTree = "<group>"; };
 		CF0F51D16A6D39FCFAB1EE51 /* TimeFormat.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = TimeFormat.swift; sourceTree = "<group>"; };
 		D1E2F3A4B5C6D7E8F9A0B1C3 /* ArticleModels.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ArticleModels.swift; sourceTree = "<group>"; };
+		BB1000000000000000000002 /* ArticleStreamEvent.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ArticleStreamEvent.swift; sourceTree = "<group>"; };
+		BB1000000000000000000004 /* ArticleSummaryAccumulator.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ArticleSummaryAccumulator.swift; sourceTree = "<group>"; };
+		BB1000000000000000000006 /* MarkdownText.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = MarkdownText.swift; sourceTree = "<group>"; };
 		D1E2F3A4B5C6D7E8F9A0B1C5 /* HTMLStripper.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = HTMLStripper.swift; sourceTree = "<group>"; };
 		A1B2C3D400020003AAAA0001 /* RedditLinkResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedditLinkResolver.swift; sourceTree = "<group>"; };
 		D1E2F3A4B5C6D7E8F9A0B1C7 /* ArticleIntelligenceCard.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ArticleIntelligenceCard.swift; sourceTree = "<group>"; };
@@ -311,6 +325,10 @@
 				F2AC54314574769AC551ABBC /* KeychainStoreTests.swift */,
 				F2C9DD56660DF3077E99A52C /* TimeFormatTests.swift */,
 				A6B7C8D9E0F1A2B3C4D5E6F7 /* IntelligenceRouterTests.swift */,
+				BB2000000000000000000002 /* ArticleSummaryAccumulatorTests.swift */,
+				BB2000000000000000000004 /* ArticleModelsTests.swift */,
+				BB2000000000000000000006 /* MarkdownTextTests.swift */,
+				BB2000000000000000000008 /* OpenRouterStreamDecoderTests.swift */,
 				C8D9E0F1A2B3C4D5E6F7A8B9 /* CacheTTTests.swift */,
 				89C539EE7B074787A42B5258 /* CardOrderTests.swift */,
 				A1B2C3D400020001AAAA0001 /* GenericRSSClientTests.swift */,
@@ -355,6 +373,7 @@
 				7858C0D91F95952753F08721 /* Enums.swift */,
 				3C81652325E4B949DE4B4E01 /* Extensions.swift */,
 				D1E2F3A4B5C6D7E8F9A0B1C7 /* ArticleIntelligenceCard.swift */,
+				BB1000000000000000000004 /* ArticleSummaryAccumulator.swift */,
 				D1E2F3A4B5C6D7E8F9A0B1C9 /* RawArticleCard.swift */,
 			);
 			path = Shared;
@@ -589,6 +608,7 @@
 			children = (
 				0C95DCBE3D848BDB6C254116 /* Models.swift */,
 				D1E2F3A4B5C6D7E8F9A0B1C3 /* ArticleModels.swift */,
+				BB1000000000000000000002 /* ArticleStreamEvent.swift */,
 				85F33B9C1FEF06261744DCCB /* FoundationModelsClient.swift */,
 				17C08A5A5D210A84D8CB68D9 /* IntelligenceRouter.swift */,
 			);
@@ -608,6 +628,7 @@
 				BE285836ED3E944296D83FED /* PulseDot.swift */,
 				A1B2C3D4E5F6A7B8C9D0E1F2 /* Components.swift */,
 				E4F5A6B7C8D9E0F1A2B3C4D5 /* CachedAsyncImage.swift */,
+				BB1000000000000000000006 /* MarkdownText.swift */,
 			);
 			path = DesignSystem;
 			sourceTree = "<group>";
@@ -799,6 +820,10 @@
 				645351B4B35C32E3FE95EF0D /* KeychainStoreTests.swift in Sources */,
 				34012DCF640F1EAC14E3F416 /* TimeFormatTests.swift in Sources */,
 				F5A6B7C8D9E0F1A2B3C4D5E6 /* IntelligenceRouterTests.swift in Sources */,
+				BB2000000000000000000001 /* ArticleSummaryAccumulatorTests.swift in Sources */,
+				BB2000000000000000000003 /* ArticleModelsTests.swift in Sources */,
+				BB2000000000000000000005 /* MarkdownTextTests.swift in Sources */,
+				BB2000000000000000000007 /* OpenRouterStreamDecoderTests.swift in Sources */,
 				B7C8D9E0F1A2B3C4D5E6F7A8 /* CacheTTTests.swift in Sources */,
 				5857340F517F43F189F6A9C1 /* CardOrderTests.swift in Sources */,
 				A1B2C3D400020001AAAA0002 /* GenericRSSClientTests.swift in Sources */,
@@ -875,9 +900,11 @@
 				A1B2C3D400010001AF0001B6 /* CustomRSSFeedRef.swift in Sources */,
 				A1B2C3D400010001B10001B8 /* CustomRSSCardView.swift in Sources */,
 				D1E2F3A4B5C6D7E8F9A0B1C2 /* ArticleModels.swift in Sources */,
+				BB1000000000000000000001 /* ArticleStreamEvent.swift in Sources */,
 				D1E2F3A4B5C6D7E8F9A0B1C4 /* HTMLStripper.swift in Sources */,
 				A1B2C3D400020003AAAA0002 /* RedditLinkResolver.swift in Sources */,
 				D1E2F3A4B5C6D7E8F9A0B1C6 /* ArticleIntelligenceCard.swift in Sources */,
+				BB1000000000000000000003 /* ArticleSummaryAccumulator.swift in Sources */,
 				D1E2F3A4B5C6D7E8F9A0B1C8 /* RawArticleCard.swift in Sources */,
 				D1E2F3A4B5C6D7E8F9A0B1D0 /* CustomRSSArticleView.swift in Sources */,
 				FE86DACADCCAC95C40100576 /* Theme.swift in Sources */,
@@ -894,6 +921,7 @@
 				F0A1B2C3D4E5F6A7B8C9D0E1 /* Components.swift in Sources */,
 				B1C2D3E4F5A6B7C8D9E0F1A2 /* NetworkMonitor.swift in Sources */,
 				D3E4F5A6B7C8D9E0F1A2B3C4 /* CachedAsyncImage.swift in Sources */,
+				BB1000000000000000000005 /* MarkdownText.swift in Sources */,
 				4C5A4447575865357AA90C3A /* Enums.swift in Sources */,
 				258D90A7CF4894803C569D75 /* Extensions.swift in Sources */,
 				AA000000000000000000000C /* MarkdownStore.swift in Sources */,

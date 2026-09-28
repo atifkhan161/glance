@@ -19,13 +19,13 @@ import Foundation
             case .unavailable(.appleIntelligenceNotEnabled):
                 return (false, "Enable Apple Intelligence in Settings > General > Apple Intelligence & Siri")
             case .unavailable(.modelNotReady):
-                return (false, "Model downloading. Connect to WiFi and wait a few minutes")
+                return (false, "Apple Intelligence model is still downloading. Connect to WiFi and try again, or use cloud.")
             case .unavailable(.deviceNotEligible):
-                return (false, "Device does not support Apple Intelligence")
+                return (false, "This device does not support Apple Intelligence. Use cloud instead.")
             case .unavailable(let other):
                 return (false, "Model unavailable: \(other)")
             @unknown default:
-                return (false, "Unknown state")
+                return (false, "Model unavailable")
             }
         }
 
@@ -35,7 +35,7 @@ import Foundation
             Analyze these Real Madrid related snippets and extract structured data.
             Return JSON with: form (array of recent match results like "W 2-1", "D 1-1"),
             standing (current La Liga position), intel (1-2 sentence tactical summary),
-            head_to_head (recent record vs opponent if mentioned).
+            headToHead (recent record vs opponent if mentioned).
             Snippets: \(snippets)
             """
             return try await session.respond(to: prompt, generating: RealMadridEnrichment.self).content
@@ -77,7 +77,7 @@ import Foundation
             return try await session.respond(to: fullPrompt, generating: ArticleIntelligenceResult.self).content
         }
 
-        func streamSummary(content: String, prompt: String) -> AsyncStream<String> {
+        func streamSummary(content: String, prompt: String) -> AsyncStream<ArticleStreamEvent> {
             let session = LanguageModelSession(model: permissiveModel)
             let fullPrompt = "\(prompt)\n\nArticle:\n\(content)"
             return AsyncStream { continuation in
@@ -88,18 +88,56 @@ import Foundation
                             let text = snapshot.content
                             if text.count > lastLength {
                                 let delta = String(text.dropFirst(lastLength))
-                                continuation.yield(delta)
+                                continuation.yield(.delta(delta))
                                 lastLength = text.count
                             }
                         }
                         continuation.finish()
                     } catch {
-                        NSLog("[AI] streamSummary error: %@", "\(error.localizedDescription)")
-                        continuation.yield("__FM_ERROR__")
+                        NSLog("[AI] streamSummary error: %@", "\(error)")
+                        continuation.yield(.failed(Self.mapStreamError(error)))
                         continuation.finish()
                     }
                 }
             }
+        }
+
+        private static func mapStreamError(_ error: Error) -> ArticleStreamFailure {
+            if error is CancellationError { return .cancelled }
+            let nsError = error as NSError
+            if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled { return .cancelled }
+
+            if #available(iOS 27.0, *) {
+                if let modelError = error as? LanguageModelError {
+                    switch modelError {
+                    case .contextSizeExceeded:
+                        return .exceededContextSize
+                    case .guardrailViolation, .refusal, .unsupportedTranscriptContent:
+                        return .guardrail
+                    case .rateLimited:
+                        return .rateLimited
+                    default:
+                        return .unknown(error.localizedDescription)
+                    }
+                }
+            }
+
+            if let generation = error as? LanguageModelSession.GenerationError {
+                switch generation {
+                case .exceededContextWindowSize:
+                    return .exceededContextSize
+                case .guardrailViolation:
+                    return .guardrail
+                case .refusal:
+                    return .refusal
+                case .rateLimited:
+                    return .rateLimited
+                default:
+                    return .unknown(error.localizedDescription)
+                }
+            }
+
+            return .unknown(error.localizedDescription)
         }
     }
 #else
@@ -121,15 +159,18 @@ import Foundation
         func isAvailableSync() -> Bool { false }
 
         func availabilityStatus() -> (available: Bool, reason: String) {
-            (false, "Foundation Models not available on this device")
+            (false, "Foundation Models not available on this device. Use cloud instead.")
         }
 
         func summarizeArticle(content: String, prompt: String) async throws -> ArticleIntelligenceResult {
             throw GlanceError.notConfigured("Foundation Models unavailable on this device")
         }
 
-        func streamSummary(content: String, prompt: String) -> AsyncStream<String> {
-            AsyncStream { $0.finish() }
+        func streamSummary(content: String, prompt: String) -> AsyncStream<ArticleStreamEvent> {
+            AsyncStream { continuation in
+                continuation.yield(.failed(.modelUnavailable("Foundation Models not available on this device. Use cloud instead.")))
+                continuation.finish()
+            }
         }
     }
 #endif

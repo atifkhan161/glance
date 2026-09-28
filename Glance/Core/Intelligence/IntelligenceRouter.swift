@@ -5,6 +5,10 @@ actor IntelligenceRouter {
     private let geminiClient: any GeminiClientProtocol
     private let keychain: KeychainStore
 
+    /// Caps the article handed to a model so latency stays predictable. Gemini
+    /// snippets were already capped; the article paths were not.
+    private let maxArticleChars = 12_000
+
     init(
         foundationModels: FoundationModelsClient = FoundationModelsClient(),
         geminiClient: any GeminiClientProtocol = GeminiClient(),
@@ -23,7 +27,7 @@ actor IntelligenceRouter {
         #if !targetEnvironment(simulator)
         if let key = keychain.load(forKey: "keys_gemini"),
            let model = keychain.load(forKey: "gemini_model") {
-            let prompt = "Extract Real Madrid match information as JSON {form:[...], standing, intel, head_to_head}. Snippets: \(truncate(snippets))"
+            let prompt = "Extract Real Madrid match information as JSON {form:[...], standing, intel, headToHead}. Snippets: \(truncate(snippets))"
             if let text = try? await geminiClient.generate(prompt: prompt, model: model, apiKey: key),
                let data = text.data(using: .utf8),
                let decoded = try? JSONDecoder().decode(RealMadridEnrichment.self, from: data) {
@@ -78,35 +82,68 @@ actor IntelligenceRouter {
 
     func articleIntelligence(content: String, type: ArticleIntelligenceType) async -> ArticleIntelligenceResult? {
         guard await foundationModels.isAvailable() else { return nil }
-        return try? await foundationModels.summarizeArticle(content: content, prompt: type.systemPrompt)
+        return try? await foundationModels.summarizeArticle(
+            content: truncate(content, maxChars: maxArticleChars),
+            prompt: type.systemPrompt
+        )
     }
 
-    func streamArticleIntelligence(content: String, type: ArticleIntelligenceType) -> AsyncStream<String> {
-        foundationModels.streamSummary(content: content, prompt: type.systemPrompt)
+    func streamArticleIntelligence(content: String, type: ArticleIntelligenceType) -> AsyncStream<ArticleStreamEvent> {
+        foundationModels.streamSummary(
+            content: truncate(content, maxChars: maxArticleChars),
+            prompt: type.systemPrompt
+        )
     }
 
-    func streamCloudArticleIntelligence(content: String, type: ArticleIntelligenceType) -> AsyncStream<String> {
+    func streamCloudArticleIntelligence(content: String, type: ArticleIntelligenceType) -> AsyncStream<ArticleStreamEvent> {
         AsyncStream { continuation in
-            Task {
+            let task = Task {
                 guard let apiKey = keychain.load(forKey: "keys_openrouter") else {
+                    continuation.yield(.failed(.modelUnavailable("Add an OpenRouter API key in Settings to use cloud summaries.")))
                     continuation.finish()
                     return
                 }
-                let client = OpenRouterClient()
                 do {
-                    let result = try await client.complete(
+                    let client = OpenRouterClient()
+                    let stream = client.stream(
                         systemPrompt: type.systemPrompt,
-                        userPrompt: content,
-                        apiKey: apiKey
+                        userPrompt: truncate(content, maxChars: maxArticleChars),
+                        apiKey: apiKey,
+                        temperature: 0.4
                     )
-                    continuation.yield(result)
-                } catch {}
-                continuation.finish()
+                    for try await delta in stream {
+                        continuation.yield(.delta(delta))
+                    }
+                    continuation.finish()
+                } catch is CancellationError {
+                    continuation.yield(.failed(.cancelled))
+                    continuation.finish()
+                } catch {
+                    continuation.yield(.failed(Self.mapCloudError(error)))
+                    continuation.finish()
+                }
             }
+            continuation.onTermination = { _ in task.cancel() }
         }
     }
 
-    private func truncate(_ text: String, maxChars: Int = 6000) -> String {
-        text.count > maxChars ? String(text.prefix(maxChars)) : text
+    private static func mapCloudError(_ error: Error) -> ArticleStreamFailure {
+        switch error {
+        case GlanceError.unauthorized:
+            return .modelUnavailable("OpenRouter rejected the API key. Check it in Settings.")
+        case GlanceError.rateLimited:
+            return .network("rate limited, try again shortly")
+        case GlanceError.networkError(let detail):
+            return .network(detail)
+        case GlanceError.httpStatus(let code):
+            return .network("status \(code)")
+        default:
+            return .unknown(error.localizedDescription)
+        }
+    }
+
+    private func truncate(_ text: String, maxChars: Int? = nil) -> String {
+        let limit = maxChars ?? 6000
+        return text.count > limit ? String(text.prefix(limit)) : text
     }
 }

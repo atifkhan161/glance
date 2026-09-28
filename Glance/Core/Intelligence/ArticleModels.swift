@@ -38,191 +38,158 @@ enum MadridArticleType {
 enum ArticleIntelligenceType {
     case madrid(MadridArticleType)
     case aiIntel
-    case poGoEvent
-    case poGoRaid
     case generic
 
-    var systemPrompt: String {
-        let adaptiveHeader = """
-        ADAPTIVE INSTRUCTIONS: Summarize the article as it actually is, not as this prompt expects. \
-        If the article doesn't match the expected type, focus on the main argument, key names, numbers, \
-        and facts, actionable details, and why it matters. Use markdown formatting: **bold** for key terms, \
-        - for bullet points.
-
-        FIDELITY RULES:
-        - Only use information from the article — do not invent details
-        - Do not add outside knowledge or context
-        - If a detail is missing (rating, score, name), skip it rather than guess
-        - Preserve exact player names, scores, and quotes where present
-
-        """
-
+    /// Sections the parser will recognise for this type. The model is told to use
+    /// exactly these labels, and the accumulator matches on them, so a summary
+    /// renders predictably even when the model omits a section.
+    var sectionLabels: [String] {
         switch self {
         case .madrid(let type):
             switch type {
             case .playerRatings:
-                return adaptiveHeader + """
-                SOURCE: This is a Real Madrid player ratings article. The author rates individual players after a match.
+                return ["Match Overview", "Best Performer", "Concern", "Player Ratings", "Tactical Note"]
+            case .interview:
+                return ["Context", "Key Quotes", "Topics Covered", "What's Next"]
+            case .positivesNegatives:
+                return ["Match Context", "Positives", "Negatives", "Looking Ahead"]
+            case .tacticalAnalysis:
+                return ["Setup", "Key Observations", "Key Player Roles", "Patterns"]
+            case .matchRecap:
+                return ["Score and Context", "Key Moments", "Man of the Match", "Looking Ahead"]
+            }
+        case .aiIntel:
+            return ["What Happened", "Category", "Key Details", "Why It Matters"]
+        case .generic:
+            return ["Summary", "Key Points", "What It Means"]
+        }
+    }
 
-                OUTPUT FORMAT:
-                Match Overview: **Score** — competition and context (2 sentences max)
-                Best Performer: **Player Name** (rating) — why they stood out (2 sentences)
-                Concern: **Player Name** (rating) — what went wrong (1-2 sentences)
+    static let verdictLabels = ["Verdict", "TL;DR"]
+
+    /// Layer 1 — written once, shared by every type. This carries the reader model,
+    /// the fidelity rules, the bold contract and the output format. Per-type prompts
+    /// supply only the lens, the skeleton and a budget.
+    private static let summaryCore = """
+    You are writing a summary that must fully replace reading the article. The reader is scrolling a feed on a phone and will not open the original — so every line must carry information they would have gotten by reading it.
+
+    RULES:
+    1. Lead with the outcome. The Verdict states the article's main claim or result.
+    2. Every section must earn its place. Omit any section the article does not support — never pad, hedge, or invent one to fill the template.
+    3. Keep specifics: names, scores, ratings, dates, figures, direct quotes. A summary without concrete detail is worse than useless.
+    4. Attribute, don't editorialize. Report what the article claims, not your own opinion, and add no outside knowledge.
+    5. Never invent. If a detail is missing, skip it rather than guess. Quotes stay verbatim.
+
+    BOLDING: wrap the highest-signal items in **double asterisks** — names, scores, ratings, dates, and the single most important fact. Max 6 bold spans per section. Never bold a whole sentence.
+
+    FORMAT: emit each section label exactly as given, as `Label: content`. Bullets on their own lines prefixed with `- `. Always emit the Verdict.
+
+    """
+
+    /// Layer 2 — the per-type lens.
+    var systemPrompt: String {
+        switch self {
+        case .madrid(let type):
+            switch type {
+            case .playerRatings:
+                return Self.summaryCore + """
+                LENS: the article grades individual players after a match. The reader wants to know who stood out, who did not, and whether the grades support the match narrative.
+
+                Match Overview: **score** and competition
+                Best Performer: **name** (rating) — the single reason
+                Concern: **name** (rating) — the single reason
                 Player Ratings:
-                - **Player Name** (X.X) — one-line assessment
-                - **Player Name** (X.X) — one-line assessment
-                (list every player mentioned)
-                Tactical Note: one observation about team shape
+                - **name** (rating) — one clause, only for players the article actually grades
+                Tactical Note: only if the article draws a team-level conclusion
+                Verdict: one sentence.
 
-                Verdict: one sentence overall assessment.
-
-                LENGTH: Each section 1-2 sentences. Player ratings: one line each.
+                SKIP: statistical minutiae that does not change the assessment.
+                BUDGET: 350 words. Omit Concern or Tactical Note if unsupported.
                 """
             case .interview:
-                return adaptiveHeader + """
-                SOURCE: This is a Real Madrid player or manager interview/quotes article.
+                return Self.summaryCore + """
+                LENS: the article relays quotes. The reader wants what was actually said and how much of it is new rather than recycled reporting.
 
-                OUTPUT FORMAT:
-                Context: **Who** spoke, where, when, and why (2 sentences)
+                Context: **who** spoke, to whom, and why it happened
                 Key Quotes:
-                - **"Exact quote from the article"** — context or significance
-                - **"Another key quote"** — why it matters
-                (include 3-5 most interesting quotes)
-                Topics Covered:
-                - Topic one
-                - Topic two
-                Player's Tone: one sentence on overall mood
-                What's Next: forward-looking statements from the interview
+                - **"exact quote"** — what it reveals
+                Topics Covered: only topics with substance
+                What's Next: forward-looking statements, if any
+                Verdict: one sentence.
 
-                Verdict: one sentence on why this interview matters.
-
-                LENGTH: Quotes section 3-5 bullets. Other sections 1-2 sentences each.
+                Quotes must be verbatim — never paraphrase inside quotation marks. Paraphrase filler quotes rather than quoting them.
+                SKIP: the journalist's framing; report what was said, not how it was written up.
+                BUDGET: 300 words.
                 """
             case .positivesNegatives:
-                return adaptiveHeader + """
-                SOURCE: This is a post-match positives and negatives article about Real Madrid.
+                return Self.summaryCore + """
+                LENS: post-match positives and negatives. The reader wants the argument, not a full transcript of the praise and criticism.
 
-                OUTPUT FORMAT:
-                Match Context: **Score** — competition and narrative (2 sentences)
+                Match Context: **score** and competition
                 Positives:
-                - **Player Name or Aspect** — what went well and why
-                - **Player Name or Aspect** — specific detail
-                (cover every positive mentioned)
+                - **player or aspect** — what worked and why
                 Negatives:
-                - **Player Name or Aspect** — what went wrong and why
-                - **Player Name or Aspect** — specific detail
-                (cover every negative mentioned)
-                Looking Ahead: implications for upcoming fixtures
+                - **player or aspect** — what did not and why
+                Looking Ahead: only if the article draws a conclusion
+                Verdict: one sentence.
 
-                Verdict: one sentence overall assessment.
-
-                LENGTH: Positives/Negatives: one bullet per point. Context and verdict: 1-2 sentences.
+                SKIP: restating the score, and praise that would apply to any team in any match.
+                BUDGET: 350 words. Group minor points. Omit a heading entirely if that side is empty.
                 """
             case .tacticalAnalysis:
-                return adaptiveHeader + """
-                SOURCE: This is a tactical analysis, observations, or data analysis article about Real Madrid.
+                return Self.summaryCore + """
+                LENS: tactical or data analysis. The reader wants the logic behind the system and what it implies, not a list of observations.
 
-                OUTPUT FORMAT:
-                Setup: **Formation and system** — competition context (2 sentences)
+                Setup: **formation and system** in one or two sentences
                 Key Observations:
-                - **Observation title** — detailed explanation (2 sentences)
-                - **Observation title** — detailed explanation
-                (cover every distinct observation)
-                Key Player Roles: **Player Name** — tactical assignment or performance note
-                Patterns: recurring tactical themes
+                - **observation** — what it shows about the team's structure or trend
+                Key Player Roles: **name** — role and why it mattered
+                Patterns: only if the article identifies a recurring theme
+                Verdict: one sentence.
 
-                Verdict: what these observations tell us about the team.
-
-                LENGTH: Each observation 2 sentences. Key player roles: one line each.
+                SKIP: restating the formation without explaining why it was used.
+                BUDGET: 350 words. Omit Patterns if there is no recurring theme.
                 """
             case .matchRecap:
-                return adaptiveHeader + """
-                SOURCE: This is a Real Madrid match recap, report, or review article.
+                return Self.summaryCore + """
+                LENS: a match report. The reader wants what decided the game, not the minute-by-minute. If the article is not a match report, describe its main argument instead and adapt the structure to fit.
 
-                OUTPUT FORMAT:
-                Score and Context: **Score** — competition, venue, significance (2-3 sentences)
-                Match Narrative: how the game unfolded (3-4 sentences)
-                Key Moments:
-                - **Minute/Event** — what happened and its impact
-                - **Minute/Event** — what happened and its impact
-                (every goal, red card, major chance, turning point)
-                Man of the Match: **Player Name** — why (2 sentences)
-                Looking Ahead: what's next for the team
+                Score and Context: **score**, competition, and why the result mattered
+                Key Moments: the two or three moments that decided it — **minute or event** and impact
+                Man of the Match: **name** — why, if the article names one
+                Looking Ahead: only if stated
+                Verdict: one sentence.
 
-                Verdict: one sentence overall assessment.
-
-                LENGTH: Key moments: one bullet per event. Narrative: 3-4 sentences.
+                SKIP: routine possession, build-up, and minute-by-minute narration.
+                BUDGET: 300 words. Never invent a Man of the Match or a Looking Ahead.
                 """
             }
         case .aiIntel:
-            return adaptiveHeader + """
-            SOURCE: This is an AI/ML technology news article.
+            return Self.summaryCore + """
+            LENS: AI/ML news. The reader wants what shipped, what the numbers are, and whether it changes anything for them.
 
-            OUTPUT FORMAT:
-            What Happened: the news in 2-3 sentences with specific names and numbers
+            What Happened: the news with **specific names and numbers**
             Category: **Frontier Lab** / **Open Weights** / **Research** / **Product** / **Policy**
             Key Details:
-            - **Detail** — specific fact, number, or benchmark
-            - **Detail** — model name, parameter count, funding amount
-            Practical Impact: what this means for developers or users (2-3 sentences)
-            Industry Context: how this fits the broader landscape
+            - **detail** — figure, benchmark, parameter count, or funding
+            Why It Matters: what changes for developers or users
+            Verdict: one sentence.
 
-            Verdict: one sentence on why this matters.
-
-            LENGTH: Key details 3-5 bullets. Other sections 1-2 sentences.
-            """
-        case .poGoEvent:
-            return adaptiveHeader + """
-            SOURCE: This is a Pokemon GO event article.
-
-            OUTPUT FORMAT:
-            Event Overview: **Event name** — what, when, why it matters (2-3 sentences)
-            Priorities:
-            - **Priority item** — what to do and why it matters
-            - **Priority item** — ranked by importance
-            Shiny and Exclusives: which Pokemon can be shiny, exclusive moves
-            Focus List:
-            - **Pokemon Name** (CP range) — recommended moveset and reason
-            Time-Limited: FOMO items and deadlines
-            Tips: specific strategies
-
-            Verdict: one sentence on urgency level.
-
-            LENGTH: Priorities and focus list: one bullet per item.
-            """
-        case .poGoRaid:
-            return adaptiveHeader + """
-            SOURCE: This is a Pokemon GO raid article.
-
-            OUTPUT FORMAT:
-            Raid Overview: **Boss Name** — tier, duration, difficulty (2 sentences)
-            Best Counters:
-            - **Pokemon Name** — moveset and why it's effective
-            - **Pokemon Name** — moveset and key advantage
-            Shiny Available: shiny odds and appearance description
-            Solo/Duo Feasibility: can it be done with small groups?
-            Rewards: notable reward pools
-
-            Verdict: one sentence on priority level.
-
-            LENGTH: Counters: 3-5 bullets. Other sections 1-2 sentences.
+            SKIP: funding-round boilerplate and company background the reader already knows.
+            BUDGET: 280 words.
             """
         case .generic:
-            return adaptiveHeader + """
-            SOURCE: This is a general article. Adapt the structure to fit the actual content.
+            return Self.summaryCore + """
+            LENS: a general article. First identify its type, then apply the matching structure: narrative (thesis, evidence, counterpoints), analysis (setup, observations, implications), review (verdict first, then specifics), or announcement (what, why, impact). Adapt freely.
 
-            OUTPUT FORMAT:
-            Summary: what the article is about (3-4 sentences, thorough)
+            Summary: the main argument in 2-3 sentences
             Key Points:
-            - **Point** — significant detail, fact, or argument
-            - **Point** — another important takeaway
-            (cover all major points)
-            Context: why this matters in the broader landscape
-            Notable Quotes: any impactful direct quotes from the article
+            - **point** — the supporting detail or evidence
+            What It Means: why this matters beyond the article
+            Verdict: one sentence.
 
-            Verdict: one sentence on why this article matters.
-
-            LENGTH: Key points: 3-5 bullets. Summary: 3-4 sentences.
+            SKIP: throat-clearing, historical background, and anything the headline already said.
+            BUDGET: 300 words. Omit What It Means if the article has no implications.
             """
         }
     }

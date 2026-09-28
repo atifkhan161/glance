@@ -41,4 +41,25 @@ struct IntelligenceRouterTests {
         // Without keys, should return nil
         #expect(result == nil)
     }
+
+    @Test("RealMadridEnrichment decodes headToHead from the Gemini JSON shape")
+    func madridEnrichmentDecodesHeadToHead() {
+        // Both Madrid prompts emit `headToHead`; this asserts the decoded model
+        // actually accepts that key rather than silently dropping the field.
+        let json = """
+        {"form":["W 2-1","D 1-1"],"standing":"2nd","intel":"Mid-block press.","headToHead":"13 previous meetings"}
+        """
+        let data = Data(json.utf8)
+        let decoded = try? JSONDecoder().decode(RealMadridEnrichment.self, from: data)
+        #expect(decoded?.headToHead == "13 previous meetings")
+    }
+
+    @Test("headToHead remains optional when the model omits it")
+    func headToHeadIsOptional() {
+        let json = #"{"form":["W 2-1"],"standing":"1st","intel":"Control."}"#
+        let data = Data(json.utf8)
+        let decoded = try? JSONDecoder().decode(RealMadridEnrichment.self, from: data)
+        #expect(decoded != nil)
+        #expect(decoded?.headToHead == nil)
+    }
 }

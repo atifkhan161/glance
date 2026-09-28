@@ -57,7 +57,8 @@ struct SmartSearchPipeline: Sendable {
         let summary = try await openRouter.complete(
             systemPrompt: systemPrompt,
             userPrompt: "Query: \(query)\n\nSearch results:\n\(combinedHighlights)",
-            apiKey: openRouterKey
+            apiKey: openRouterKey,
+            temperature: 0.4
         )
 
         await cache.save(cacheKey, envelope: CacheEnvelope(data: summary, ttlMs: 24 * 3_600 * 1000))
@@ -77,7 +78,8 @@ struct SmartSearchPipeline: Sendable {
         let response = try await openRouter.complete(
             systemPrompt: systemPrompt,
             userPrompt: "Topic: \(topic)",
-            apiKey: openRouterKey
+            apiKey: openRouterKey,
+            temperature: 0.3
         )
         guard let data = response.data(using: .utf8),
               let decoded = try? JSONDecoder().decode(SubQueryResponse.self, from: data) else {
@@ -114,7 +116,8 @@ struct SmartSearchPipeline: Sendable {
         return try await openRouter.complete(
             systemPrompt: systemPrompt,
             userPrompt: "Search results:\n\(resultsText)",
-            apiKey: openRouterKey
+            apiKey: openRouterKey,
+            temperature: 0.6
         )
     }
 

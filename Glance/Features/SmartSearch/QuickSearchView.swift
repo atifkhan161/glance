@@ -160,7 +160,7 @@ struct QuickSearchView: View {
     }
 
     private func summaryCard(_ summary: String) -> some View {
-        let attributedString = (try? AttributedString(markdown: summary)) ?? AttributedString(summary)
+        let attributedString = MarkdownText.attributed(summary, accent: Theme.Colors.cardCyan)
 
         return VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 6) {
