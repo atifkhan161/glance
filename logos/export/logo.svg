@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  GLANCE — Concept 2, iteration 3: "The Scan — Framed"
+  Same idea as iteration 1: one row of a feed is caught and lit while the rows around it
+  fall off into dim slate. What changed:
+    1. The tapered triangle tip is GONE. It read as a "send" arrow. It is replaced by a
+       soft luminous leading edge — the lit row simply keeps going and dissolves to zero
+       opacity through a transparency gradient, so it reads as energy leaving the frame
+       rather than as a directional glyph.
+    2. The stack is no longer floating. It now sits inside a bold, asymmetric viewfinder
+       bracket: a thick (32u) open "C" of stroke — solid left spine, solid top arm, a
+       shorter bottom arm, and one deliberate hanging tick at the top arm's end. The gap on
+       the right is where the caught row exits. It is deliberately not a circle and not a
+       plain rounded square, so the icon keeps its own silhouette instead of echoing the
+       app-icon tile. 32u stroke keeps it legible at 16px.
+    3. Rows are re-pitched to an even 22u rhythm and lit at exact center; dim brightness
+       now falls off with distance from the lit row (0.60 at one row away, 0.26 at two).
+    4. The single caught item is marked by a solid amber #F2B441 bar at the lit row's left
+       edge instead of a small dot — 22u thick, so it survives at 16px.
+  The mark group uses solid fills only; gradients and blur filters appear nowhere on the
+  mark's geometry, so the whole mark reads with zero filter support.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Glance scan feed">
+  <defs>
+    <linearGradient id="i3-canvas" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0B0E13"/>
+      <stop offset="1" stop-color="#141A22"/>
+    </linearGradient>
+
+    <linearGradient id="i3-dissolve" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#A6EBD0" stop-opacity="0.95"/>
+      <stop offset="0.45" stop-color="#A6EBD0" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#A6EBD0" stop-opacity="0"/>
+    </linearGradient>
+
+    <filter id="i3-glow-beam" x="-60%" y="-400%" width="220%" height="900%">
+      <feGaussianBlur stdDeviation="20"/>
+    </filter>
+
+    <filter id="i3-glow-halo" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="28"/>
+    </filter>
+  </defs>
+
+  <g id="bg">
+    <rect x="0" y="0" width="512" height="512" rx="112" fill="url(#i3-canvas)"/>
+  </g>
+
+  <g id="glow">
+    <rect x="118" y="243" width="290" height="26" rx="13"
+          fill="#74D3AE" opacity="0.5" filter="url(#i3-glow-beam)"/>
+    <rect x="104" y="108" width="256" height="296" rx="48"
+          fill="#74D3AE" opacity="0.07" filter="url(#i3-glow-halo)"/>
+    <circle cx="145" cy="256" r="13" fill="#F2B441" opacity="0.55" filter="url(#i3-glow-halo)"/>
+  </g>
+
+  <g id="mark">
+    <!-- viewfinder bracket: open on the right, asymmetric by design -->
+    <g fill="none" stroke="#86A2B0" stroke-width="32" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M376 100 H132 A32 32 0 0 0 100 132 V380 A32 32 0 0 0 132 412 H320"/>
+      <path d="M376 100 V146"/>
+    </g>
+
+    <!-- dim rows, brightness falling off with distance from the lit row -->
+    <rect x="132" y="127" width="176" height="34" rx="17" fill="#5A7A8A" opacity="0.26"/>
+    <rect x="132" y="183" width="224" height="34" rx="17" fill="#5A7A8A" opacity="0.6"/>
+    <rect x="132" y="295" width="224" height="34" rx="17" fill="#5A7A8A" opacity="0.6"/>
+    <rect x="132" y="351" width="176" height="34" rx="17" fill="#5A7A8A" opacity="0.26"/>
+
+    <!-- the caught row: solid mint, then a luminous edge that dissolves to nothing -->
+    <rect x="132" y="239" width="200" height="34" rx="17" fill="#74D3AE"/>
+    <rect x="300" y="239" width="104" height="34" rx="17" fill="url(#i3-dissolve)"/>
+
+    <!-- the single caught item, marked in warm amber -->
+    <rect x="134" y="246" width="22" height="20" rx="10" fill="#F2B441"/>
+  </g>
+</svg>
