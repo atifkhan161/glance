@@ -188,6 +188,63 @@ Developer Mode must be enabled the first time you open a sideloaded app:
 
 4. Open Settings in-app and enter your API keys
 
+## Building the IPA
+
+```bash
+brew install zsign          # one-time
+scripts/build-ipa.sh        # -> Glance/build/ipa/Glance-v<version>-unsigned.ipa
+```
+
+The script builds Release for `generic/platform=iOS`, ad-hoc signs with **zsign**, and packages the IPA.
+It prints the bundle id, version, arch, SHA-256 and signature at the end, and verifies the signature both
+before and after zipping. It fails the build rather than shipping a broken IPA.
+
+### Why ad-hoc signing, and why zsign
+
+The IPA is **not** signed with an Apple certificate. That is deliberate: every install method above
+re-signs the app with the user's own Apple ID, so a real signature would only be discarded. But three
+things still have to be right, and each one produced a distinct install failure:
+
+| Requirement | Get it wrong and you see |
+| --- | --- |
+| A code signature must be **present** | `bundleid does not match with the specified` |
+| Sign with **no entitlements** | `The keychain access group '$(AppIdentifierPrefix)…' does not contain a Team ID prefix` |
+| **Reallocate CodeSignature space** | SideStore's ldid `_assert()` failure, or `the app is in an invalid format` |
+
+**Do not hand-write `application-identifier` or `keychain-access-groups`.** Those values normally
+contain Xcode build-setting placeholders like `$(AppIdentifierPrefix)`, and `codesign` does **not**
+expand them — they get embedded literally and iOS rejects the install. Glance needs no entitlements of
+its own: no app extensions, no app groups, and `KeychainStore` uses the default keychain (no
+`kSecAttrAccessGroup`), so the default access group is already correct. Sign with none.
+
+**Use zsign, not `codesign`.** zsign reallocates the embedded CodeSignature space before signing;
+`codesign` leaves it too small (`zsign` reported growing it from 16368 to 64524 bytes). Insufficient space
+is what makes SideStore's ldid path assert and fail. zsign also emits a SHA-256-primary CodeDirectory,
+which is what iOS 16–26 accept. It is the same signer SideStore, LiveContainer and Feather use.
+
+### Before publishing
+
+Re-verify the packaged artifact, not just the `.app` — recompression must not disturb the signature:
+
+```bash
+cd /tmp && rm -rf vcheck && mkdir vcheck && cd vcheck
+unzip -q ~/path/to/Glance-v1.2-unsigned.ipa -d x
+codesign --verify --deep --strict x/Payload/Glance.app   # must print nothing
+codesign -d --entitlements - --xml x/Payload/Glance.app 2>/dev/null | plutil -p -  || echo "entitlements: none"
+codesign -dv x/Payload/Glance.app 2>&1 | grep -E "Identifier|CodeDirectory"
+```
+
+After uploading, download the asset back from GitHub and check the SHA-256 matches. A silent upload
+failure once left a broken build published — the hash check is what caught it.
+
+Two other things worth knowing:
+
+- A stale `armv7` entry in `UIRequiredDeviceCapabilities` makes iOS reject the install. The build script
+  strips it, but it is still present in `Glance/Resources/Info.plist`.
+- Add a new `PRODUCT_BUNDLE_IDENTIFIER` at version bumps, or App Store Connect will reject the build.
+- The IPA is unsigned, so **it is not verified on physical hardware** by the build. Check the release
+  notes for whether an install was actually confirmed.
+
 ## Design
 
 - **Dark mode first** with light mode support
