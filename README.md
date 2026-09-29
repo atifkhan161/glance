@@ -86,8 +86,10 @@ Real Madrid and Pokémon GO data use free APIs (TheSportsDB, public RSS feeds) �
 
 Grab the latest `.ipa` from [Releases](https://github.com/atifkhan161/glance/releases/latest).
 
-The published IPA is **unsigned**. That is deliberate — every method below re-signs it with your own
-Apple ID, so shipping a signature would only invalidate it. Choose the method that fits you:
+The published IPA is **ad-hoc signed but not certificate-signed**. That is deliberate — every method below
+re-signs it with your own Apple ID, so shipping a real signature would only be discarded. It does need a
+signature to be present, though: sideloaders re-sign from an already-signed input, and a completely
+unsigned app fails with a bundle-ID mismatch. Choose the method that fits you:
 
 | Method | Computer needed | Best for |
 | --- | --- | --- |
@@ -159,6 +161,7 @@ Developer Mode must be enabled the first time you open a sideloaded app:
 
 | Symptom | Fix |
 | --- | --- |
+| **"bundleid does not match with the specified"** on install | The IPA was packaged with no code signature at all. Sideloaders re-sign the app, but they need a *signed* input to work from — a blank app fails bundle-ID validation. Download the current release; earlier ones were affected. |
 | Icon present but app does nothing | Signature expired — refresh from AltStore/SideStore, or re-import the certificate into LiveContainer |
 | LiveContainer says "Certificate not found" | Certificate wasn't exported after a refresh. In SideStore: **Settings → Export Signing Certificate…**, save with a password, then **Import Certificate** in LiveContainer |
 | "Application failed preflight checks" | Another sideload operation is mid-flight. Wait for it to finish and retry |
