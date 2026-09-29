@@ -89,7 +89,8 @@ Grab the latest `.ipa` from [Releases](https://github.com/atifkhan161/glance/rel
 The published IPA is **ad-hoc signed but not certificate-signed**. That is deliberate — every method below
 re-signs it with your own Apple ID, so shipping a real signature would only be discarded. It does need a
 signature to be present, though: sideloaders re-sign from an already-signed input, and a completely
-unsigned app fails with a bundle-ID mismatch. Choose the method that fits you:
+unsigned app fails with a bundle-ID mismatch. It carries **no entitlements** — Glance has no app
+extensions, no app groups, and uses the default keychain, so the sideloader supplies everything needed. Choose the method that fits you:
 
 | Method | Computer needed | Best for |
 | --- | --- | --- |
@@ -161,7 +162,8 @@ Developer Mode must be enabled the first time you open a sideloaded app:
 
 | Symptom | Fix |
 | --- | --- |
-| **"bundleid does not match with the specified"** on install | The IPA was packaged with no code signature at all. Sideloaders re-sign the app, but they need a *signed* input to work from — a blank app fails bundle-ID validation. Download the current release; earlier ones were affected. |
+| **"bundleid does not match with the specified"** | The IPA had no code signature. Sideloaders re-sign the app, but they re-sign from an already-signed input, so a blank app fails bundle-ID validation. Download the current release. |
+| **"The keychain access group '$(AppIdentifierPrefix)…' does not contain a Team ID prefix"** | Same class of problem — the IPA shipped with unexpanded Xcode entitlement placeholders. Current releases are signed with **no entitlements**; Glance needs none (no extensions, no app groups, default keychain). |
 | Icon present but app does nothing | Signature expired — refresh from AltStore/SideStore, or re-import the certificate into LiveContainer |
 | LiveContainer says "Certificate not found" | Certificate wasn't exported after a refresh. In SideStore: **Settings → Export Signing Certificate…**, save with a password, then **Import Certificate** in LiveContainer |
 | "Application failed preflight checks" | Another sideload operation is mid-flight. Wait for it to finish and retry |
