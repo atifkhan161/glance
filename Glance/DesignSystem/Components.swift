@@ -223,6 +223,72 @@ struct SectionHeader: View {
     }
 }
 
+// MARK: - Settings Row
+
+struct SettingsRow<Accessory: View>: View {
+    let title: String
+    let subtitle: String?
+    let icon: String?
+    let iconColor: Color
+    let accessory: Accessory
+
+    init(
+        _ title: String,
+        subtitle: String? = nil,
+        icon: String? = nil,
+        iconColor: Color = Theme.Colors.accent,
+        @ViewBuilder accessory: () -> Accessory
+    ) {
+        self.title = title
+        self.subtitle = subtitle
+        self.icon = icon
+        self.iconColor = iconColor
+        self.accessory = accessory()
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            if let icon {
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(iconColor)
+                    .frame(width: 20)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(Theme.Fonts.manrope(14))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+
+                if let subtitle {
+                    Text(subtitle)
+                        .font(Theme.Fonts.manrope(11))
+                        .foregroundStyle(Theme.Colors.textMuted)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            Spacer(minLength: 8)
+
+            accessory
+        }
+        .padding(12)
+        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
+    }
+}
+
+extension SettingsRow where Accessory == Text {
+    init(
+        _ title: String,
+        subtitle: String? = nil,
+        icon: String? = nil,
+        iconColor: Color = Theme.Colors.accent,
+        value: Text
+    ) {
+        self.init(title, subtitle: subtitle, icon: icon, iconColor: iconColor) { value }
+    }
+}
+
 // MARK: - Status Dot
 
 struct StatusDot: View {
@@ -322,6 +388,8 @@ private extension StatusDot.Freshness {
         StatusDot(freshness: .recent)
         StatusDot(freshness: .stale)
         StatusDot(freshness: .offline)
+        SettingsRow("Version", value: Text("1.2 (3)"))
+        SettingsRow("Cache", subtitle: "Stored on device", icon: "externaldrive") { EmptyView() }
     }
     .padding()
     .background(Theme.canvas)

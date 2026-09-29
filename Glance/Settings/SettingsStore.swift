@@ -77,11 +77,6 @@ final class SettingsStore {
         set { defaults.set(newValue, forKey: "showAiIntel") }
     }
 
-    var showDeepResearch: Bool {
-        get { defaults.object(forKey: "showDeepResearch") as? Bool ?? false }
-        set { defaults.set(newValue, forKey: "showDeepResearch") }
-    }
-
     // MARK: - Provider URLs
 
     var madridRSSURL: String {

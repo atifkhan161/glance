@@ -21,6 +21,14 @@
 		096DB724932563428E9C79B3 /* ExaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032774EA8666009381F3C760 /* ExaClient.swift */; };
 		0BE13B387270F4520E4FC24E /* Glance.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FE51DADF51E57ECD0B40BE8F /* Glance.xcassets */; };
 		0DA71C7319CF6FEF3DDAF056 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DDB5287486413A1BC7A95B1 /* SettingsView.swift */; };
+		DD0100000000000000000A01 /* AppVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0100000000000000000B01 /* AppVersion.swift */; };
+		DD0200000000000000000A01 /* AppearanceSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0200000000000000000B01 /* AppearanceSettingsSection.swift */; };
+		DD0200000000000000000A02 /* DisplaySettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0200000000000000000B02 /* DisplaySettingsSection.swift */; };
+		DD0200000000000000000A03 /* ApiKeysSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0200000000000000000B03 /* ApiKeysSection.swift */; };
+		DD0200000000000000000A04 /* CacheSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0200000000000000000B04 /* CacheSection.swift */; };
+		DD0200000000000000000A05 /* CardOrderListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0200000000000000000B05 /* CardOrderListView.swift */; };
+		DD0200000000000000000A06 /* AboutSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0200000000000000000B06 /* AboutSection.swift */; };
+		DD0100000000000000000A02 /* AppVersionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0100000000000000000B02 /* AppVersionTests.swift */; };
 		1085346A0AD944BC6DFF3E16 /* MadridPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61CCC1E587C8D063447BE25C /* MadridPipelineTests.swift */; };
 		12E679C512844CB0A323646C /* PoGoHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44568B552442758133DEF919 /* PoGoHubView.swift */; };
 		17E43F2670D9DD76CBBE7E74 /* Manrope-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B7ABFE1A44714303D7726BAE /* Manrope-Regular.ttf */; };
@@ -127,13 +135,8 @@
 		AA0000000000000000000003 /* SmartSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000013 /* SmartSearchView.swift */; };
 		AA0000000000000000000004 /* QuickSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000014 /* QuickSearchView.swift */; };
 		AA0000000000000000000005 /* QuickSearchResultRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000015 /* QuickSearchResultRow.swift */; };
-		AA0000000000000000000006 /* DeepResearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000016 /* DeepResearchView.swift */; };
-		AA0000000000000000000007 /* ResearchListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000017 /* ResearchListView.swift */; };
-		AA0000000000000000000008 /* ResearchFileRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000018 /* ResearchFileRow.swift */; };
-		AA0000000000000000000009 /* MarkdownPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000019 /* MarkdownPreviewView.swift */; };
 		AA000000000000000000000A /* OpenRouterClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001A /* OpenRouterClient.swift */; };
 		AA000000000000000000000B /* ExaEnhancedClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001B /* ExaEnhancedClient.swift */; };
-		AA000000000000000000000C /* MarkdownStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001C /* MarkdownStore.swift */; };
 		AA000000000000000000001D /* SearchResultDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001E /* SearchResultDetailView.swift */; };
 /* End PBXBuildFile section */
 
@@ -165,6 +168,14 @@
 		06B010D9C40163AF882E9554 /* PulseStore.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = PulseStore.swift; sourceTree = "<group>"; };
 		0C95DCBE3D848BDB6C254116 /* Models.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		0DDB5287486413A1BC7A95B1 /* SettingsView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		DD0100000000000000000B01 /* AppVersion.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AppVersion.swift; sourceTree = "<group>"; };
+		DD0200000000000000000B01 /* AppearanceSettingsSection.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AppearanceSettingsSection.swift; sourceTree = "<group>"; };
+		DD0200000000000000000B02 /* DisplaySettingsSection.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = DisplaySettingsSection.swift; sourceTree = "<group>"; };
+		DD0200000000000000000B03 /* ApiKeysSection.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ApiKeysSection.swift; sourceTree = "<group>"; };
+		DD0200000000000000000B04 /* CacheSection.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CacheSection.swift; sourceTree = "<group>"; };
+		DD0200000000000000000B05 /* CardOrderListView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CardOrderListView.swift; sourceTree = "<group>"; };
+		DD0200000000000000000B06 /* AboutSection.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AboutSection.swift; sourceTree = "<group>"; };
+		DD0100000000000000000B02 /* AppVersionTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AppVersionTests.swift; sourceTree = "<group>"; };
 		0F593ABD57B9765563B01BFF /* AiIntelPipelineTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AiIntelPipelineTests.swift; sourceTree = "<group>"; };
 		10BA754B5EC93CFFE1B72319 /* SourcesFlowUITests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SourcesFlowUITests.swift; sourceTree = "<group>"; };
 		15FFE18A5D893CFA93AE65E3 /* repositories.json */ = {isa = PBXFileReference; explicitFileType = text.json; path = repositories.json; sourceTree = "<group>"; };
@@ -279,13 +290,8 @@
 		AA0000000000000000000013 /* SmartSearchView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SmartSearchView.swift; sourceTree = "<group>"; };
 		AA0000000000000000000014 /* QuickSearchView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = QuickSearchView.swift; sourceTree = "<group>"; };
 		AA0000000000000000000015 /* QuickSearchResultRow.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = QuickSearchResultRow.swift; sourceTree = "<group>"; };
-		AA0000000000000000000016 /* DeepResearchView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = DeepResearchView.swift; sourceTree = "<group>"; };
-		AA0000000000000000000017 /* ResearchListView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ResearchListView.swift; sourceTree = "<group>"; };
-		AA0000000000000000000018 /* ResearchFileRow.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ResearchFileRow.swift; sourceTree = "<group>"; };
-		AA0000000000000000000019 /* MarkdownPreviewView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = MarkdownPreviewView.swift; sourceTree = "<group>"; };
 		AA000000000000000000001A /* OpenRouterClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = OpenRouterClient.swift; sourceTree = "<group>"; };
 		AA000000000000000000001B /* ExaEnhancedClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ExaEnhancedClient.swift; sourceTree = "<group>"; };
-		AA000000000000000000001C /* MarkdownStore.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = MarkdownStore.swift; sourceTree = "<group>"; };
 		AA000000000000000000001E /* SearchResultDetailView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SearchResultDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -334,6 +340,7 @@
 				A1B2C3D400020001AAAA0001 /* GenericRSSClientTests.swift */,
 				A1B2C3D400020002AAAA0001 /* RedditLinkResolverTests.swift */,
 				AA000000000000000000T001 /* ThemeManagerTests.swift */,
+				DD0100000000000000000B02 /* AppVersionTests.swift */,
 			);
 			path = GlanceTests;
 			sourceTree = "<group>";
@@ -375,6 +382,7 @@
 				D1E2F3A4B5C6D7E8F9A0B1C7 /* ArticleIntelligenceCard.swift */,
 				BB1000000000000000000004 /* ArticleSummaryAccumulator.swift */,
 				D1E2F3A4B5C6D7E8F9A0B1C9 /* RawArticleCard.swift */,
+				DD0100000000000000000B01 /* AppVersion.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -474,7 +482,6 @@
 				4F3610F406F35B78849DB8D2 /* CacheEnvelope.swift */,
 				2FCCD985E015E21DCCED8520 /* CacheStore.swift */,
 				5499D323A95C9D573A14BDD5 /* KeychainStore.swift */,
-				AA000000000000000000001C /* MarkdownStore.swift */,
 			);
 			path = Cache;
 			sourceTree = "<group>";
@@ -518,6 +525,12 @@
 				BB22CC33DD44EE55FF660078 /* ProviderView.swift */,
 				A1B2C3D400010001AA0001B1 /* AddRSSFeedSheet.swift */,
 				3D44183E20A98B8B4BB01FE8 /* SourcesView.swift */,
+				DD0200000000000000000B01 /* AppearanceSettingsSection.swift */,
+				DD0200000000000000000B02 /* DisplaySettingsSection.swift */,
+				DD0200000000000000000B03 /* ApiKeysSection.swift */,
+				DD0200000000000000000B04 /* CacheSection.swift */,
+				DD0200000000000000000B05 /* CardOrderListView.swift */,
+				DD0200000000000000000B06 /* AboutSection.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -660,10 +673,6 @@
 				AA0000000000000000000013 /* SmartSearchView.swift */,
 				AA0000000000000000000014 /* QuickSearchView.swift */,
 				AA0000000000000000000015 /* QuickSearchResultRow.swift */,
-				AA0000000000000000000016 /* DeepResearchView.swift */,
-				AA0000000000000000000017 /* ResearchListView.swift */,
-				AA0000000000000000000018 /* ResearchFileRow.swift */,
-				AA0000000000000000000019 /* MarkdownPreviewView.swift */,
 				AA000000000000000000001E /* SearchResultDetailView.swift */,
 			);
 			path = SmartSearch;
@@ -829,6 +838,7 @@
 				A1B2C3D400020001AAAA0002 /* GenericRSSClientTests.swift in Sources */,
 				A1B2C3D400020002AAAA0002 /* RedditLinkResolverTests.swift in Sources */,
 				AA000000000000000000T002 /* ThemeManagerTests.swift in Sources */,
+				DD0100000000000000000A02 /* AppVersionTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -890,6 +900,13 @@
 				D7E8F9A0B1C2D3E4F5A6B7C8 /* AiIntelHubView.swift in Sources */,
 				70C4D04F2D86D901D561200C /* SettingsStore.swift in Sources */,
 				0DA71C7319CF6FEF3DDAF056 /* SettingsView.swift in Sources */,
+				DD0100000000000000000A01 /* AppVersion.swift in Sources */,
+				DD0200000000000000000A01 /* AppearanceSettingsSection.swift in Sources */,
+				DD0200000000000000000A02 /* DisplaySettingsSection.swift in Sources */,
+				DD0200000000000000000A03 /* ApiKeysSection.swift in Sources */,
+				DD0200000000000000000A04 /* CacheSection.swift in Sources */,
+				DD0200000000000000000A05 /* CardOrderListView.swift in Sources */,
+				DD0200000000000000000A06 /* AboutSection.swift in Sources */,
 				AA11BB22CC33DD44EE55FF78 /* FoundationModelsStatus.swift in Sources */,
 				45FB5BDD7E141CD05BDE5054 /* SourcesView.swift in Sources */,
 				BB22CC33DD44EE55FF660080 /* ProviderView.swift in Sources */,
@@ -924,13 +941,8 @@
 				BB1000000000000000000005 /* MarkdownText.swift in Sources */,
 				4C5A4447575865357AA90C3A /* Enums.swift in Sources */,
 				258D90A7CF4894803C569D75 /* Extensions.swift in Sources */,
-				AA000000000000000000000C /* MarkdownStore.swift in Sources */,
 				AA000000000000000000000B /* ExaEnhancedClient.swift in Sources */,
 				AA000000000000000000000A /* OpenRouterClient.swift in Sources */,
-				AA0000000000000000000009 /* MarkdownPreviewView.swift in Sources */,
-				AA0000000000000000000008 /* ResearchFileRow.swift in Sources */,
-				AA0000000000000000000007 /* ResearchListView.swift in Sources */,
-				AA0000000000000000000006 /* DeepResearchView.swift in Sources */,
 				AA0000000000000000000005 /* QuickSearchResultRow.swift in Sources */,
 				AA0000000000000000000004 /* QuickSearchView.swift in Sources */,
 				AA0000000000000000000003 /* SmartSearchView.swift in Sources */,
@@ -962,11 +974,11 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = ATIFKHAN;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.atifkhan.glance.GlanceUITests;
 				PRODUCT_NAME = GlanceUITests;
 				SDKROOT = iphoneos;
@@ -981,11 +993,11 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = ATIFKHAN;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.atifkhan.glance.GlanceUITests;
 				PRODUCT_NAME = GlanceUITests;
 				SDKROOT = iphoneos;
@@ -1001,13 +1013,13 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = ATIFKHAN;
 				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.atifkhan.glance.GlanceTests;
 				PRODUCT_NAME = GlanceTests;
 				SDKROOT = iphoneos;
@@ -1039,7 +1051,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ANALYZER_NONNULL = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = X75379R3TH;
 				ENABLE_PREVIEWS = YES;
@@ -1047,7 +1059,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.atifkhan.glance;
 				PRODUCT_NAME = Glance;
 				SDKROOT = iphoneos;
@@ -1062,13 +1074,13 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = ATIFKHAN;
 				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.atifkhan.glance.GlanceTests;
 				PRODUCT_NAME = GlanceTests;
 				SDKROOT = iphoneos;
@@ -1086,7 +1098,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ANALYZER_NONNULL = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = X75379R3TH;
 				ENABLE_PREVIEWS = YES;
@@ -1094,7 +1106,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.atifkhan.glance;
 				PRODUCT_NAME = Glance;
 				SDKROOT = iphoneos;
