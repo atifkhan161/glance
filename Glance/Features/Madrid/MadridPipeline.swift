@@ -233,7 +233,7 @@ struct MadridPipeline: Sendable {
 
         return LastMatch(
             opponent: opponent,
-            score: LastMatch.LastMatchScore(home: homeGoals, away: awayGoals),
+            score: MatchScore(home: homeGoals, away: awayGoals, isHome: isHome),
             competition: match.strLeague,
             venue: match.strVenue ?? "",
             datetime: datetime,
@@ -242,7 +242,8 @@ struct MadridPipeline: Sendable {
             cards: [],
             round: match.intRound.map { "Round \($0)" },
             rmBadge: badges.rm,
-            opponentBadge: badges.opponent
+            opponentBadge: badges.opponent,
+            isHome: isHome
         )
     }
 
@@ -253,9 +254,9 @@ struct MadridPipeline: Sendable {
         let opponent = isHome ? match.strAwayTeam : match.strHomeTeam
         let venue = match.strVenue ?? ""
 
-        let score: Fixture.Score?
+        let score: MatchScore?
         if let h = match.intHomeScore, let a = match.intAwayScore {
-            score = Fixture.Score(home: h, away: a)
+            score = MatchScore(home: h, away: a, isHome: isHome)
         } else {
             score = nil
         }
@@ -274,7 +275,8 @@ struct MadridPipeline: Sendable {
             venue: venue,
             scores: score,
             rmBadge: badges.rm,
-            opponentBadge: badges.opponent
+            opponentBadge: badges.opponent,
+            isHome: isHome
         )
     }
 
@@ -354,7 +356,10 @@ struct MadridPipeline: Sendable {
         guard item.isFinished, let h = item.homeScore, let a = item.awayScore else { return nil }
         return LastMatch(
             opponent: item.opponent,
-            score: LastMatch.LastMatchScore(home: h, away: a),
+            score: MatchScore(
+                team: item.teamScore ?? 0,
+                opponent: item.opponentScore ?? 0
+            ),
             competition: item.competition,
             venue: item.venue,
             datetime: item.datetime,
@@ -363,15 +368,16 @@ struct MadridPipeline: Sendable {
             cards: [],
             round: item.round,
             rmBadge: item.rmBadge,
-            opponentBadge: item.opponentBadge
+            opponentBadge: item.opponentBadge,
+            isHome: item.isHome
         )
     }
 
     /// Convert MatchTimelineItem to Fixture for backward compatibility with glance card
     static func convertToFixture(_ item: MatchTimelineItem) -> Fixture? {
-        let score: Fixture.Score?
-        if let h = item.homeScore, let a = item.awayScore {
-            score = Fixture.Score(home: h, away: a)
+        let score: MatchScore?
+        if let team = item.teamScore, let opponent = item.opponentScore {
+            score = MatchScore(team: team, opponent: opponent)
         } else {
             score = nil
         }
@@ -383,7 +389,8 @@ struct MadridPipeline: Sendable {
             venue: item.venue,
             scores: score,
             rmBadge: item.rmBadge,
-            opponentBadge: item.opponentBadge
+            opponentBadge: item.opponentBadge,
+            isHome: item.isHome
         )
     }
 
@@ -455,8 +462,8 @@ struct MadridPipeline: Sendable {
      static func generateIntel(nextFixture: Fixture?, lastMatch: LastMatch?, teamName: String) -> String {
         var parts: [String] = []
         if let lm = lastMatch {
-            let rmGoals = lm.score.home > lm.score.away ? lm.score.home : lm.score.away
-            let oppGoals = lm.score.home > lm.score.away ? lm.score.away : lm.score.home
+            let rmGoals = lm.score.team
+            let oppGoals = lm.score.opponent
             if rmGoals > oppGoals {
                 parts.append("Won last match \(rmGoals)-\(oppGoals) vs \(lm.opponent)")
             } else if rmGoals == oppGoals {

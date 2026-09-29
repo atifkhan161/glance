@@ -58,9 +58,9 @@ struct MatchTimelineView: View {
                 }
                 .frame(maxWidth: .infinity)
 
-                if item.isFinished, let h = item.homeScore, let a = item.awayScore {
+                if item.isFinished, let scoreText = item.scoreText {
                     VStack(spacing: 2) {
-                        Text("\(h) - \(a)")
+                        Text(scoreText)
                             .font(Theme.Fonts.manrope(20, weight: .bold))
                             .foregroundStyle(Theme.Colors.textPrimary)
                     }

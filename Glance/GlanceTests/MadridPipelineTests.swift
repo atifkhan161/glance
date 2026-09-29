@@ -90,11 +90,109 @@ struct MadridPipelineTests {
         #expect(timeline[1].homeScore == 2)
         #expect(timeline[1].awayScore == 3)
         #expect(timeline[1].isHome == false)
+        // Away win: score must read from Madrid's perspective, not home/away
+        #expect(timeline[1].teamScore == 3)
+        #expect(timeline[1].opponentScore == 2)
+        #expect(timeline[1].scoreText == "3 - 2")
 
         #expect(timeline[2].opponent == "Rayo Vallecano")
         #expect(timeline[2].isFinished == true)
         #expect(timeline[2].result == "W")
         #expect(timeline[2].isHome == true)
+        #expect(timeline[2].teamScore == 4)
+        #expect(timeline[2].opponentScore == 1)
+        #expect(timeline[2].scoreText == "4 - 1")
+    }
+
+    @Test("Away loss reads 1 - 2 for Madrid, not 2 - 1")
+    func awayLossScoreOrientation() {
+        let awayLoss = SDBEvent(
+            idEvent: "9", strEvent: "Barcelona vs Real Madrid", strLeague: "La Liga",
+            strSeason: "2026-2027", strTimestamp: "2026-09-05T19:30:00Z",
+            dateEvent: "2026-09-05", strTime: "19:30:00",
+            strHomeTeam: "Barcelona", strAwayTeam: "Real Madrid",
+            idHomeTeam: "133739", idAwayTeam: "133738",
+            strVenue: "Spotify Camp Nou", intRound: "4",
+            strStatus: "FT", intHomeScore: 2, intAwayScore: 1,
+            strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+        )
+
+        let timeline = MadridPipeline.parseMatchTimeline(
+            recentEvents: [awayLoss], nextEvents: [],
+            teamID: "133738", teamName: "Real Madrid"
+        )
+
+        let item = try! #require(timeline.first)
+        #expect(item.isHome == false)
+        #expect(item.result == "L")
+        #expect(item.homeScore == 2)
+        #expect(item.awayScore == 1)
+        #expect(item.teamScore == 1)
+        #expect(item.opponentScore == 2)
+        #expect(item.scoreText == "1 - 2")
+    }
+
+    @Test("convertToLastMatch and convertToFixture carry team-relative scores")
+    func conversionsAreTeamRelative() {
+        let awayLoss = SDBEvent(
+            idEvent: "9", strEvent: "Barcelona vs Real Madrid", strLeague: "La Liga",
+            strSeason: "2026-2027", strTimestamp: "2026-09-05T19:30:00Z",
+            dateEvent: "2026-09-05", strTime: "19:30:00",
+            strHomeTeam: "Barcelona", strAwayTeam: "Real Madrid",
+            idHomeTeam: "133739", idAwayTeam: "133738",
+            strVenue: "Spotify Camp Nou", intRound: "4",
+            strStatus: "FT", intHomeScore: 2, intAwayScore: 1,
+            strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+        )
+
+        let timeline = MadridPipeline.parseMatchTimeline(
+            recentEvents: [awayLoss], nextEvents: [],
+            teamID: "133738", teamName: "Real Madrid"
+        )
+        let item = try! #require(timeline.first)
+
+        let lastMatch = try! #require(MadridPipeline.convertToLastMatch(item))
+        #expect(lastMatch.isHome == false)
+        #expect(lastMatch.score.team == 1)
+        #expect(lastMatch.score.opponent == 2)
+        #expect(lastMatch.score.text == "1 - 2")
+
+        let fixture = try! #require(MadridPipeline.convertToFixture(item))
+        #expect(fixture.isHome == false)
+        #expect(fixture.scores?.team == 1)
+        #expect(fixture.scores?.opponent == 2)
+    }
+
+    @Test("generateIntel reports an away loss as a loss")
+    func generateIntelAwayLoss() {
+        let awayLoss = SDBEvent(
+            idEvent: "9", strEvent: "Barcelona vs Real Madrid", strLeague: "La Liga",
+            strSeason: "2026-2027", strTimestamp: "2026-09-05T19:30:00Z",
+            dateEvent: "2026-09-05", strTime: "19:30:00",
+            strHomeTeam: "Barcelona", strAwayTeam: "Real Madrid",
+            idHomeTeam: "133739", idAwayTeam: "133738",
+            strVenue: "Spotify Camp Nou", intRound: "4",
+            strStatus: "FT", intHomeScore: 2, intAwayScore: 1,
+            strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+        )
+
+        let lastMatch = try! #require(MadridPipeline.parseLastMatch(from: [awayLoss], teamID: "133738"))
+        let intel = MadridPipeline.generateIntel(nextFixture: nil, lastMatch: lastMatch, teamName: "Real Madrid")
+
+        #expect(intel == "Lost last match 1-2 vs Barcelona")
+    }
+
+    @Test("MatchScore maps home/away to team/opponent")
+    func matchScoreMapping() {
+        let homeWin = MatchScore(home: 3, away: 1, isHome: true)
+        #expect(homeWin.team == 3)
+        #expect(homeWin.opponent == 1)
+        #expect(homeWin.text == "3 - 1")
+
+        let awayLoss = MatchScore(home: 2, away: 1, isHome: false)
+        #expect(awayLoss.team == 1)
+        #expect(awayLoss.opponent == 2)
+        #expect(awayLoss.text == "1 - 2")
     }
 
     @Test("parseMatchTimeline handles empty events")

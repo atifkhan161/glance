@@ -41,14 +41,13 @@ struct MadridHubView: View {
                                     .foregroundStyle(Theme.Colors.textMuted)
                             }
 
-                            if let fixture = heroData.fixture,
-                               let scores = fixture.scores {
-                                Text("\(scores.home) - \(scores.away)")
+                            if let scores = heroData.fixture?.scores {
+                                Text(scores.text)
                                     .font(Theme.Fonts.scale(.display))
                                     .foregroundStyle(Theme.Colors.textPrimary)
                             } else if let nextMatch = heroData.matchTimeline.first(where: { !$0.isFinished }),
-                                      let h = nextMatch.homeScore, let a = nextMatch.awayScore {
-                                Text("\(h) - \(a)")
+                                      let scoreText = nextMatch.scoreText {
+                                Text(scoreText)
                                     .font(Theme.Fonts.scale(.display))
                                     .foregroundStyle(Theme.Colors.textPrimary)
                             }

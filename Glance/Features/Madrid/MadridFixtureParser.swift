@@ -34,7 +34,8 @@ extension MadridPipeline {
               let date = looseDateParse(text) else { return nil }
         let stadium = detectStadium(in: text)
         let competition = detectCompetition(in: text)
-        let scores = detectScore(in: text)
+        let isHome = stadium == "Santiago Bernabéu"
+        let scores = detectScore(in: text, isHome: isHome)
         return Fixture(
             opponent: opponent,
             datetime: ISO8601DateFormatter().string(from: date),
@@ -43,7 +44,8 @@ extension MadridPipeline {
             venue: stadium,
             scores: scores,
             rmBadge: nil,
-            opponentBadge: nil
+            opponentBadge: nil,
+            isHome: isHome
         )
     }
 
@@ -55,7 +57,7 @@ extension MadridPipeline {
         return nil
     }
 
-    static func detectScore(in text: String) -> Fixture.Score? {
+    static func detectScore(in text: String, isHome: Bool) -> MatchScore? {
         // Match patterns like "2-1", "2 - 1", "2:1"
         let pattern = #"(\d+)\s*[-:]\s*(\d+)"#
         guard let regex = try? NSRegularExpression(pattern: pattern),
@@ -66,7 +68,7 @@ extension MadridPipeline {
               let away = Int(text[awayRange]) else {
             return nil
         }
-        return Fixture.Score(home: home, away: away)
+        return MatchScore(home: home, away: away, isHome: isHome)
     }
 
     static func parseFormDots(from text: String) -> [FormDot] {

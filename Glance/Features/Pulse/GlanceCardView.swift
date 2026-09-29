@@ -156,7 +156,7 @@ struct GlanceCardView: View {
                     }
 
                     if let scores = fixture.scores {
-                        Text("\(scores.home) - \(scores.away)")
+                        Text(scores.text)
                             .font(Theme.Fonts.manrope(24, weight: .bold))
                             .foregroundStyle(Theme.Colors.textPrimary)
                     }
@@ -186,7 +186,7 @@ struct GlanceCardView: View {
                                 .lineLimit(1)
                         }
 
-                        Text("\(lastMatch.score.home) - \(lastMatch.score.away)")
+                        Text(lastMatch.score.text)
                             .font(Theme.Fonts.manrope(24, weight: .bold))
                             .foregroundStyle(Theme.Colors.textPrimary)
 
@@ -218,7 +218,7 @@ struct GlanceCardView: View {
                         .foregroundStyle(Theme.Colors.textSecondary)
                     }
 
-                    let rmScorers = lastMatch.scorers.filter { $0.team == (lastMatch.score.home >= lastMatch.score.away ? "home" : "away") }
+                    let rmScorers = lastMatch.scorers.filter { $0.team == (lastMatch.isHome ? "home" : "away") }
                     if !rmScorers.isEmpty {
                         HStack(spacing: 4) {
                             Image(systemName: "sportscourt")

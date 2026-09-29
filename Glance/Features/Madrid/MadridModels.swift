@@ -17,25 +17,39 @@ struct MadridData: Codable, Sendable, Equatable {
     let timestamp: Date
 }
 
+struct MatchScore: Codable, Sendable, Equatable {
+    let team: Int
+    let opponent: Int
+
+    var text: String { "\(team) - \(opponent)" }
+
+    init(team: Int, opponent: Int) {
+        self.team = team
+        self.opponent = opponent
+    }
+
+    /// Build from an API home/away pair relative to the tracked team.
+    init(home: Int, away: Int, isHome: Bool) {
+        self.team = isHome ? home : away
+        self.opponent = isHome ? away : home
+    }
+}
+
 struct Fixture: Codable, Sendable, Equatable {
     let opponent: String
     let datetime: String
     let stadium: String
     let competition: String
     let venue: String
-    let scores: Score?
+    let scores: MatchScore?
     let rmBadge: String?
     let opponentBadge: String?
-
-    struct Score: Codable, Sendable, Equatable {
-        let home: Int
-        let away: Int
-    }
+    let isHome: Bool
 }
 
 struct LastMatch: Codable, Sendable, Equatable {
     let opponent: String
-    let score: LastMatchScore
+    let score: MatchScore
     let competition: String
     let venue: String
     let datetime: String
@@ -45,11 +59,7 @@ struct LastMatch: Codable, Sendable, Equatable {
     let round: String?
     let rmBadge: String?
     let opponentBadge: String?
-
-    struct LastMatchScore: Codable, Sendable, Equatable {
-        let home: Int
-        let away: Int
-    }
+    let isHome: Bool
 }
 
 struct MatchEvent: Codable, Sendable, Equatable {
@@ -111,4 +121,13 @@ struct MatchTimelineItem: Codable, Sendable, Equatable, Identifiable {
     let result: String?
     let round: String?
     let isHome: Bool
+
+    /// Score relative to the tracked team, not home/away.
+    var teamScore: Int? { isHome ? homeScore : awayScore }
+    var opponentScore: Int? { isHome ? awayScore : homeScore }
+
+    var scoreText: String? {
+        guard let teamScore, let opponentScore else { return nil }
+        return "\(teamScore) - \(opponentScore)"
+    }
 }
