@@ -49,30 +49,66 @@ The `IntelligenceRouter` actor routes through multiple backends:
 
 ## Build & Run
 
-- **Simulator**: `iPhone 17 Pro` (iOS 26.5), id `C9F6FBC3-2E5D-4CF4-BB12-129357E0F3C2`
-  - `iPhone 17 Pro Max` is referenced in older docs but is **not installed** on this machine. Check with `xcodebuild -project Glance.xcodeproj -scheme Glance -showdestinations` before trusting a destination name.
-- **Build** (working invocation — `CODE_SIGNING_ALLOWED=NO` is required, see pitfalls):
+- **Simulator**: `iPhone 17 Pro Max` (iOS 26.5), id `4ABF9BBF-AB35-4739-B282-0EE19B2CE023` — this is the device that is actually **booted** on this machine. Use it so `xcodebuild` reuses it instead of paying a cold boot.
+  - Verify before trusting any destination: `xcrun simctl list devices booted`
+  - `iPhone 17 Pro` (id `C9F6FBC3-2E5D-4CF4-BB12-129357E0F3C2`) is also installed but is in **Shutdown** state.
+- **Build** (`CODE_SIGNING_ALLOWED=NO` is required, see pitfalls):
   ```bash
   cd Glance && xcodebuild -project Glance.xcodeproj -scheme Glance \
-    -destination 'platform=iOS Simulator,id=C9F6FBC3-2E5D-4CF4-BB12-129357E0F3C2,OS=26.5' \
+    -destination 'platform=iOS Simulator,id=4ABF9BBF-AB35-4739-B282-0EE19B2CE023,OS=26.5' \
     CODE_SIGNING_ALLOWED=NO build 2>&1 | grep -E "error:|BUILD"
   ```
-- **Test**:
-  ```bash
-  cd Glance && xcodebuild test -project Glance.xcodeproj -scheme Glance \
-    -destination 'platform=iOS Simulator,id=C9F6FBC3-2E5D-4CF4-BB12-129357E0F3C2,OS=26.5' \
-    CODE_SIGNING_ALLOWED=NO -only-testing:GlanceTests 2>&1 | tail -30
-  ```
+
+### Test loop — use the script
+
+```bash
+scripts/test-area.sh --list          # available suite names
+scripts/test-area.sh Madrid          # one suite  (~30s)
+scripts/test-area.sh Madrid PoGo     # several suites
+scripts/test-area.sh --no-build Madrid   # skip build-for-testing
+```
+
+The script resolves shorthand prefixes (`Madrid` → `MadridPipelineTests`), rejects ambiguous ones
+(`Theme` matches three suites) and unknown ones, then runs `build-for-testing` followed by
+`test-without-building` against the booted simulator. **Scope to the suite you are changing.** A full
+`-only-testing:GlanceTests` run costs ~10min and adds no signal for a single-area change.
+
+Equivalent by hand, when you need the raw output:
+```bash
+cd Glance
+xcodebuild build-for-testing -project Glance.xcodeproj -scheme Glance \
+  -destination 'platform=iOS Simulator,id=4ABF9BBF-AB35-4739-B282-0EE19B2CE023,OS=26.5' \
+  CODE_SIGNING_ALLOWED=NO 2>&1 | grep -E "error:|TEST BUILD"
+
+xcodebuild test-without-building -project Glance.xcodeproj -scheme Glance \
+  -destination 'platform=iOS Simulator,id=4ABF9BBF-AB35-4739-B282-0EE19B2CE023,OS=26.5' \
+  CODE_SIGNING_ALLOWED=NO -only-testing:GlanceTests/MadridPipelineTests 2>&1 \
+  | grep -E "Test case .*(passed|failed)|TEST EXECUTE"
+```
 
 ## Test Performance
 
-- A full `-only-testing:GlanceTests` run takes **~70s wall clock but only ~10s of CPU**. Individual tests are sub-0.05s. The time is almost entirely simulator boot + clone, not test execution — so a slow run is not a hung run. Watch for `Testing started completed` in the log.
-- `IntelligenceRouterTests` are the slowest real tests at ~3.5s each (they exercise model availability paths).
-- Scope with `-only-testing:GlanceTests/<SuiteName>` while iterating; the full run adds no signal for a single-suite change.
-- **Known pre-existing failures (as of 2026-09-29, present on a clean checkout of `main`)** — do not attribute these to your change without re-verifying:
-  `CardOrderTests.appendRemoveFeed`, `ArticleSummaryAccumulatorTests.parsesLabelContentShape`, `KeychainStoreTests.roundTrip`, `PoGoPipelineTests.smartCountdownOngoing`, `CacheTTTests.customRSSDefaultTTL`.
-  To confirm a failure is pre-existing: `git stash push --include-untracked -- Glance/`, re-run the failing suites, then `git stash pop`.
-- `GitHubTrendingClientTests.trendingReposHaveDescriptions` makes a **real network call** to github.com and will fail or hang offline. Treat it as a network smoke test, not a unit test.
+- **Scope your test runs.** A scoped run is ~20–30s; the full suite stalls ~10min. Always
+  use `scripts/test-area.sh <Suite>` for the area you're changing.
+- **Do not pass `-parallel-testing-enabled NO`.** It fails outright against the shared
+  booted device (`Failed to install or launch the test runner … Busy / preflight checks`)
+  and burns the same 10min in retry backoff.
+- **Do not trust per-test durations in the `.xcresult` bundle** — they measure slot time on a
+  shared clone, not CPU, and are inflated by an order of magnitude. Trust the runner output.
+- **Known pre-existing failures (as of 2026-09-29, verified on a clean checkout of `main`)** — do not
+  attribute these to your change without re-verifying:
+  `CardOrderTests.appendRemoveFeed`, `ArticleSummaryAccumulatorTests.parsesLabelContentShape`,
+  `KeychainStoreTests.roundTrip` (fails `-34018`, missing entitlement), `PoGoPipelineTests.smartCountdownOngoing`,
+  `CacheTTTests.customRSSDefaultTTL`.
+  To confirm a failure is pre-existing: `git stash push --include-untracked -- Glance/`, re-run the failing
+  suites, then `git stash pop`.
+- `CacheStoreTests.customRSSRoundTrip` fails only inside full/parallel runs and passes in isolation —
+  likely parallel-run interference, not a real regression. Unconfirmed.
+- `GitHubTrendingClientTests.trendingReposHaveDescriptions` makes a **real network call** to github.com and
+  will fail or hang offline. Treat it as a network smoke test, not a unit test.
+
+Full measured timings and the open 10-minute full-suite stall are documented in
+[`docs/known-issues/test-suite-stall.md`](docs/known-issues/test-suite-stall.md).
 
 ## graphify
 
