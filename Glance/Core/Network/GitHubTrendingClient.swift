@@ -5,7 +5,7 @@ protocol GitHubTrendingClientProtocol: Sendable {
 }
 
 struct GitHubTrendingClient: GitHubTrendingClientProtocol, Sendable {
-    private static let session: URLSession = {
+    private static let defaultSession: URLSession = {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 15
         config.timeoutIntervalForResource = 15
@@ -15,6 +15,12 @@ struct GitHubTrendingClient: GitHubTrendingClientProtocol, Sendable {
         }
         return URLSession(configuration: config)
     }()
+
+    private let session: URLSession
+
+    init(session: URLSession = .shared) {
+        self.session = session
+    }
 
     func fetchTrending(since: String) async throws -> [GitHubTrendingRepo] {
         guard let url = URL(string: "https://github.com/trending?since=\(since)") else {
@@ -29,7 +35,7 @@ struct GitHubTrendingClient: GitHubTrendingClientProtocol, Sendable {
         request.addValue("text/html,application/xhtml+xml", forHTTPHeaderField: "Accept")
         request.addValue("en-US,en;q=0.9", forHTTPHeaderField: "Accept-Language")
 
-        let (data, response) = try await Self.session.data(for: request)
+        let (data, response) = try await session.data(for: request)
 
         guard let http = response as? HTTPURLResponse else {
             throw GlanceError.networkError("No HTTP response")

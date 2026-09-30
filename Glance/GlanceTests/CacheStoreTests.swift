@@ -4,9 +4,13 @@ import Foundation
 
 @Suite("CacheStore")
 struct CacheStoreTests {
+    private func makeStore() -> CacheStore {
+        CacheStore(userDefaults: UserDefaults(suiteName: "test.CacheStore.\(UUID().uuidString)")!)
+    }
+
     @Test("Save and load round-trip")
     func roundTrip() async {
-        let store = CacheStore.preview
+        let store = makeStore()
         let envelope = CacheEnvelope(data: "test-value", ttlMs: 60_000)
         await store.save("test-key-roundtrip", envelope: envelope)
         let loaded: CacheEnvelope<String>? = await store.load("test-key-roundtrip")
@@ -29,7 +33,7 @@ struct CacheStoreTests {
 
     @Test("ClearAll keeps keychain keys")
     func clearAll() async {
-        let store = CacheStore.preview
+        let store = makeStore()
         await store.save("cache_pogo", envelope: CacheEnvelope(data: "x", ttlMs: nil))
         await store.clearAll()
         let loaded: CacheEnvelope<String>? = await store.load("cache_pogo")
@@ -45,14 +49,14 @@ struct CacheStoreTests {
 
     @Test("Custom RSS TTL is 24 hours")
     func customRSTTL() async {
-        let store = CacheStore.preview
+        let store = makeStore()
         let ttl = await store.ttl(for: CacheStore.customRSSKey(feedID: "feed-1"))
         #expect(ttl == 24 * 3_600)
     }
 
     @Test("Custom RSS save and load round-trip")
     func customRSSRoundTrip() async {
-        let store = CacheStore.preview
+        let store = makeStore()
         let key = CacheStore.customRSSKey(feedID: "round-trip-feed")
         let envelope = CacheEnvelope(data: ["article-1", "article-2"], ttlMs: 24 * 3_600_000)
         await store.save(key, envelope: envelope)
@@ -65,7 +69,7 @@ struct CacheStoreTests {
 
     @Test("ClearAll removes custom RSS keys")
     func clearAllRemovesCustomRSS() async {
-        let store = CacheStore.preview
+        let store = makeStore()
         let key = CacheStore.customRSSKey(feedID: "clear-me")
         await store.save(key, envelope: CacheEnvelope(data: ["a"], ttlMs: 1000))
         await store.clearAll()
@@ -75,7 +79,7 @@ struct CacheStoreTests {
 
     @Test("ClearAll removes github trending keys")
     func clearAllRemovesGitHubTrending() async {
-        let store = CacheStore.preview
+        let store = makeStore()
         let key = "cache_github_trending_daily"
         await store.save(key, envelope: CacheEnvelope(data: ["repo"], ttlMs: 1000))
         await store.clearAll()
@@ -85,7 +89,7 @@ struct CacheStoreTests {
 
     @Test("Expired envelope still loads with data")
     func expiredStillLoads() async {
-        let store = CacheStore.preview
+        let store = makeStore()
         let key = CacheStore.customRSSKey(feedID: "stale-feed")
         await store.save(key, envelope: CacheEnvelope(data: ["old"], ttlMs: 0))
         let loaded: CacheEnvelope<[String]>? = await store.load(key)
@@ -97,7 +101,7 @@ struct CacheStoreTests {
 
     @Test("GenericRSSPipeline loadCached returns expired envelope")
     func loadCachedReturnsExpired() async {
-        let store = CacheStore.preview
+        let store = makeStore()
         let pipeline = GenericRSSPipeline(cache: store)
         let feed = CustomRSSFeed(name: "Stale", url: "https://example.com/rss")
         let key = CacheStore.customRSSKey(feedID: feed.id.uuidString)

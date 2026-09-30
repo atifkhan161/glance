@@ -5,15 +5,11 @@ import Foundation
 @Suite("IntelligenceRouter")
 struct IntelligenceRouterTests {
     @Test("Truncation limits text length")
-    func truncation() {
+    func truncation() async {
         let router = IntelligenceRouter()
         let longText = String(repeating: "a", count: 10_000)
-        // The truncate method is private, but we can test the behavior indirectly
-        // by verifying the router handles long inputs without crashing
-        Task {
-            let (_, source) = await router.enrichMadrid(snippets: longText)
-            #expect(source == "none" || source == "apple" || source == "gemini")
-        }
+        let (_, source) = await router.enrichMadrid(snippets: longText)
+        #expect(source == "none" || source == "apple" || source == "gemini")
     }
 
     @Test("EnrichMadrid returns tuple with source")

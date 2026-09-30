@@ -4,6 +4,10 @@ import Foundation
 
 @Suite("Cache TTL and Eviction")
 struct CacheTTTests {
+    private func makeStore() -> CacheStore {
+        CacheStore(userDefaults: UserDefaults(suiteName: "test.CacheTT.\(UUID().uuidString)")!)
+    }
+
     @Test("Default TTL for madrid cache")
     func madridTTL() {
         let ttl = CacheStore.defaultTTLs["cache_madrid"] ?? 0
@@ -26,7 +30,7 @@ struct CacheTTTests {
 
     @Test("CacheStore size tracking")
     func sizeTracking() async {
-        let store = CacheStore.preview
+        let store = makeStore()
         await store.clearAll()
         let size = await store.currentSize
         #expect(size >= 0)

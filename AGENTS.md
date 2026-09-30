@@ -100,12 +100,28 @@ scripts/test-area.sh --list          # available suite names
 scripts/test-area.sh Madrid          # one suite  (~30s)
 scripts/test-area.sh Madrid PoGo     # several suites
 scripts/test-area.sh --no-build Madrid   # skip build-for-testing
+make test-quick                      # unit tests only, no network (~30s)
+make test-full                       # all suites including network (~5min)
 ```
 
 The script resolves shorthand prefixes (`Madrid` → `MadridPipelineTests`), rejects ambiguous ones
 (`Theme` matches three suites) and unknown ones, then runs `build-for-testing` followed by
-`test-without-building` against the booted simulator. **Scope to the suite you are changing.** A full
-`-only-testing:GlanceTests` run costs ~10min and adds no signal for a single-area change.
+`test-without-building` against the booted simulator. **Scope to the suite you are changing.**
+
+### Performance
+
+| Scope | Time |
+|---|---|
+| Single suite (e.g. Madrid) | ~20s |
+| Cache suites combined | ~36s (was 10m24s — stall fixed) |
+| Full `-only-testing:GlanceTests` | ~10min (known stall) |
+
+The 10-min full-suite stall was caused by `CacheStoreTests` + `CacheTTTests` sharing
+`UserDefaults.standard` across `CacheStore` actor instances. Fixed by injecting
+isolated `UserDefaults(suiteName:)` into each test suite.
+
+The full-suite stall still exists for other suites — use `make test-quick` or
+`scripts/test-area.sh` to scope your runs.
 
 Equivalent by hand, when you need the raw output:
 ```bash
@@ -129,7 +145,7 @@ xcodebuild test-without-building -project Glance.xcodeproj -scheme Glance \
   and burns the same 10min in retry backoff.
 - **Do not trust per-test durations in the `.xcresult` bundle** — they measure slot time on a
   shared clone, not CPU, and are inflated by an order of magnitude. Trust the runner output.
-- **Known pre-existing failures (as of 2026-09-29, verified on a clean checkout of `main`)** — do not
+- **Known pre-existing failures (as of 2026-09-30, verified on a clean checkout of `main`)** — do not
   attribute these to your change without re-verifying:
   `CardOrderTests.appendRemoveFeed`, `ArticleSummaryAccumulatorTests.parsesLabelContentShape`,
   `KeychainStoreTests.roundTrip` (fails `-34018`, missing entitlement), `PoGoPipelineTests.smartCountdownOngoing`,
@@ -138,8 +154,6 @@ xcodebuild test-without-building -project Glance.xcodeproj -scheme Glance \
   suites, then `git stash pop`.
 - `CacheStoreTests.customRSSRoundTrip` fails only inside full/parallel runs and passes in isolation —
   likely parallel-run interference, not a real regression. Unconfirmed.
-- `GitHubTrendingClientTests.trendingReposHaveDescriptions` makes a **real network call** to github.com and
-  will fail or hang offline. Treat it as a network smoke test, not a unit test.
 
 Full measured timings and the open 10-minute full-suite stall are documented in
 [`docs/known-issues/test-suite-stall.md`](docs/known-issues/test-suite-stall.md).

@@ -5,7 +5,11 @@ actor CacheStore {
     static var preview: CacheStore { CacheStore() }
 
     private var memory: [String: Data] = [:]
-    private let defaults = UserDefaults.standard
+    private let defaults: UserDefaults
+
+    init(userDefaults: UserDefaults = .standard) {
+        self.defaults = userDefaults
+    }
 
     private static let maxCacheSize = 10 * 1_024 * 1_024 // 10 MB
     private static let evictionThreshold = 8 * 1_024 * 1_024 // 8 MB
