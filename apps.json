@@ -1,0 +1,46 @@
+{
+  "name": "Glance",
+  "identifier": "com.atifkhan.glance.source",
+  "sourceURL": "https://raw.githubusercontent.com/atifkhan161/glance/main/apps.json",
+  "apps": [
+    {
+      "name": "Glance",
+      "bundleIdentifier": "com.atifkhan.glance",
+      "developerName": "Atif Khan",
+      "subtitle": "Your feeds, one dashboard",
+      "iconURL": "https://raw.githubusercontent.com/atifkhan161/glance/main/logos/export/logo-1024.png",
+      "tintColor": "#F5A524",
+      "localizedDescription": "A personal intelligence dashboard for iOS. Aggregates Real Madrid fixtures and match timeline, Pok\u00e9mon GO raids and events, GitHub Trending, AI/ML news with on-device summaries, and any custom RSS feed into a single dark-mode card feed.",
+      "permissions": [
+        {
+          "type": "network",
+          "usageDescription": "Fetches your feeds, fixtures and articles."
+        },
+        {
+          "type": "background-fetch",
+          "usageDescription": "Refreshes feeds in the background so data stays current."
+        }
+      ],
+      "versions": [
+        {
+          "version": "1.2.1",
+          "date": "2026-09-30",
+          "downloadURL": "https://github.com/atifkhan161/glance/releases/download/v1.2.1/Glance-1.2.1.ipa",
+          "size": 3021840,
+          "minOSVersion": "26.0",
+          "localizedDescription": "Personal intelligence dashboard aggregating Real Madrid, Pok\u00e9mon GO, GitHub Trending, AI intel and custom RSS into one card feed."
+        }
+      ]
+    }
+  ],
+  "news": [
+    {
+      "title": "Glance 1.2.1",
+      "caption": "Version 1.2.1 is available.",
+      "date": "2026-09-30",
+      "identifier": "glance-1.2.1",
+      "appID": "com.atifkhan.glance",
+      "notify": true
+    }
+  ]
+}
