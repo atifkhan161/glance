@@ -395,8 +395,14 @@ struct MadridPipeline: Sendable {
     }
 
     static func parseForm(from events: [SDBEvent], teamID: String) -> [FormEntry] {
-        // Form from last 5 finished matches (most recent first)
-        let finished = events.filter { $0.isFinished }.prefix(5)
+        // Most recent first, matching the match timeline. The events arrive
+        // oldest-first (rounds are appended 1...9), so this must sort or the
+        // strip shows stale results and drops the newest.
+        // NOTE: 5 matches here vs 4 finished in the timeline, so the two can
+        // differ in count by design.
+        let finished = events.filter { $0.isFinished }
+            .sorted { ($0.strTimestamp ?? $0.dateEvent ?? "") > ($1.strTimestamp ?? $1.dateEvent ?? "") }
+            .prefix(5)
 
         return finished.map { match in
             let isHome = match.idHomeTeam == teamID

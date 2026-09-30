@@ -195,6 +195,154 @@ struct MadridPipelineTests {
         #expect(awayLoss.text == "1 - 2")
     }
 
+    // MARK: - Form
+
+    /// Real fixtures from TheSportsDB (id 4335, season 2026-2027), in the
+    /// ascending order the pipeline actually produces: rounds are appended 1...9.
+    private static func realFormEvents() -> [SDBEvent] {
+        [
+            SDBEvent(
+                idEvent: "r2", strEvent: "Espanyol vs Real Madrid", strLeague: "La Liga",
+                strSeason: "2026-2027", strTimestamp: "2026-08-22T19:00:00Z",
+                dateEvent: "2026-08-22", strTime: "19:00:00",
+                strHomeTeam: "Espanyol", strAwayTeam: "Real Madrid",
+                idHomeTeam: "133734", idAwayTeam: "133738",
+                strVenue: "RCDE Stadium", intRound: "2",
+                strStatus: "FT", intHomeScore: 1, intAwayScore: 2,
+                strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+            ),
+            SDBEvent(
+                idEvent: "r4", strEvent: "Real Betis vs Real Madrid", strLeague: "La Liga",
+                strSeason: "2026-2027", strTimestamp: "2026-09-04T19:00:00Z",
+                dateEvent: "2026-09-04", strTime: "19:00:00",
+                strHomeTeam: "Real Betis", strAwayTeam: "Real Madrid",
+                idHomeTeam: "133722", idAwayTeam: "133738",
+                strVenue: "Benito Villamarín", intRound: "4",
+                strStatus: "FT", intHomeScore: 1, intAwayScore: 0,
+                strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+            ),
+            SDBEvent(
+                idEvent: "r5", strEvent: "Real Madrid vs Rayo Vallecano", strLeague: "La Liga",
+                strSeason: "2026-2027", strTimestamp: "2026-09-12T19:00:00Z",
+                dateEvent: "2026-09-12", strTime: "19:00:00",
+                strHomeTeam: "Real Madrid", strAwayTeam: "Rayo Vallecano",
+                idHomeTeam: "133738", idAwayTeam: "133728",
+                strVenue: "Santiago Bernabéu", intRound: "5",
+                strStatus: "FT", intHomeScore: 4, intAwayScore: 1,
+                strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+            ),
+            SDBEvent(
+                idEvent: "r6", strEvent: "Elche vs Real Madrid", strLeague: "La Liga",
+                strSeason: "2026-2027", strTimestamp: "2026-09-15T19:30:00Z",
+                dateEvent: "2026-09-15", strTime: "19:30:00",
+                strHomeTeam: "Elche", strAwayTeam: "Real Madrid",
+                idHomeTeam: "133729", idAwayTeam: "133738",
+                strVenue: "Estadio Martínez Valero", intRound: "6",
+                strStatus: "FT", intHomeScore: 2, intAwayScore: 3,
+                strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+            ),
+        ]
+    }
+
+    @Test("parseForm returns newest first, not oldest first")
+    func parseForm_newestFirst() {
+        let form = MadridPipeline.parseForm(
+            from: Self.realFormEvents(), teamID: "133738"
+        )
+
+        #expect(form.count == 4)
+        // Newest match leads the strip: Elche 2-3, an away win for Madrid.
+        #expect(form[0].result == "W")
+        #expect(form[0].score == "3-2")
+        #expect(form[0].opponent == "ELC")
+        // Then the Rayo home win.
+        #expect(form[1].result == "W")
+        #expect(form[1].score == "4-1")
+        #expect(form[1].opponent == "RAY")
+        // Real Betis 1-0 was the only away defeat.
+        #expect(form[2].result == "L")
+        #expect(form[2].score == "0-1")
+        #expect(form[2].opponent == "REA")
+        // Espanyol 1-2 was also an away win, not a loss.
+        #expect(form[3].result == "W")
+        #expect(form[3].score == "2-1")
+        #expect(form[3].opponent == "ESP")
+    }
+
+    @Test("parseForm keeps the latest 5 and drops older matches")
+    func parseForm_keepsLatestFive() {
+        // Seven finished matches, ascending - more than the 5-entry limit.
+        let extra = (17...20).map { day in
+            SDBEvent(
+                idEvent: "extra\(day)", strEvent: "Match \(day)", strLeague: "La Liga",
+                strSeason: "2026-2027", strTimestamp: "2026-09-\(day)T19:00:00Z",
+                dateEvent: "2026-09-\(day)", strTime: "19:00:00",
+                strHomeTeam: "Real Madrid", strAwayTeam: "Rayo Vallecano",
+                idHomeTeam: "133738", idAwayTeam: "133728",
+                strVenue: "Santiago Bernabéu", intRound: "7",
+                strStatus: "FT", intHomeScore: 1, intAwayScore: 0,
+                strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+            )
+        }
+
+        let form = MadridPipeline.parseForm(
+            from: Self.realFormEvents() + extra, teamID: "133738"
+        )
+
+        #expect(form.count == 5)
+        // The newest match must survive the prefix; the oldest must not appear.
+        #expect(form[0].opponent == "RAY")   // 2026-09-20, the latest
+        #expect(form[0].result == "W")
+        // The stale August fixture is the one dropped.
+        #expect(!form.contains { $0.opponent == "ESP" })
+    }
+
+    @Test("parseForm ignores unfinished matches")
+    func parseForm_ignoresUnfinished() {
+        let upcoming = SDBEvent(
+            idEvent: "r7", strEvent: "Real Madrid vs Sevilla", strLeague: "La Liga",
+            strSeason: "2026-2027", strTimestamp: "2026-09-28T19:00:00Z",
+            dateEvent: "2026-09-28", strTime: "19:00:00",
+            strHomeTeam: "Real Madrid", strAwayTeam: "Sevilla",
+            idHomeTeam: "133738", idAwayTeam: "133727",
+            strVenue: "Santiago Bernabéu", intRound: "7",
+            strStatus: "NS", intHomeScore: nil, intAwayScore: nil,
+            strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+        )
+
+        let form = MadridPipeline.parseForm(
+            from: Self.realFormEvents() + [upcoming], teamID: "133738"
+        )
+
+        #expect(form.count == 4)
+        #expect(!form.contains { $0.opponent == "SEV" })
+    }
+
+    @Test("parseForm handles empty events")
+    func parseForm_empty() {
+        #expect(MadridPipeline.parseForm(from: [], teamID: "133738").isEmpty)
+    }
+
+    @Test("parseForm matches the timeline ordering")
+    func parseForm_agreesWithTimeline() {
+        let events = Self.realFormEvents()
+        let form = MadridPipeline.parseForm(from: events, teamID: "133738")
+        let timeline = MadridPipeline.parseMatchTimeline(
+            recentEvents: events, nextEvents: [], teamID: "133738", teamName: "Real Madrid"
+        )
+        let finishedInTimeline = timeline.filter { $0.isFinished }
+
+        // Both surfaces should read newest-first off the same fixtures.
+        #expect(form.count == finishedInTimeline.count)
+        for (formEntry, item) in zip(form, finishedInTimeline) {
+            #expect(formEntry.result == item.result)
+            #expect(item.teamScore != nil)
+            #expect(item.opponentScore != nil)
+            // teamScore/opponentScore are optionals - unwrap before interpolating.
+            #expect(formEntry.score == "\(item.teamScore ?? -1)-\(item.opponentScore ?? -1)")
+        }
+    }
+
     @Test("parseMatchTimeline handles empty events")
     func parseMatchTimeline_empty() {
         let timeline = MadridPipeline.parseMatchTimeline(
