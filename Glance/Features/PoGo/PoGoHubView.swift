@@ -5,6 +5,7 @@ struct PoGoHubView: View {
     @State private var selectedTier: String = "5★"
     @State private var completedRaids: Set<String> = []
     @State private var selectedFilter: EventFilter = .all
+    @State private var selectedRotation: RaidRotationKind = .mega
 
     private let tiers = ["All", "1★", "3★", "5★", "Mega", "Shadow"]
 
@@ -113,6 +114,11 @@ struct PoGoHubView: View {
 
             // Raid list
             raidList(filteredRaids(data.raids))
+
+            // Raid rotation timeline
+            if !data.rotations.isEmpty {
+                raidRotation(data.rotations, raids: data.raids)
+            }
 
             // Events timeline
             if !data.events.isEmpty {
@@ -349,6 +355,316 @@ struct PoGoHubView: View {
         if raid.isShadow { return Theme.Colors.error }
         if raid.isFiveStar { return Theme.Colors.cardRose }
         return Theme.Colors.textMuted
+    }
+
+    // MARK: - Raid Rotation Timeline
+
+    private func raidRotation(_ windows: [RaidRotationWindow], raids: [PoGoRaid]) -> some View {
+        let track = PoGoPipeline.rotationWindows(windows, kind: selectedRotation)
+        let raidDays = windows.filter { $0.isRaidDay }
+
+        return HubSectionCard(title: "Raid Rotation", titleColor: Theme.Colors.tierPurple) {
+            VStack(alignment: .leading, spacing: 14) {
+                rotationKindSelector(windows)
+
+                if track.isEmpty && raidDays.isEmpty {
+                    Text("No rotation data available")
+                        .font(Theme.Fonts.manrope(13))
+                        .foregroundStyle(Theme.Colors.textMuted)
+                }
+
+                if !track.isEmpty {
+                    VStack(spacing: 10) {
+                        ForEach(Array(track.enumerated()), id: \.element.id) { index, window in
+                            rotationRow(window, raids: raids, isLast: index == track.count - 1)
+                        }
+                    }
+                }
+
+                if !raidDays.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("RAID DAY")
+                            .font(Theme.Fonts.manrope(10, weight: .bold))
+                            .foregroundStyle(Theme.Colors.textMuted)
+                            .padding(.top, 4)
+
+                        ForEach(raidDays) { day in
+                            raidDayRow(day)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func rotationKindSelector(_ windows: [RaidRotationWindow]) -> some View {
+        HStack(spacing: 8) {
+            ForEach(RaidRotationKind.allCases, id: \.self) { kind in
+                let count = windows.filter { $0.kind == kind && !$0.isRaidDay }.count
+                Button {
+                    withAnimation { selectedRotation = kind }
+                } label: {
+                    HStack(spacing: 5) {
+                        Text(kind.label)
+                            .font(Theme.Fonts.manrope(13, weight: selectedRotation == kind ? .bold : .medium))
+                        if count > 0 {
+                            Text("\(count)")
+                                .font(Theme.Fonts.manrope(11, weight: .semibold))
+                                .opacity(0.7)
+                        }
+                    }
+                    .foregroundStyle(selectedRotation == kind ? Theme.Colors.canvas : Theme.Colors.textSecondary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(
+                        selectedRotation == kind ? rotationColor(kind) : Theme.Colors.surface2,
+                        in: .capsule
+                    )
+                }
+                .disabled(count == 0)
+                .opacity(count == 0 ? 0.4 : 1)
+            }
+            Spacer(minLength: 0)
+        }
+    }
+
+    private func rotationColor(_ kind: RaidRotationKind) -> Color {
+        switch kind {
+        case .mega: return Theme.Colors.tierPurple
+        case .fiveStar: return Theme.Colors.cardRose
+        case .shadow: return Theme.Colors.error
+        }
+    }
+
+    private func rotationRow(_ window: RaidRotationWindow, raids: [PoGoRaid], isLast: Bool) -> some View {
+        let isCurrent = window.isCurrent()
+        let isPast = window.isPast()
+        let dotColor = isCurrent ? Theme.Colors.success : rotationColor(window.kind)
+
+        return HStack(alignment: .top, spacing: 14) {
+            VStack(spacing: 0) {
+                Circle()
+                    .fill(dotColor)
+                    .frame(width: 10, height: 10)
+                if !isLast {
+                    Rectangle()
+                        .fill(Theme.Colors.textMuted.opacity(0.2))
+                        .frame(width: 2)
+                    Spacer(minLength: 0)
+                }
+            }
+            .frame(minHeight: 80)
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 6) {
+                    BadgePill(text: window.tierText, color: rotationColor(window.kind))
+
+                    if isCurrent {
+                        Text("LIVE")
+                            .font(Theme.Fonts.manrope(9, weight: .bold))
+                            .foregroundStyle(Theme.Colors.success)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(Theme.Colors.success.opacity(0.15), in: .capsule)
+                    } else if isPast {
+                        Text("ENDED")
+                            .font(Theme.Fonts.manrope(9, weight: .bold))
+                            .foregroundStyle(Theme.Colors.textMuted)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(Theme.Colors.textMuted.opacity(0.15), in: .capsule)
+                    }
+
+                    Spacer(minLength: 0)
+                }
+
+                Text(window.title)
+                    .font(Theme.Fonts.manrope(14, weight: .semibold))
+                    .foregroundStyle(isPast ? Theme.Colors.textMuted : Theme.Colors.textPrimary)
+                    .lineLimit(2)
+
+                HStack(spacing: 6) {
+                    rotationBossStack(window.bosses, raids: raids)
+
+                    Spacer(minLength: 0)
+
+                    if let start = window.start, let end = window.end {
+                        Text(rotationCountdown(start: start, end: end, isPast: isPast))
+                            .font(Theme.Fonts.manrope(11, weight: .medium))
+                            .foregroundStyle(isCurrent ? Theme.Colors.success : Theme.Colors.textMuted)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(
+                                (isCurrent ? Theme.Colors.success : Theme.Colors.textMuted).opacity(0.15),
+                                in: .capsule
+                            )
+                    }
+                }
+
+                if let start = window.start, let end = window.end {
+                    Text(rotationDateRange(start: start, end: end))
+                        .font(Theme.Fonts.manrope(11))
+                        .foregroundStyle(Theme.Colors.textMuted)
+                        .lineLimit(1)
+                }
+
+                if isCurrent, let start = window.start, let end = window.end {
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Theme.Colors.textMuted.opacity(0.2))
+                                .frame(height: 4)
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Theme.Colors.success)
+                                .frame(width: geo.size.width * rotationProgress(start: start, end: end), height: 4)
+                        }
+                    }
+                    .frame(height: 4)
+                }
+
+                if let link = window.link {
+                    Link(destination: URL(string: link) ?? URL(string: "https://leekduck.com")!) {
+                        Text("View on LeekDuck")
+                            .font(Theme.Fonts.manrope(11, weight: .medium))
+                            .foregroundStyle(rotationColor(window.kind))
+                    }
+                }
+            }
+            .padding(Theme.cardPadding)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+        }
+        .opacity(isPast ? 0.55 : 1)
+    }
+
+    private func rotationBossStack(_ bosses: [RaidBoss], raids: [PoGoRaid]) -> some View {
+        HStack(spacing: 6) {
+            ForEach(bosses) { boss in
+                let raid = Self.matchRaid(named: boss.name, in: raids)
+                Group {
+                    if let raid {
+                        NavigationLink(value: raid) { bossIcon(boss) }
+                    } else {
+                        Button { openRaidBossInBrowser(boss, window: nil) } label: { bossIcon(boss) }
+                            .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+
+    private func bossIcon(_ boss: RaidBoss) -> some View {
+        ZStack(alignment: .bottomTrailing) {
+            if let imageURL = boss.image, let url = URL(string: imageURL) {
+                CachedAsyncImage(url: url) { image in
+                    image.resizable().scaledToFit()
+                } placeholder: {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Theme.Colors.surface2)
+                }
+                .frame(width: 40, height: 40)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            } else {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Theme.Colors.surface2)
+                    .frame(width: 40, height: 40)
+                    .overlay(
+                        Image(systemName: "bolt.fill")
+                            .font(.caption)
+                            .foregroundStyle(Theme.Colors.textMuted)
+                    )
+            }
+
+            if boss.canBeShiny {
+                Circle()
+                    .fill(Color(red: 0.98, green: 0.79, blue: 0.25))
+                    .frame(width: 9, height: 9)
+                    .overlay(Circle().stroke(Theme.Colors.surface1, lineWidth: 1.5))
+            }
+        }
+    }
+
+    private func raidDayRow(_ day: RaidRotationWindow) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                BadgePill(text: "RAID DAY", color: Theme.Colors.cardRose)
+                if day.isCurrent() {
+                    Text("LIVE")
+                        .font(Theme.Fonts.manrope(9, weight: .bold))
+                        .foregroundStyle(Theme.Colors.success)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(Theme.Colors.success.opacity(0.15), in: .capsule)
+                }
+                Spacer(minLength: 0)
+            }
+
+            Text(day.title)
+                .font(Theme.Fonts.manrope(13, weight: .semibold))
+                .foregroundStyle(Theme.Colors.textPrimary)
+
+            if let start = day.start, let end = day.end {
+                Text(rotationDateRange(start: start, end: end))
+                    .font(Theme.Fonts.manrope(11))
+                    .foregroundStyle(Theme.Colors.textMuted)
+            }
+        }
+        .padding(Theme.cardPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+    }
+
+    private static func matchRaid(named name: String, in raids: [PoGoRaid]) -> PoGoRaid? {
+        let normalized = name.lowercased()
+        if let exact = raids.first(where: { $0.name.lowercased() == normalized }) { return exact }
+        if let prefixed = name.split(separator: " ").last.map(String.init),
+           let match = raids.first(where: { $0.name.lowercased().hasSuffix(prefixed.lowercased()) }) {
+            return match
+        }
+        if let startsWith = name.split(separator: " ").first.map(String.init),
+           let match = raids.first(where: { $0.name.lowercased().hasPrefix(startsWith.lowercased()) }) {
+            return match
+        }
+        return nil
+    }
+
+    private func openRaidBossInBrowser(_ boss: RaidBoss, window: RaidRotationWindow?) {
+        let slug = boss.name.lowercased()
+            .replacingOccurrences(of: " ", with: "-")
+            .replacingOccurrences(of: "(", with: "")
+            .replacingOccurrences(of: ")", with: "")
+        guard let url = URL(string: "https://leekduck.com/pokemon/\(slug)/") else { return }
+        UIApplication.shared.open(url)
+    }
+
+    private func rotationDateRange(start: Date, end: Date) -> String {
+        let format = DateFormatter()
+        format.dateFormat = "d MMM"
+        let calendar = Calendar.current
+        if calendar.isDate(start, inSameDayAs: end) {
+            return format.string(from: start)
+        }
+        return "\(format.string(from: start)) – \(format.string(from: end))"
+    }
+
+    private func rotationCountdown(start: Date, end: Date, isPast: Bool) -> String {
+        if isPast { return "Ended" }
+        let interval = end.timeIntervalSinceNow
+        guard interval > 0 else { return "Ended" }
+        let days = Int(interval) / 86400
+        let hours = (Int(interval) % 86400) / 3600
+        if days > 0 { return "\(days)d \(hours)h left" }
+        if hours > 0 { return "\(hours)h left" }
+        let minutes = max(Int(interval) % 3600 / 60, 1)
+        return "\(minutes)m left"
+    }
+
+    private func rotationProgress(start: Date, end: Date) -> Double {
+        let now = Date.now
+        guard now >= start, end > start else { return 0 }
+        let total = end.timeIntervalSince(start)
+        let elapsed = now.timeIntervalSince(start)
+        return min(max(elapsed / total, 0), 1)
     }
 
     // MARK: - Events Timeline

@@ -10,6 +10,119 @@ struct PoGoData: Codable, Sendable, Equatable {
     let credit: String
     let source: String
     let timestamp: Date
+    var rotations: [RaidRotationWindow]
+
+    private enum CodingKeys: String, CodingKey {
+        case raids, events, fiveStar, mega, shadow
+        case targetPriority, credit, source, timestamp, rotations
+    }
+
+    init(
+        raids: [PoGoRaid],
+        events: [PoGoEvent],
+        fiveStar: PoGoRaid?,
+        mega: PoGoRaid?,
+        shadow: PoGoRaid?,
+        targetPriority: String,
+        credit: String,
+        source: String,
+        timestamp: Date,
+        rotations: [RaidRotationWindow] = []
+    ) {
+        self.raids = raids
+        self.events = events
+        self.fiveStar = fiveStar
+        self.mega = mega
+        self.shadow = shadow
+        self.targetPriority = targetPriority
+        self.credit = credit
+        self.source = source
+        self.timestamp = timestamp
+        self.rotations = rotations
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        raids = try container.decode([PoGoRaid].self, forKey: .raids)
+        events = try container.decode([PoGoEvent].self, forKey: .events)
+        fiveStar = try container.decodeIfPresent(PoGoRaid.self, forKey: .fiveStar)
+        mega = try container.decodeIfPresent(PoGoRaid.self, forKey: .mega)
+        shadow = try container.decodeIfPresent(PoGoRaid.self, forKey: .shadow)
+        targetPriority = try container.decodeIfPresent(String.self, forKey: .targetPriority) ?? ""
+        credit = try container.decodeIfPresent(String.self, forKey: .credit) ?? ""
+        source = try container.decodeIfPresent(String.self, forKey: .source) ?? ""
+        timestamp = try container.decodeIfPresent(Date.self, forKey: .timestamp) ?? Date.now
+        rotations = try container.decodeIfPresent([RaidRotationWindow].self, forKey: .rotations) ?? []
+    }
+}
+
+struct RaidBoss: Codable, Sendable, Identifiable, Equatable, Hashable {
+    let name: String
+    let image: String?
+    let canBeShiny: Bool
+
+    var id: String { name }
+
+    init(name: String, image: String? = nil, canBeShiny: Bool = false) {
+        self.name = name
+        self.image = image
+        self.canBeShiny = canBeShiny
+    }
+}
+
+enum RaidRotationKind: String, Sendable, CaseIterable, Codable, Equatable {
+    case mega
+    case fiveStar
+    case shadow
+
+    var label: String {
+        switch self {
+        case .mega: return "Mega"
+        case .fiveStar: return "5★"
+        case .shadow: return "Shadow"
+        }
+    }
+}
+
+struct RaidRotationWindow: Codable, Sendable, Identifiable, Equatable, Hashable {
+    let id: String
+    let kind: RaidRotationKind
+    let bosses: [RaidBoss]
+    let start: Date?
+    let end: Date?
+    let image: String?
+    let link: String?
+    let isRaidDay: Bool
+
+    func isCurrent(at now: Date = Date.now) -> Bool {
+        guard let start, let end else { return false }
+        return start <= now && end > now
+    }
+
+    func isPast(at now: Date = Date.now) -> Bool {
+        guard let end else { return false }
+        return end <= now
+    }
+
+    var title: String {
+        if isRaidDay { return "Super Mega Raid Day" }
+        let names = bosses.map(\.name)
+        guard !names.isEmpty else { return "Raid Rotation" }
+        switch names.count {
+        case 1: return names[0]
+        case 2: return "\(names[0]) & \(names[1])"
+        default: return names.dropLast().joined(separator: ", ") + " & " + names[names.count - 1]
+        }
+    }
+
+    var tierText: String {
+        if isRaidDay { return "RAID DAY" }
+        switch kind {
+        case .mega: return "MEGA"
+        case .fiveStar: return "5★"
+        case .shadow: return "SHADOW"
+        }
+    }
 }
 
 struct PoGoRaid: Codable, Sendable, Identifiable, Equatable, Hashable {
@@ -75,6 +188,7 @@ struct PoGoEvent: Codable, Sendable, Identifiable, Equatable, Hashable {
     let end: String?
     let countdown: String?
     let description: String
+    let raidBosses: [RaidBoss]
 
     var id: String { eventID }
 
@@ -176,6 +290,21 @@ struct PoGoEvent: Codable, Sendable, Identifiable, Equatable, Hashable {
 
     enum CodingKeys: String, CodingKey {
         case eventID, name, eventType, heading, link, image, start, end, countdown, description
+        case extraData
+    }
+
+    struct ExtraData: Codable, Sendable, Equatable {
+        let raidbattles: RaidBattleData?
+
+        struct RaidBattleData: Codable, Sendable, Equatable {
+            let bosses: [RaidBossPayload]?
+
+            struct RaidBossPayload: Codable, Sendable, Equatable {
+                let name: String
+                let image: String?
+                let canBeShiny: Bool?
+            }
+        }
     }
 
     init(from decoder: Decoder) throws {
@@ -190,7 +319,16 @@ struct PoGoEvent: Codable, Sendable, Identifiable, Equatable, Hashable {
         end = try container.decodeIfPresent(String.self, forKey: .end)
         countdown = try container.decodeIfPresent(String.self, forKey: .countdown)
         description = try container.decodeIfPresent(String.self, forKey: .description) ?? ""
+        let extra = try container.decodeIfPresent(ExtraData.self, forKey: .extraData)
+        raidBosses = (extra?.raidbattles?.bosses ?? []).compactMap { payload in
+            let name = payload.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !name.isEmpty else { return nil }
+            return RaidBoss(name: name, image: payload.image, canBeShiny: payload.canBeShiny ?? false)
+        }
+        extraData = extra
     }
+
+    let extraData: ExtraData?
 
     init(
         eventID: String,
@@ -202,7 +340,9 @@ struct PoGoEvent: Codable, Sendable, Identifiable, Equatable, Hashable {
         start: String? = nil,
         end: String? = nil,
         countdown: String? = nil,
-        description: String = ""
+        description: String = "",
+        raidBosses: [RaidBoss] = [],
+        extraData: ExtraData? = nil
     ) {
         self.eventID = eventID
         self.name = name
@@ -214,6 +354,8 @@ struct PoGoEvent: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.end = end
         self.countdown = countdown
         self.description = description
+        self.raidBosses = raidBosses
+        self.extraData = extraData
     }
 
     func hash(into hasher: inout Hasher) {

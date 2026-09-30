@@ -53,12 +53,76 @@ struct PoGoPipeline: Sendable {
                 return PoGoEvent(
                     eventID: event.eventID, name: event.name, eventType: event.eventType,
                     heading: event.heading, link: event.link, image: event.image,
-                    start: event.start, end: event.end, countdown: countdown
+                    start: event.start, end: event.end, countdown: countdown,
+                    description: event.description, raidBosses: event.raidBosses,
+                    extraData: event.extraData
                 )
             }
             return event
         }
         return Self.sortEvents(filtered, now: now)
+    }
+
+    static func rotationKind(for event: PoGoEvent) -> RaidRotationKind? {
+        guard event.eventType == "raid-battles" else { return nil }
+        let name = event.name.lowercased()
+        if name.contains("in mega raids") { return .mega }
+        if name.contains("in shadow raids") { return .shadow }
+        if name.contains("in 5-star raid battles") { return .fiveStar }
+        if event.raidBosses.contains(where: { Self.isMega($0.name) }) { return .mega }
+        if event.eventID.lowercased().contains("shadow-") || name.contains("shadow") { return .shadow }
+        return .fiveStar
+    }
+
+    private static func isMega(_ name: String) -> Bool {
+        name.lowercased().split(whereSeparator: { $0 == " " || $0 == "-" })
+            .contains { $0 == "mega" }
+    }
+
+    static func buildRotationWindows(from events: [PoGoEvent]) -> [RaidRotationWindow] {
+        let windows = events.compactMap { event -> RaidRotationWindow? in
+            guard let kind = rotationKind(for: event) else { return nil }
+            guard let start = event.start.flatMap(TimeFormat.parseISODate),
+                  let end = event.end.flatMap(TimeFormat.parseISODate) else { return nil }
+            return RaidRotationWindow(
+                id: event.eventID,
+                kind: kind,
+                bosses: event.raidBosses,
+                start: start,
+                end: end,
+                image: Self.rotationImage(for: event),
+                link: event.link,
+                isRaidDay: false
+            )
+        }
+        let raidDays = events.compactMap { event -> RaidRotationWindow? in
+            guard event.eventType == "raid-day" else { return nil }
+            guard let start = event.start.flatMap(TimeFormat.parseISODate),
+                  let end = event.end.flatMap(TimeFormat.parseISODate) else { return nil }
+            return RaidRotationWindow(
+                id: event.eventID,
+                kind: .mega,
+                bosses: event.raidBosses,
+                start: start,
+                end: end,
+                image: Self.rotationImage(for: event),
+                link: event.link,
+                isRaidDay: true
+            )
+        }
+        return (windows + raidDays).sorted { ($0.start ?? .distantFuture) < ($1.start ?? .distantFuture) }
+    }
+
+    private static func rotationImage(for event: PoGoEvent) -> String? {
+        let genericSuffixes = ["mega-default.jpg", "events-default-img.jpg", "events-default.jpg"]
+        if let image = event.image, !genericSuffixes.contains(where: { image.hasSuffix($0) }) {
+            return image
+        }
+        return event.raidBosses.first?.image ?? event.image
+    }
+
+    static func rotationWindows(_ windows: [RaidRotationWindow], kind: RaidRotationKind) -> [RaidRotationWindow] {
+        windows.filter { $0.kind == kind && !$0.isRaidDay }
     }
 
     static func sortEvents(_ events: [PoGoEvent], now: Date = Date.now) -> [PoGoEvent] {
@@ -130,8 +194,9 @@ struct PoGoPipeline: Sendable {
 
         async let raidsTask: [PoGoRaid] = { (try? await self.client.fetchRaids(raidsURL: raidsURL)) ?? [] }()
         async let eventsTask: [PoGoEvent] = { (try? await self.client.fetchEvents(eventsURL: eventsURL)) ?? [] }()
+        let rawEvents = await eventsTask
         let raids = Self.prioritizeRaids(await raidsTask)
-        let events = Self.filterActiveEvents(await eventsTask)
+        let events = Self.filterActiveEvents(rawEvents)
         let fiveStar = Self.pickFiveStar(raids)
         let mega = Self.pickMega(raids)
         let shadow = Self.pickShadow(raids)
@@ -151,11 +216,13 @@ struct PoGoPipeline: Sendable {
             }
             source = "none"
         }
+        let rotations = Self.buildRotationWindows(from: rawEvents)
         let data = PoGoData(
             raids: raids, events: events, fiveStar: fiveStar, mega: mega,
             shadow: shadow, targetPriority: priority,
             credit: "Data from ScrapedDuck / LeekDuck.com",
-            source: source, timestamp: Date.now
+            source: source, timestamp: Date.now,
+            rotations: rotations
         )
         await cache.save("cache_pogo", envelope: CacheEnvelope(data: data, ttlMs: 24 * 3_600_000))
         return data
