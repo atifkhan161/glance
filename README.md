@@ -199,6 +199,32 @@ The script builds Release for `generic/platform=iOS`, ad-hoc signs with **zsign*
 It prints the bundle id, version, arch, SHA-256 and signature at the end, and verifies the signature both
 before and after zipping. It fails the build rather than shipping a broken IPA.
 
+## Releasing
+
+```bash
+scripts/release.sh patch       # 1.2   -> 1.2.1
+scripts/release.sh minor       # 1.2.1 -> 1.3.0
+scripts/release.sh 2.0.0      # explicit version
+```
+
+One command bumps `Info.plist`, builds and signs the IPA, tags, publishes the release, regenerates
+`apps.json`, and then downloads the published asset back to confirm it matches the local build. Each
+version gets its own tag and a `Glance-<version>.ipa` asset, so a version's download URL can never
+change after the fact. The script refuses no-op and backwards bumps.
+
+### Auto-updates in SideStore
+
+`apps.json` at the repo root is a [SideStore source](https://sidestore.io/sidestore-source-types/).
+Add it in SideStore under **Sources → + → Add Custom Source**:
+
+```
+https://raw.githubusercontent.com/atifkhan161/glance/main/apps.json
+```
+
+Glance then appears in Browse and offers updates in place when the source changes. Note that
+`version` in `apps.json` must match `CFBundleShortVersionString` exactly or updates never appear —
+which is why `release.sh` generates the file from the built IPA rather than maintaining it by hand.
+
 ### Why ad-hoc signing, and why zsign
 
 The IPA is **not** signed with an Apple certificate. That is deliberate: every install method above
@@ -221,6 +247,12 @@ its own: no app extensions, no app groups, and `KeychainStore` uses the default 
 `codesign` leaves it too small (`zsign` reported growing it from 16368 to 64524 bytes). Insufficient space
 is what makes SideStore's ldid path assert and fail. zsign also emits a SHA-256-primary CodeDirectory,
 which is what iOS 16–26 accept. It is the same signer SideStore, LiveContainer and Feather use.
+
+**Clear `.zsign_cache` before signing.** zsign caches per-file signature data in the working directory,
+and a stale entry makes it emit `Info.plist=not bound` — the plist hash is simply omitted from the
+CodeDirectory, so the bundle fails verification with `invalid Info.plist`. It only shows up when the
+build changes what the plist contains, i.e. **exactly when you bump the version**, so it reads as an
+intermittent release failure. `build-ipa.sh` clears the cache and signs with `zsign -f` to avoid it.
 
 ### Before publishing
 

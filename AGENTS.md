@@ -35,6 +35,40 @@ The `IntelligenceRouter` actor routes through multiple backends:
 2. Gemini API (cloud fallback)
 3. Graceful degradation (return nil if both unavailable)
 
+## Releasing
+
+```bash
+brew install zsign                                     # one-time
+scripts/release.sh patch                               # 1.2 -> 1.2.1
+scripts/release.sh minor|2.0.0                         # other bumps
+```
+
+Cuts a version end to end: bumps `Glance/Resources/Info.plist` (the app target uses this file with
+`GENERATE_INFOPLIST_FILE = NO`, so it is the single source of truth for version and bundle id), builds
+and ad-hoc signs the IPA, tags, publishes, regenerates `apps.json`, then downloads the published asset
+back and compares SHA-256. Each version gets its own tag and a `Glance-<version>.ipa` asset so a
+version's download URL cannot change after the fact.
+
+`apps.json` (SideStore source) is **generated from the built IPA** — version, size and downloadURL are
+read out of the product, never hand-typed. `version` there must equal `CFBundleShortVersionString`
+exactly or SideStore silently stops offering updates. SideStore displays the *first* entry in
+`versions[]` as latest regardless of version number, so that array is kept reverse-chronological.
+It validates against https://raw.githubusercontent.com/SideStore/sidestore-source-types/main/schema.json
+— note `versions[]` is required and the old top-level `version`/`downloadURL` fields are deprecated.
+
+- **Never sign twice, and clear `.zsign_cache` first.** zsign caches per-file signature data in the CWD;
+  a stale entry makes it emit `Info.plist=not bound` and the bundle fails verification with
+  `invalid Info.plist`. This only triggers when the build changes the plist — i.e. on a version bump —
+  so it looks like an intermittent release failure. `scripts/build-ipa.sh` clears the cache and uses
+  `zsign -f`. All Info.plist edits must happen **before** signing; mutating it after cannot be repaired
+  by re-signing.
+- The IPA is ad-hoc signed with **no entitlements** (no app extensions, no app groups, default keychain).
+  Do not hand-write `application-identifier` / `keychain-access-groups` — `codesign` does not expand
+  `$(AppIdentifierPrefix)`, so they embed literally and iOS rejects the install.
+- Verify the packaged IPA, not just the `.app` (recompression must not disturb the signature), and
+  confirm the SHA-256 of the asset downloaded back from the release. A `gh release upload` has silently
+  no-opped before.
+
 ## Testing
 
 - Unit tests in `Glance/GlanceTests/`
