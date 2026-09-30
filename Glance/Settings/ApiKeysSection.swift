@@ -5,58 +5,84 @@ struct ApiKeysSection: View {
 
     @State private var isSaving = false
     @State private var saveSuccess = false
+    @State private var failureMessage: String?
+    @State private var keyToClear: ApiKey?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             SectionHeader("API KEYS")
 
             VStack(alignment: .leading, spacing: 8) {
-                apiKeyField(
-                    title: "EXA SEARCH",
-                    placeholder: "Enter Exa API key",
-                    text: $settingsStore.exaAPIKey
-                )
-
-                apiKeyField(
-                    title: "GEMINI",
-                    placeholder: "Enter Gemini API key",
-                    text: $settingsStore.geminiAPIKey
-                )
+                apiKeyCard(.exa, title: "EXA SEARCH", placeholder: "Enter Exa API key")
+                apiKeyCard(.gemini, title: "GEMINI", placeholder: "Enter Gemini API key")
 
                 geminiModelPicker
 
-                apiKeyField(
-                    title: "OPENROUTER",
-                    placeholder: "Enter OpenRouter API key",
-                    text: $settingsStore.openrouterAPIKey
-                )
+                apiKeyCard(.openRouter, title: "OPENROUTER", placeholder: "Enter OpenRouter API key")
 
-                footballDataRow
-                saveButton
+                footballDataBlock
+                saveBlock
             }
+        }
+        .confirmationDialog(
+            "Remove stored key?",
+            isPresented: Binding(
+                get: { keyToClear != nil },
+                set: { if !$0 { keyToClear = nil } }
+            ),
+            presenting: keyToClear
+        ) { key in
+            Button("Remove \(key.displayName) key", role: .destructive) {
+                settingsStore.clearStoredKey(key)
+                keyToClear = nil
+            }
+            Button("Cancel", role: .cancel) { keyToClear = nil }
+        } message: { key in
+            Text("This deletes the saved \(key.displayName) key from the Keychain. Pipelines using it will fail until you enter a new one.")
         }
     }
 
-    private func apiKeyField(title: String, placeholder: String, text: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+    private func apiKeyCard(_ key: ApiKey, title: String, placeholder: String) -> some View {
+        let stored = settingsStore.isStored(key)
+        let binding = Binding(
+            get: { settingsStore.draftValue(for: key) },
+            set: { settingsStore.setDraftValue($0, for: key) }
+        )
+
+        return VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(title)
                     .font(Theme.Fonts.manrope(10, weight: .bold))
                     .foregroundStyle(Theme.Colors.textMuted)
                     .tracking(1.2)
                 Spacer()
-                Text(text.wrappedValue.isEmpty ? "Missing" : "Configured ✓")
+                Text(stored ? "Configured ✓" : "Missing")
                     .font(Theme.Fonts.manrope(10, weight: .medium))
-                    .foregroundStyle(text.wrappedValue.isEmpty ? Theme.Colors.cardAmber : Theme.Colors.success)
+                    .foregroundStyle(stored ? Theme.Colors.success : Theme.Colors.cardAmber)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 3)
                     .background(
-                        (text.wrappedValue.isEmpty ? Theme.Colors.cardAmber : Theme.Colors.success).opacity(0.15),
+                        (stored ? Theme.Colors.success : Theme.Colors.cardAmber).opacity(0.15),
                         in: .capsule
                     )
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(title): \(stored ? "configured" : "missing")")
 
-            SecureField(placeholder, text: text)
+            if let masked = settingsStore.maskedKey(key) {
+                HStack(spacing: 6) {
+                    Text("Stored: \(masked)")
+                        .font(Theme.Fonts.manrope(11))
+                        .foregroundStyle(Theme.Colors.textMuted)
+                    Spacer()
+                    Button("Clear") { keyToClear = key }
+                        .font(Theme.Fonts.manrope(11, weight: .medium))
+                        .foregroundStyle(Theme.Colors.error)
+                        .accessibilityLabel("Clear stored \(key.displayName) key")
+                }
+            }
+
+            SecureField(stored ? "Enter new key to replace" : placeholder, text: binding)
                 .font(Theme.Fonts.manrope(14))
                 .foregroundStyle(Theme.Colors.textPrimary)
                 .padding(12)
@@ -84,7 +110,7 @@ struct ApiKeysSection: View {
         }
     }
 
-    private var footballDataRow: some View {
+    private var footballDataBlock: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("FOOTBALL DATA")
@@ -109,7 +135,7 @@ struct ApiKeysSection: View {
         }
     }
 
-    private var saveButton: some View {
+    private var saveBlock: some View {
         VStack(spacing: 8) {
             Button {
                 saveKeys()
@@ -129,7 +155,16 @@ struct ApiKeysSection: View {
             }
             .disabled(isSaving)
 
-            if saveSuccess {
+            if let failureMessage {
+                HStack(spacing: 6) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                    Text(failureMessage)
+                }
+                .font(Theme.Fonts.scale(.caption2))
+                .foregroundStyle(Theme.Colors.error)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .transition(.opacity)
+            } else if saveSuccess {
                 HStack(spacing: 6) {
                     Image(systemName: "checkmark.circle.fill")
                     Text("Keys saved successfully")
@@ -146,13 +181,23 @@ struct ApiKeysSection: View {
     private func saveKeys() {
         isSaving = true
         saveSuccess = false
+        failureMessage = nil
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            settingsStore.saveToKeychain()
+            let failures = settingsStore.saveToKeychain()
             isSaving = false
-            saveSuccess = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                saveSuccess = false
+
+            if failures.isEmpty {
+                saveSuccess = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    saveSuccess = false
+                }
+            } else {
+                let detail = failures
+                    .sorted { $0.key.rawValue < $1.key.rawValue }
+                    .map { "\($0.key.displayName) \($0.value.statusDescription)" }
+                    .joined(separator: ", ")
+                failureMessage = "Save failed: \(detail)"
             }
         }
     }

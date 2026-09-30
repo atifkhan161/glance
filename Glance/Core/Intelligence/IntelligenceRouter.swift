@@ -25,10 +25,9 @@ actor IntelligenceRouter {
             return (result, "apple")
         }
         #if !targetEnvironment(simulator)
-        if let key = keychain.load(forKey: "keys_gemini"),
-           let model = keychain.load(forKey: "gemini_model") {
+        if let key = keychain.load(forKey: "keys_gemini") {
             let prompt = "Extract Real Madrid match information as JSON {form:[...], standing, intel, headToHead}. Snippets: \(truncate(snippets))"
-            if let text = try? await geminiClient.generate(prompt: prompt, model: model, apiKey: key),
+            if let text = try? await geminiClient.generate(prompt: prompt, model: GeminiModelPreference.selected, apiKey: key),
                let data = text.data(using: .utf8),
                let decoded = try? JSONDecoder().decode(RealMadridEnrichment.self, from: data) {
                 return (decoded, "gemini")
@@ -44,10 +43,9 @@ actor IntelligenceRouter {
             return (result.priority, "apple")
         }
         #if !targetEnvironment(simulator)
-        if let key = keychain.load(forKey: "keys_gemini"),
-           let model = keychain.load(forKey: "gemini_model") {
+        if let key = keychain.load(forKey: "keys_gemini") {
             let prompt = "Based on current Pokemon GO raids and events, suggest the top priority target. Return JSON {priority}. Snippets: \(truncate(snippets))"
-            if let text = try? await geminiClient.generate(prompt: prompt, model: model, apiKey: key),
+            if let text = try? await geminiClient.generate(prompt: prompt, model: GeminiModelPreference.selected, apiKey: key),
                let data = text.data(using: .utf8),
                let decoded = try? JSONDecoder().decode(PoGoPriority.self, from: data) {
                 return (decoded.priority, "gemini")
@@ -63,10 +61,9 @@ actor IntelligenceRouter {
             return result
         }
         #if !targetEnvironment(simulator)
-        if let key = keychain.load(forKey: "keys_gemini"),
-           let model = keychain.load(forKey: "gemini_model") {
+        if let key = keychain.load(forKey: "keys_gemini") {
             let prompt = "Read these technology news summaries and classify each. Return 2-3 items with tag (FRONTIER LABS or OPEN WEIGHTS), headline, bullets, benchmarks optional. Snippets: \(truncate(snippets))"
-            if let text = try? await geminiClient.generate(prompt: prompt, model: model, apiKey: key),
+            if let text = try? await geminiClient.generate(prompt: prompt, model: GeminiModelPreference.selected, apiKey: key),
                let data = text.data(using: .utf8),
                let decoded = try? JSONDecoder().decode(AiIntelItems.self, from: data) {
                 return decoded

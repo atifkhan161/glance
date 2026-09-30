@@ -1,24 +1,38 @@
 import Foundation
 import Security
 
-struct KeychainStore: Sendable {
+protocol KeychainStoring: Sendable {
+    func save(_ value: String, forKey key: String) throws
+    func load(forKey key: String) -> String?
+    func remove(forKey key: String)
+}
+
+struct KeychainStore: KeychainStoring {
     static let shared = KeychainStore()
 
     func save(_ value: String, forKey key: String) throws {
         guard !value.isEmpty else { throw KeychainError.emptyValue }
         let data = Data(value.utf8)
-        let query: [String: Any] = [
+
+        let baseQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
         ]
-        SecItemDelete(query as CFDictionary)
-        let addQuery: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: key,
+
+        let updateAttributes: [String: Any] = [
             kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlocked,
         ]
-        let status = SecItemAdd(addQuery as CFDictionary, nil)
-        guard status == errSecSuccess else { throw KeychainError.saveFailed(status) }
+
+        let updateStatus = SecItemUpdate(baseQuery as CFDictionary, updateAttributes as CFDictionary)
+        if updateStatus == errSecSuccess { return }
+        guard updateStatus == errSecItemNotFound else {
+            throw KeychainError.saveFailed(updateStatus)
+        }
+
+        let addQuery: [String: Any] = baseQuery.merging(updateAttributes) { _, new in new }
+        let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
+        guard addStatus == errSecSuccess else { throw KeychainError.saveFailed(addStatus) }
     }
 
     func load(forKey key: String) -> String? {
@@ -41,9 +55,28 @@ struct KeychainStore: Sendable {
         ]
         SecItemDelete(query as CFDictionary)
     }
+
+    var isAvailable: Bool {
+        let probe = "glance_keychain_probe_\(UUID().uuidString)"
+        do {
+            try save("probe", forKey: probe)
+            let loaded = load(forKey: probe) == "probe"
+            remove(forKey: probe)
+            return loaded
+        } catch {
+            return false
+        }
+    }
 }
 
-enum KeychainError: Error {
+enum KeychainError: Error, Equatable {
     case saveFailed(OSStatus)
     case emptyValue
+
+    var statusDescription: String {
+        switch self {
+        case .saveFailed(let status): "(\(status))"
+        case .emptyValue: "(empty)"
+        }
+    }
 }

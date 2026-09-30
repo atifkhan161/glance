@@ -25,6 +25,9 @@ struct SettingsView: View {
         .glanceBackground()
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.large)
+        .task {
+            settingsStore.refreshKeyState()
+        }
     }
 
     private var brandingHeader: some View {

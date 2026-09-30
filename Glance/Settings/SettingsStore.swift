@@ -1,12 +1,32 @@
 import Foundation
 
+enum ApiKey: String, CaseIterable, Hashable, Sendable {
+    case exa = "keys_exa"
+    case gemini = "keys_gemini"
+    case openRouter = "keys_openrouter"
+
+    var displayName: String {
+        switch self {
+        case .exa: "Exa"
+        case .gemini: "Gemini"
+        case .openRouter: "OpenRouter"
+        }
+    }
+}
+
 @Observable
 @MainActor
 final class SettingsStore {
     var exaAPIKey: String = ""
     var geminiAPIKey: String = ""
     var openrouterAPIKey: String = ""
-    var selectedModel: String = "gemini-3.6-flash"
+
+    private(set) var storedKeys: Set<ApiKey> = []
+
+    var selectedModel: String {
+        get { GeminiModelPreference.selected }
+        set { GeminiModelPreference.selected = newValue }
+    }
 
     var leadCard: String {
         get { defaults.string(forKey: "leadCard") ?? "" }
@@ -149,42 +169,69 @@ final class SettingsStore {
         }
     }
 
-    private let keychain = KeychainStore()
+    private let keychain: any KeychainStoring
     private let defaults = UserDefaults.standard
 
-    func loadFromKeychain() {
-        exaAPIKey = ""
-        geminiAPIKey = ""
-        openrouterAPIKey = ""
-        selectedModel = defaults.string(forKey: "gemini_model") ?? "gemini-3.6-flash"
+    init(keychain: any KeychainStoring = KeychainStore()) {
+        self.keychain = keychain
     }
 
-    func saveToKeychain() {
-        if !exaAPIKey.isEmpty {
-            try? keychain.save(exaAPIKey, forKey: "keys_exa")
+    // MARK: - API Key Persistence
+
+    func draftValue(for key: ApiKey) -> String {
+        switch key {
+        case .exa: exaAPIKey
+        case .gemini: geminiAPIKey
+        case .openRouter: openrouterAPIKey
         }
-        if !geminiAPIKey.isEmpty {
-            try? keychain.save(geminiAPIKey, forKey: "keys_gemini")
-        }
-        if !openrouterAPIKey.isEmpty {
-            try? keychain.save(openrouterAPIKey, forKey: "keys_openrouter")
-        }
-        defaults.set(selectedModel, forKey: "gemini_model")
     }
 
-    func existingKey(for service: String) -> String? {
-        let key: String
-        switch service {
-        case "Exa": key = "keys_exa"
-        case "Gemini": key = "keys_gemini"
-        case "OpenRouter": key = "keys_openrouter"
-        default: return nil
+    func setDraftValue(_ value: String, for key: ApiKey) {
+        switch key {
+        case .exa: exaAPIKey = value
+        case .gemini: geminiAPIKey = value
+        case .openRouter: openrouterAPIKey = value
         }
-        guard let value = keychain.load(forKey: key) else { return nil }
+    }
+
+    func isStored(_ key: ApiKey) -> Bool {
+        storedKeys.contains(key)
+    }
+
+    func refreshKeyState() {
+        storedKeys = Set(ApiKey.allCases.filter { keychain.load(forKey: $0.rawValue) != nil })
+    }
+
+    func maskedKey(_ key: ApiKey) -> String? {
+        guard let value = keychain.load(forKey: key.rawValue), !value.isEmpty else { return nil }
         if value.count <= 8 { return "••••••••" }
-        let prefix = String(value.prefix(4))
-        let suffix = String(value.suffix(4))
-        return "\(prefix)••••\(suffix)"
+        return "\(value.prefix(4))••••\(value.suffix(4))"
+    }
+
+    func clearStoredKey(_ key: ApiKey) {
+        keychain.remove(forKey: key.rawValue)
+        setDraftValue("", for: key)
+        refreshKeyState()
+    }
+
+    @discardableResult
+    func saveToKeychain() -> [ApiKey: KeychainError] {
+        var failures: [ApiKey: KeychainError] = [:]
+
+        for key in ApiKey.allCases {
+            let value = draftValue(for: key)
+            guard !value.isEmpty else { continue }
+            do {
+                try keychain.save(value, forKey: key.rawValue)
+            } catch let error as KeychainError {
+                failures[key] = error
+            } catch {
+                failures[key] = .saveFailed(errSecParam)
+            }
+        }
+
+        refreshKeyState()
+        return failures
     }
 }
 

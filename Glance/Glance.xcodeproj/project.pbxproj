@@ -21,6 +21,8 @@
 		096DB724932563428E9C79B3 /* ExaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032774EA8666009381F3C760 /* ExaClient.swift */; };
 		0BE13B387270F4520E4FC24E /* Glance.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FE51DADF51E57ECD0B40BE8F /* Glance.xcassets */; };
 		0DA71C7319CF6FEF3DDAF056 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DDB5287486413A1BC7A95B1 /* SettingsView.swift */; };
+		DD0400000000000000000A01 /* GeminiModelPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0400000000000000000B01 /* GeminiModelPreference.swift */; };
+		DD0400000000000000000A02 /* SettingsStoreKeyPersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0400000000000000000B02 /* SettingsStoreKeyPersistenceTests.swift */; };
 		DD0100000000000000000A01 /* AppVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0100000000000000000B01 /* AppVersion.swift */; };
 		DD0200000000000000000A01 /* AppearanceSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0200000000000000000B01 /* AppearanceSettingsSection.swift */; };
 		DD0200000000000000000A02 /* DisplaySettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0200000000000000000B02 /* DisplaySettingsSection.swift */; };
@@ -44,7 +46,6 @@
 		34012DCF640F1EAC14E3F416 /* TimeFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C9DD56660DF3077E99A52C /* TimeFormatTests.swift */; };
 		43420A37FC0A235A69020B85 /* events.json in Resources */ = {isa = PBXBuildFile; fileRef = 59C98FF057511D43C9EDD34A /* events.json */; };
 		4480DF96B39661A2011114BD /* raids.json in Resources */ = {isa = PBXBuildFile; fileRef = 73FCEFE840005BDAE6E9BFDC /* raids.json */; };
-		45FB5BDD7E141CD05BDE5054 /* SourcesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D44183E20A98B8B4BB01FE8 /* SourcesView.swift */; };
 		47C63C93AFB93383EBBA3EFC /* CacheStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F65672F62EC7DA587E61CBB6 /* CacheStoreTests.swift */; };
 		4C5A4447575865357AA90C3A /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7858C0D91F95952753F08721 /* Enums.swift */; };
 		4C7EB67886D3ADF0ACBF5FFF /* SourcesFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10BA754B5EC93CFFE1B72319 /* SourcesFlowUITests.swift */; };
@@ -168,6 +169,8 @@
 		06B010D9C40163AF882E9554 /* PulseStore.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = PulseStore.swift; sourceTree = "<group>"; };
 		0C95DCBE3D848BDB6C254116 /* Models.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		0DDB5287486413A1BC7A95B1 /* SettingsView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		DD0400000000000000000B01 /* GeminiModelPreference.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GeminiModelPreference.swift; sourceTree = "<group>"; };
+		DD0400000000000000000B02 /* SettingsStoreKeyPersistenceTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SettingsStoreKeyPersistenceTests.swift; sourceTree = "<group>"; };
 		DD0100000000000000000B01 /* AppVersion.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AppVersion.swift; sourceTree = "<group>"; };
 		DD0200000000000000000B01 /* AppearanceSettingsSection.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AppearanceSettingsSection.swift; sourceTree = "<group>"; };
 		DD0200000000000000000B02 /* DisplaySettingsSection.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = DisplaySettingsSection.swift; sourceTree = "<group>"; };
@@ -188,7 +191,6 @@
 		325CB57B76E82C3934F41946 /* MadridHubView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = MadridHubView.swift; sourceTree = "<group>"; };
 		33B8021DC59DAC0AAA0673BE /* GlanceBadge.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GlanceBadge.swift; sourceTree = "<group>"; };
 		3C81652325E4B949DE4B4E01 /* Extensions.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
-		3D44183E20A98B8B4BB01FE8 /* SourcesView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SourcesView.swift; sourceTree = "<group>"; };
 		44568B552442758133DEF919 /* PoGoHubView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = PoGoHubView.swift; sourceTree = "<group>"; };
 		453DA7F3953B22719544D662 /* GitHubPipelineTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubPipelineTests.swift; sourceTree = "<group>"; };
 		47065905154CC6E47579CB42 /* MadridFixtureParser.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = MadridFixtureParser.swift; sourceTree = "<group>"; };
@@ -340,6 +342,7 @@
 				A1B2C3D400020001AAAA0001 /* GenericRSSClientTests.swift */,
 				A1B2C3D400020002AAAA0001 /* RedditLinkResolverTests.swift */,
 				AA000000000000000000T001 /* ThemeManagerTests.swift */,
+				DD0400000000000000000B02 /* SettingsStoreKeyPersistenceTests.swift */,
 				DD0100000000000000000B02 /* AppVersionTests.swift */,
 			);
 			path = GlanceTests;
@@ -382,6 +385,7 @@
 				D1E2F3A4B5C6D7E8F9A0B1C7 /* ArticleIntelligenceCard.swift */,
 				BB1000000000000000000004 /* ArticleSummaryAccumulator.swift */,
 				D1E2F3A4B5C6D7E8F9A0B1C9 /* RawArticleCard.swift */,
+				DD0400000000000000000B01 /* GeminiModelPreference.swift */,
 				DD0100000000000000000B01 /* AppVersion.swift */,
 			);
 			path = Shared;
@@ -524,7 +528,6 @@
 				BB22CC33DD44EE55FF660079 /* FoundationModelsStatus.swift */,
 				BB22CC33DD44EE55FF660078 /* ProviderView.swift */,
 				A1B2C3D400010001AA0001B1 /* AddRSSFeedSheet.swift */,
-				3D44183E20A98B8B4BB01FE8 /* SourcesView.swift */,
 				DD0200000000000000000B01 /* AppearanceSettingsSection.swift */,
 				DD0200000000000000000B02 /* DisplaySettingsSection.swift */,
 				DD0200000000000000000B03 /* ApiKeysSection.swift */,
@@ -838,6 +841,7 @@
 				A1B2C3D400020001AAAA0002 /* GenericRSSClientTests.swift in Sources */,
 				A1B2C3D400020002AAAA0002 /* RedditLinkResolverTests.swift in Sources */,
 				AA000000000000000000T002 /* ThemeManagerTests.swift in Sources */,
+				DD0400000000000000000A02 /* SettingsStoreKeyPersistenceTests.swift in Sources */,
 				DD0100000000000000000A02 /* AppVersionTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -900,6 +904,7 @@
 				D7E8F9A0B1C2D3E4F5A6B7C8 /* AiIntelHubView.swift in Sources */,
 				70C4D04F2D86D901D561200C /* SettingsStore.swift in Sources */,
 				0DA71C7319CF6FEF3DDAF056 /* SettingsView.swift in Sources */,
+				DD0400000000000000000A01 /* GeminiModelPreference.swift in Sources */,
 				DD0100000000000000000A01 /* AppVersion.swift in Sources */,
 				DD0200000000000000000A01 /* AppearanceSettingsSection.swift in Sources */,
 				DD0200000000000000000A02 /* DisplaySettingsSection.swift in Sources */,
@@ -908,7 +913,6 @@
 				DD0200000000000000000A05 /* CardOrderListView.swift in Sources */,
 				DD0200000000000000000A06 /* AboutSection.swift in Sources */,
 				AA11BB22CC33DD44EE55FF78 /* FoundationModelsStatus.swift in Sources */,
-				45FB5BDD7E141CD05BDE5054 /* SourcesView.swift in Sources */,
 				BB22CC33DD44EE55FF660080 /* ProviderView.swift in Sources */,
 				CC11DD22EE33FF44GG55FF79 /* GenericRSSClient.swift in Sources */,
 				EE11FF22GG33HH44II55FF80 /* GenericRSSPipeline.swift in Sources */,

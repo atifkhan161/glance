@@ -62,3 +62,6 @@ skills-lock.json
 
 # graphify
 graphify-out/
+
+# codesign build artifact
+.zsign_cache/
