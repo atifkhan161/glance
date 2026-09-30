@@ -64,6 +64,11 @@ xcodebuild -project "$PROJECT" -scheme "$SCHEME" \
 APP="$DERIVED/Build/Products/Release-iphoneos/Glance.app"
 [[ -d "$APP" ]] || { echo "build produced no $APP" >&2; exit 1; }
 
+# IMPORTANT: every Info.plist edit must happen BEFORE signing. Mutating the plist
+# after the signature is applied invalidates the seal, and zsign cannot repair it
+# - re-signing an already-signed bundle yields "invalid Info.plist" or "a sealed
+# resource is missing or invalid". So: build -> edit -> sign, once.
+
 # An armv7 UIRequiredDeviceCapabilities entry (a common leftover in Info.plist)
 # makes iOS reject the install outright, so normalise it to the real arch.
 if /usr/libexec/PlistBuddy -c "Print :UIRequiredDeviceCapabilities" "$APP/Info.plist" 2>/dev/null | grep -q armv7; then
@@ -76,8 +81,26 @@ BUILD="$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$APP/Info.plist")"
 BUNDLE_ID="$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Info.plist")"
 
 # zsign works on a folder and re-signs in place.
+#
+# Always drop any previous _CodeSignature first. An incremental xcodebuild over
+# an already-signed .app leaves a stale CodeResources behind, and zsign merges
+# into it: the new seal ends up containing entries for a "Glance" resource and
+# an "embedded.mobileprovision" that do not exist on disk, so verification fails
+# with "a sealed resource is missing or invalid". Signing a clean tree is the
+# only reliable way.
+rm -rf "$APP/_CodeSignature"
+
+# zsign keeps a .zsign_cache/ of per-file signature data in the CWD. That cache
+# goes stale when the build changes (e.g. a version bump rewrites Info.plist),
+# and a stale entry makes zsign emit "Info.plist=not bound" - the signature then
+# fails verification with "invalid Info.plist". The cache is purely an
+# optimisation, so drop it and force a cold sign. Without this, a rebuild that
+# changes Info.plist silently produces an unsigned-verifying IPA.
+rm -rf "$ROOT/.zsign_cache" "$ROOT/Glance/.zsign_cache"
+
+# Sign exactly once, after every plist edit above.
 echo "==> ad-hoc signing with zsign (no entitlements)"
-zsign -a "$APP" 2>&1 | grep -iE "space|sign|error" | tail -3
+zsign -a -f "$APP" 2>&1 | grep -iE "space|sign|error" | tail -3
 
 # Verify the signature on the .app BEFORE packaging, so a bad one fails here
 # rather than on someone's phone.
