@@ -27,6 +27,7 @@
 		DD0200000000000000000A01 /* AppearanceSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0200000000000000000B01 /* AppearanceSettingsSection.swift */; };
 		DD0200000000000000000A02 /* DisplaySettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0200000000000000000B02 /* DisplaySettingsSection.swift */; };
 		DD0200000000000000000A03 /* ApiKeysSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0200000000000000000B03 /* ApiKeysSection.swift */; };
+		DD0300000000000000000A05 /* OpenRouterModelPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0300000000000000000B05 /* OpenRouterModelPicker.swift */; };
 		DD0200000000000000000A04 /* CacheSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0200000000000000000B04 /* CacheSection.swift */; };
 		DD0200000000000000000A05 /* CardOrderListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0200000000000000000B05 /* CardOrderListView.swift */; };
 		DD0200000000000000000A06 /* AboutSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0200000000000000000B06 /* AboutSection.swift */; };
@@ -139,6 +140,7 @@
 		AA0000000000000000000004 /* QuickSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000014 /* QuickSearchView.swift */; };
 		AA0000000000000000000005 /* QuickSearchResultRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000015 /* QuickSearchResultRow.swift */; };
 		AA000000000000000000000A /* OpenRouterClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001A /* OpenRouterClient.swift */; };
+		DD0300000000000000000A04 /* OpenRouterModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0300000000000000000B04 /* OpenRouterModels.swift */; };
 		AA000000000000000000000B /* ExaEnhancedClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001B /* ExaEnhancedClient.swift */; };
 		AA000000000000000000001D /* SearchResultDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001E /* SearchResultDetailView.swift */; };
 /* End PBXBuildFile section */
@@ -177,6 +179,7 @@
 		DD0200000000000000000B01 /* AppearanceSettingsSection.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AppearanceSettingsSection.swift; sourceTree = "<group>"; };
 		DD0200000000000000000B02 /* DisplaySettingsSection.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = DisplaySettingsSection.swift; sourceTree = "<group>"; };
 		DD0200000000000000000B03 /* ApiKeysSection.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ApiKeysSection.swift; sourceTree = "<group>"; };
+		DD0300000000000000000B05 /* OpenRouterModelPicker.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = OpenRouterModelPicker.swift; sourceTree = "<group>"; };
 		DD0200000000000000000B04 /* CacheSection.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CacheSection.swift; sourceTree = "<group>"; };
 		DD0200000000000000000B05 /* CardOrderListView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CardOrderListView.swift; sourceTree = "<group>"; };
 		DD0200000000000000000B06 /* AboutSection.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AboutSection.swift; sourceTree = "<group>"; };
@@ -297,6 +300,7 @@
 		AA0000000000000000000014 /* QuickSearchView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = QuickSearchView.swift; sourceTree = "<group>"; };
 		AA0000000000000000000015 /* QuickSearchResultRow.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = QuickSearchResultRow.swift; sourceTree = "<group>"; };
 		AA000000000000000000001A /* OpenRouterClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = OpenRouterClient.swift; sourceTree = "<group>"; };
+		DD0300000000000000000B04 /* OpenRouterModels.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = OpenRouterModels.swift; sourceTree = "<group>"; };
 		AA000000000000000000001B /* ExaEnhancedClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ExaEnhancedClient.swift; sourceTree = "<group>"; };
 		AA000000000000000000001E /* SearchResultDetailView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SearchResultDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -377,6 +381,7 @@
 				DD22EE33FF44GG55FF660079 /* GenericRSSClient.swift */,
 				AA000000000000000000001B /* ExaEnhancedClient.swift */,
 				AA000000000000000000001A /* OpenRouterClient.swift */,
+				DD0300000000000000000B04 /* OpenRouterModels.swift */,
 				C2D3E4F5A6B7C8D9E0F1A2B3 /* NetworkMonitor.swift */,
 			);
 			path = Network;
@@ -537,6 +542,7 @@
 				DD0200000000000000000B01 /* AppearanceSettingsSection.swift */,
 				DD0200000000000000000B02 /* DisplaySettingsSection.swift */,
 				DD0200000000000000000B03 /* ApiKeysSection.swift */,
+				DD0300000000000000000B05 /* OpenRouterModelPicker.swift */,
 				DD0200000000000000000B04 /* CacheSection.swift */,
 				DD0200000000000000000B05 /* CardOrderListView.swift */,
 				DD0200000000000000000B06 /* AboutSection.swift */,
@@ -917,6 +923,7 @@
 				DD0200000000000000000A01 /* AppearanceSettingsSection.swift in Sources */,
 				DD0200000000000000000A02 /* DisplaySettingsSection.swift in Sources */,
 				DD0200000000000000000A03 /* ApiKeysSection.swift in Sources */,
+				DD0300000000000000000A05 /* OpenRouterModelPicker.swift in Sources */,
 				DD0200000000000000000A04 /* CacheSection.swift in Sources */,
 				DD0200000000000000000A05 /* CardOrderListView.swift in Sources */,
 				DD0200000000000000000A06 /* AboutSection.swift in Sources */,
@@ -955,6 +962,7 @@
 				258D90A7CF4894803C569D75 /* Extensions.swift in Sources */,
 				AA000000000000000000000B /* ExaEnhancedClient.swift in Sources */,
 				AA000000000000000000000A /* OpenRouterClient.swift in Sources */,
+				DD0300000000000000000A04 /* OpenRouterModels.swift in Sources */,
 				AA0000000000000000000005 /* QuickSearchResultRow.swift in Sources */,
 				AA0000000000000000000004 /* QuickSearchView.swift in Sources */,
 				AA0000000000000000000003 /* SmartSearchView.swift in Sources */,

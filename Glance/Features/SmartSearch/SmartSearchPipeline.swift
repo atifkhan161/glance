@@ -57,7 +57,10 @@ struct SmartSearchPipeline: Sendable {
             systemPrompt: systemPrompt,
             userPrompt: "Query: \(query)\n\nSearch results:\n\(combinedHighlights)",
             apiKey: openRouterKey,
-            temperature: 0.4
+            temperature: 0.4,
+            model: OpenRouterModelPreference.resolve(
+                availableIDs: await OpenRouterModelPreference.cachedAvailableIDs()
+            )
         )
 
         await cache.save(cacheKey, envelope: CacheEnvelope(data: summary, ttlMs: 24 * 3_600 * 1000))

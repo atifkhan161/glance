@@ -33,13 +33,15 @@ struct OpenRouterClient: Sendable {
         systemPrompt: String,
         userPrompt: String,
         apiKey: String,
-        temperature: Double = 0.7
+        temperature: Double = 0.7,
+        model: String = OpenRouterModelPreference.legacyDefaultID
     ) async throws -> String {
         let request = makeRequest(
             systemPrompt: systemPrompt,
             userPrompt: userPrompt,
             apiKey: apiKey,
             temperature: temperature,
+            model: model,
             stream: false
         )
 
@@ -73,7 +75,8 @@ struct OpenRouterClient: Sendable {
         systemPrompt: String,
         userPrompt: String,
         apiKey: String,
-        temperature: Double = 0.4
+        temperature: Double = 0.4,
+        model: String = OpenRouterModelPreference.legacyDefaultID
     ) -> AsyncThrowingStream<String, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
@@ -83,6 +86,7 @@ struct OpenRouterClient: Sendable {
                         userPrompt: userPrompt,
                         apiKey: apiKey,
                         temperature: temperature,
+                        model: model,
                         stream: true
                     )
                     let bytes = try await openStream(request)
@@ -138,6 +142,7 @@ struct OpenRouterClient: Sendable {
         userPrompt: String,
         apiKey: String,
         temperature: Double,
+        model: String,
         stream: Bool
     ) -> URLRequest {
         var request = URLRequest(url: URL(string: "https://openrouter.ai/api/v1/chat/completions")!)
@@ -148,7 +153,7 @@ struct OpenRouterClient: Sendable {
         request.addValue("Glance-iOS", forHTTPHeaderField: "HTTP-Referer")
 
         var body: [String: Any] = [
-            "model": "openrouter/free:floor",
+            "model": model,
             "messages": [
                 ["role": "system", "content": systemPrompt],
                 ["role": "user", "content": userPrompt],

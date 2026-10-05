@@ -102,11 +102,15 @@ actor IntelligenceRouter {
                 }
                 do {
                     let client = OpenRouterClient()
+                    let model = OpenRouterModelPreference.resolve(
+                        availableIDs: await OpenRouterModelPreference.cachedAvailableIDs()
+                    )
                     let stream = client.stream(
                         systemPrompt: type.systemPrompt,
                         userPrompt: truncate(content, maxChars: maxArticleChars),
                         apiKey: apiKey,
-                        temperature: 0.4
+                        temperature: 0.4,
+                        model: model
                     )
                     for try await delta in stream {
                         continuation.yield(.delta(delta))

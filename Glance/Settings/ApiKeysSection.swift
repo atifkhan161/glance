@@ -20,6 +20,8 @@ struct ApiKeysSection: View {
 
                 apiKeyCard(.openRouter, title: "OPENROUTER", placeholder: "Enter OpenRouter API key")
 
+                OpenRouterModelPicker()
+
                 footballDataBlock
                 saveBlock
             }
