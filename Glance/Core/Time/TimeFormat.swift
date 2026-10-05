@@ -97,7 +97,7 @@ enum TimeFormat {
         return formatter.string(from: date)
     }
 
-    static func parseISODate(_ text: String) -> Date? {
+    static func parseISODate(_ text: String, timeZone: TimeZone = TimeZone(identifier: "UTC")!) -> Date? {
         let iso = ISO8601DateFormatter()
 
         iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
@@ -108,7 +108,7 @@ enum TimeFormat {
 
         let df = DateFormatter()
         df.locale = Locale(identifier: "en_US_POSIX")
-        df.timeZone = TimeZone(identifier: "UTC")
+        df.timeZone = timeZone
 
         df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS"
         if let date = df.date(from: text) { return date }
@@ -137,10 +137,10 @@ enum TimeFormat {
         return "Starts in \(max(1, minutes))m"
     }
 
-    static func eventProgress(start: String?, end: String?) -> Double {
+    static func eventProgress(start: String?, end: String?, timeZone: TimeZone = TimeZone(identifier: "UTC")!) -> Double {
         guard let start = start, let end = end,
-              let startDate = parseISODate(start),
-              let endDate = parseISODate(end) else { return 0 }
+              let startDate = parseISODate(start, timeZone: timeZone),
+              let endDate = parseISODate(end, timeZone: timeZone) else { return 0 }
         let now = Date.now
         guard now >= startDate else { return 0 }
         guard endDate > startDate else { return 1 }
@@ -149,31 +149,31 @@ enum TimeFormat {
         return min(max(elapsed / total, 0), 1)
     }
 
-    static func smartCountdown(start: String?, end: String?) -> String {
+    static func smartCountdown(start: String?, end: String?, timeZone: TimeZone = TimeZone(identifier: "UTC")!) -> String {
         let now = Date.now
-        if let start = start, let startDate = parseISODate(start), startDate > now {
+        if let start = start, let startDate = parseISODate(start, timeZone: timeZone), startDate > now {
             return startsIn(startDate)
         }
-        if let end = end, let endDate = parseISODate(end) {
+        if let end = end, let endDate = parseISODate(end, timeZone: timeZone) {
             return endsIn(endDate)
         }
         return ""
     }
 
-    static func localTimeRange(start: String?, end: String?) -> String {
+    static func localTimeRange(start: String?, end: String?, timeZone: TimeZone = .current) -> String {
         guard let start = start, let end = end,
-              let startDate = parseISODate(start),
-              let endDate = parseISODate(end) else {
+              let startDate = parseISODate(start, timeZone: timeZone),
+              let endDate = parseISODate(end, timeZone: timeZone) else {
             return ""
         }
         let timeFormatter = DateFormatter()
         timeFormatter.timeStyle = .short
         timeFormatter.dateStyle = .none
-        timeFormatter.timeZone = TimeZone.current
+        timeFormatter.timeZone = timeZone
 
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "MMM d"
-        dateFormatter.timeZone = TimeZone.current
+        dateFormatter.timeZone = timeZone
 
         let startDay = dateFormatter.string(from: startDate)
         let endDay = dateFormatter.string(from: endDate)

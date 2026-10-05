@@ -6,6 +6,8 @@ struct ProviderInput: Identifiable {
     let placeholder: String
     let binding: Binding<String>
     var pickerTeam: Binding<FootballTeam>? = nil
+    var pickerTimeZone: Binding<PoGoTimeZone>? = nil
+    var pickerTimeZoneHint: String? = nil
 }
 
 struct ProviderCard: View {
@@ -46,6 +48,29 @@ struct ProviderCard: View {
                                 .labelsHidden()
                                 .pickerStyle(.menu)
                                 .tint(Theme.Colors.accent)
+                            } else if let pickerTimeZone = input.pickerTimeZone {
+                                HStack(spacing: 8) {
+                                    Picker("", selection: pickerTimeZone) {
+                                        ForEach(PoGoTimeZone.allCases, id: \.self) { zone in
+                                            Text(zone.label).tag(zone)
+                                        }
+                                    }
+                                    .labelsHidden()
+                                    .pickerStyle(.menu)
+                                    .tint(Theme.Colors.accent)
+
+                                    if let hint = input.pickerTimeZoneHint {
+                                        Text(hint)
+                                            .font(Theme.Fonts.manrope(11))
+                                            .foregroundStyle(Theme.Colors.textMuted)
+                                    }
+                                }
+                                .padding(10)
+                                .background(Theme.Colors.canvasDeep, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: Theme.Radius.small)
+                                        .stroke(Theme.Colors.borderSubtle, lineWidth: 1)
+                                )
                             } else {
                                 TextField(input.placeholder, text: input.binding)
                                     .font(Theme.Fonts.manrope(13))
@@ -98,6 +123,10 @@ struct ProviderView: View {
                     icon: "gamecontroller",
                     isOn: $settingsStore.showPoGo,
                     inputs: [
+                        ProviderInput(label: "TIMEZONE", placeholder: "", binding: .constant(""), pickerTimeZone: Binding(
+                            get: { settingsStore.pogoTimeZone },
+                            set: { settingsStore.pogoTimeZone = $0 }
+                        ), pickerTimeZoneHint: settingsStore.pogoTimeZone.offsetLabel),
                         ProviderInput(label: "RAIDS URL", placeholder: "https://...", binding: $settingsStore.pogoRaidsURL),
                         ProviderInput(label: "EVENTS URL", placeholder: "https://...", binding: $settingsStore.pogoEventsURL),
                     ]

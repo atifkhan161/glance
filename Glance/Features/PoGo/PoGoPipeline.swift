@@ -45,9 +45,9 @@ struct PoGoPipeline: Sendable {
         return 20
     }
 
-    static func filterActiveEvents(_ events: [PoGoEvent], now: Date = Date.now) -> [PoGoEvent] {
+    static func filterActiveEvents(_ events: [PoGoEvent], now: Date = Date.now, timeZone: TimeZone = TimeZone(identifier: "UTC")!) -> [PoGoEvent] {
         let filtered: [PoGoEvent] = events.compactMap { event in
-            if let end = event.end, let endDate = TimeFormat.parseISODate(end) {
+            if let end = event.end, let endDate = TimeFormat.parseISODate(end, timeZone: timeZone) {
                 if endDate <= now { return nil }
                 let countdown = Self.calculateCountdown(from: now, to: endDate)
                 return PoGoEvent(
@@ -60,7 +60,7 @@ struct PoGoPipeline: Sendable {
             }
             return event
         }
-        return Self.sortEvents(filtered, now: now)
+        return Self.sortEvents(filtered, now: now, timeZone: timeZone)
     }
 
     static func rotationKind(for event: PoGoEvent) -> RaidRotationKind? {
@@ -79,11 +79,13 @@ struct PoGoPipeline: Sendable {
             .contains { $0 == "mega" }
     }
 
-    static func buildRotationWindows(from events: [PoGoEvent]) -> [RaidRotationWindow] {
+    static func buildRotationWindows(from events: [PoGoEvent], timeZone: TimeZone = TimeZone(identifier: "UTC")!) -> [RaidRotationWindow] {
         let windows = events.compactMap { event -> RaidRotationWindow? in
             guard let kind = rotationKind(for: event) else { return nil }
-            guard let start = event.start.flatMap(TimeFormat.parseISODate),
-                  let end = event.end.flatMap(TimeFormat.parseISODate) else { return nil }
+            guard let start = event.start,
+                  let end = event.end,
+                  event.start.flatMap({ TimeFormat.parseISODate($0, timeZone: timeZone) }) != nil,
+                  event.end.flatMap({ TimeFormat.parseISODate($0, timeZone: timeZone) }) != nil else { return nil }
             return RaidRotationWindow(
                 id: event.eventID,
                 kind: kind,
@@ -97,8 +99,10 @@ struct PoGoPipeline: Sendable {
         }
         let raidDays = events.compactMap { event -> RaidRotationWindow? in
             guard event.eventType == "raid-day" else { return nil }
-            guard let start = event.start.flatMap(TimeFormat.parseISODate),
-                  let end = event.end.flatMap(TimeFormat.parseISODate) else { return nil }
+            guard let start = event.start,
+                  let end = event.end,
+                  event.start.flatMap({ TimeFormat.parseISODate($0, timeZone: timeZone) }) != nil,
+                  event.end.flatMap({ TimeFormat.parseISODate($0, timeZone: timeZone) }) != nil else { return nil }
             return RaidRotationWindow(
                 id: event.eventID,
                 kind: .mega,
@@ -110,7 +114,10 @@ struct PoGoPipeline: Sendable {
                 isRaidDay: true
             )
         }
-        return (windows + raidDays).sorted { ($0.start ?? .distantFuture) < ($1.start ?? .distantFuture) }
+        return (windows + raidDays).sorted {
+            ($0.startDate(timeZone: timeZone) ?? .distantFuture)
+                < ($1.startDate(timeZone: timeZone) ?? .distantFuture)
+        }
     }
 
     private static func rotationImage(for event: PoGoEvent) -> String? {
@@ -125,28 +132,28 @@ struct PoGoPipeline: Sendable {
         windows.filter { $0.kind == kind && !$0.isRaidDay }
     }
 
-    static func sortEvents(_ events: [PoGoEvent], now: Date = Date.now) -> [PoGoEvent] {
+    static func sortEvents(_ events: [PoGoEvent], now: Date = Date.now, timeZone: TimeZone = TimeZone(identifier: "UTC")!) -> [PoGoEvent] {
         events.sorted { a, b in
-            let aIsOngoing = Self.isOngoing(a, now: now)
-            let bIsOngoing = Self.isOngoing(b, now: now)
+            let aIsOngoing = Self.isOngoing(a, now: now, timeZone: timeZone)
+            let bIsOngoing = Self.isOngoing(b, now: now, timeZone: timeZone)
             if aIsOngoing != bIsOngoing { return aIsOngoing }
 
-            let aStart = Self.parseEventStart(a) ?? .distantFuture
-            let bStart = Self.parseEventStart(b) ?? .distantFuture
+            let aStart = Self.parseEventStart(a, timeZone: timeZone) ?? .distantFuture
+            let bStart = Self.parseEventStart(b, timeZone: timeZone) ?? .distantFuture
             return aStart < bStart
         }
     }
 
-    static func groupBySection(_ events: [PoGoEvent], now: Date = Date.now) -> [(PoGoEvent.EventSection, [PoGoEvent])] {
+    static func groupBySection(_ events: [PoGoEvent], now: Date = Date.now, timeZone: TimeZone = TimeZone(identifier: "UTC")!) -> [(PoGoEvent.EventSection, [PoGoEvent])] {
         var grouped: [PoGoEvent.EventSection: [PoGoEvent]] = [:]
         for event in events {
-            grouped[event.section, default: []].append(event)
+            grouped[event.section(now: now, timeZone: timeZone), default: []].append(event)
         }
         return PoGoEvent.EventSection.allCases.compactMap { section in
             guard let events = grouped[section], !events.isEmpty else { return nil }
             let sorted = events.sorted { a, b in
-                let aStart = Self.parseEventStart(a) ?? .distantFuture
-                let bStart = Self.parseEventStart(b) ?? .distantFuture
+                let aStart = Self.parseEventStart(a, timeZone: timeZone) ?? .distantFuture
+                let bStart = Self.parseEventStart(b, timeZone: timeZone) ?? .distantFuture
                 return aStart < bStart
             }
             return (section, sorted)
@@ -158,16 +165,16 @@ struct PoGoPipeline: Sendable {
         return events.filter { filter.eventTypes.contains($0.eventType) }
     }
 
-    static func isOngoing(_ event: PoGoEvent, now: Date = Date.now) -> Bool {
+    static func isOngoing(_ event: PoGoEvent, now: Date = Date.now, timeZone: TimeZone = TimeZone(identifier: "UTC")!) -> Bool {
         guard let start = event.start, let end = event.end,
-              let startDate = TimeFormat.parseISODate(start),
-              let endDate = TimeFormat.parseISODate(end) else { return false }
+              let startDate = TimeFormat.parseISODate(start, timeZone: timeZone),
+              let endDate = TimeFormat.parseISODate(end, timeZone: timeZone) else { return false }
         return startDate <= now && endDate > now
     }
 
-    static func parseEventStart(_ event: PoGoEvent) -> Date? {
+    static func parseEventStart(_ event: PoGoEvent, timeZone: TimeZone = TimeZone(identifier: "UTC")!) -> Date? {
         guard let start = event.start else { return nil }
-        return TimeFormat.parseISODate(start)
+        return TimeFormat.parseISODate(start, timeZone: timeZone)
     }
 
     static func calculateCountdown(from now: Date, to end: Date) -> String {
@@ -191,12 +198,13 @@ struct PoGoPipeline: Sendable {
         // Extract values on main actor before async work
         let raidsURL = await settings.pogoRaidsURL
         let eventsURL = await settings.pogoEventsURL
+        let timeZone = PoGoTimeZone.stored.timeZone
 
         async let raidsTask: [PoGoRaid] = { (try? await self.client.fetchRaids(raidsURL: raidsURL)) ?? [] }()
         async let eventsTask: [PoGoEvent] = { (try? await self.client.fetchEvents(eventsURL: eventsURL)) ?? [] }()
         let rawEvents = await eventsTask
         let raids = Self.prioritizeRaids(await raidsTask)
-        let events = Self.filterActiveEvents(rawEvents)
+        let events = Self.filterActiveEvents(rawEvents, timeZone: timeZone)
         let fiveStar = Self.pickFiveStar(raids)
         let mega = Self.pickMega(raids)
         let shadow = Self.pickShadow(raids)
@@ -216,7 +224,7 @@ struct PoGoPipeline: Sendable {
             }
             source = "none"
         }
-        let rotations = Self.buildRotationWindows(from: rawEvents)
+        let rotations = Self.buildRotationWindows(from: rawEvents, timeZone: timeZone)
         let data = PoGoData(
             raids: raids, events: events, fiveStar: fiveStar, mega: mega,
             shadow: shadow, targetPriority: priority,

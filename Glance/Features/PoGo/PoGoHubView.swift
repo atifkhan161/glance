@@ -9,66 +9,10 @@ struct PoGoHubView: View {
 
     private let tiers = ["All", "1★", "3★", "5★", "Mega", "Shadow"]
 
-    private var priorityRaid: PoGoRaid? {
-        let data: PoGoData? = {
-            if case .ready(let d, _) = store.pogo { return d }
-            if case .stale(let d, _) = store.pogo { return d }
-            return nil
-        }()
-        guard let data else { return nil }
-        return data.fiveStar ?? data.mega ?? data.shadow
-    }
+    private var timeZone: TimeZone { PoGoTimeZone.stored.timeZone }
 
     var body: some View {
         ScrollView {
-            // Hero section
-            if let priority = priorityRaid {
-                ZStack(alignment: .topLeading) {
-                    LinearGradient(
-                        colors: [Theme.Colors.cardRose.opacity(0.3), Theme.Colors.canvas],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .frame(minHeight: 200)
-                    .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.hero))
-
-                    HStack(alignment: .top, spacing: 16) {
-                        if let spriteURL = priority.image, let url = URL(string: spriteURL) {
-                            CachedAsyncImage(url: url) { image in
-                                image.resizable().scaledToFit()
-                            } placeholder: {
-                                EmptyView()
-                            }
-                            .frame(width: 140, height: 140)
-                        }
-
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("POKÉMON GO")
-                                .font(Theme.Fonts.scale(.title1))
-                                .foregroundStyle(Theme.Colors.cardRose)
-
-                            Text(priority.name)
-                                .font(Theme.Fonts.scale(.title3))
-                                .foregroundStyle(Theme.Colors.textPrimary)
-                                .lineLimit(2)
-
-                            BadgePill(text: tierBadgeText(priority), color: Theme.Colors.cardRose)
-
-                            if let cp = priority.combatPower,
-                               let normal = cp.normal,
-                               let min = normal.min, let max = normal.max {
-                                Text("CP \(formatCP(min)) – \(formatCP(max))")
-                                    .font(Theme.Fonts.scale(.display))
-                                    .foregroundStyle(Theme.Colors.textPrimary)
-                            }
-                        }
-                    }
-                    .padding(Theme.cardPadding)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .padding(.horizontal, Theme.cardPadding)
-            }
-
             VStack(alignment: .leading, spacing: 20) {
                 switch store.pogo {
                 case .loading:
@@ -437,8 +381,10 @@ struct PoGoHubView: View {
     }
 
     private func rotationRow(_ window: RaidRotationWindow, raids: [PoGoRaid], isLast: Bool) -> some View {
-        let isCurrent = window.isCurrent()
-        let isPast = window.isPast()
+        let isCurrent = window.isCurrent(timeZone: timeZone)
+        let isPast = window.isPast(timeZone: timeZone)
+        let start = window.startDate(timeZone: timeZone)
+        let end = window.endDate(timeZone: timeZone)
         let dotColor = isCurrent ? Theme.Colors.success : rotationColor(window.kind)
 
         return HStack(alignment: .top, spacing: 14) {
@@ -488,7 +434,7 @@ struct PoGoHubView: View {
 
                     Spacer(minLength: 0)
 
-                    if let start = window.start, let end = window.end {
+                    if let start, let end {
                         Text(rotationCountdown(start: start, end: end, isPast: isPast))
                             .font(Theme.Fonts.manrope(11, weight: .medium))
                             .foregroundStyle(isCurrent ? Theme.Colors.success : Theme.Colors.textMuted)
@@ -501,14 +447,14 @@ struct PoGoHubView: View {
                     }
                 }
 
-                if let start = window.start, let end = window.end {
+                if let start, let end {
                     Text(rotationDateRange(start: start, end: end))
                         .font(Theme.Fonts.manrope(11))
                         .foregroundStyle(Theme.Colors.textMuted)
                         .lineLimit(1)
                 }
 
-                if isCurrent, let start = window.start, let end = window.end {
+                if isCurrent, let start, let end {
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
                             RoundedRectangle(cornerRadius: 2)
@@ -522,14 +468,7 @@ struct PoGoHubView: View {
                     .frame(height: 4)
                 }
 
-                if let link = window.link {
-                    Link(destination: URL(string: link) ?? URL(string: "https://leekduck.com")!) {
-                        Text("View on LeekDuck")
-                            .font(Theme.Fonts.manrope(11, weight: .medium))
-                            .foregroundStyle(rotationColor(window.kind))
-                    }
                 }
-            }
             .padding(Theme.cardPadding)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
@@ -537,17 +476,18 @@ struct PoGoHubView: View {
         .opacity(isPast ? 0.55 : 1)
     }
 
+    // A boss with no entry in the live raid list renders as a plain icon rather
+    // than a control. Opening LeekDuck in Safari was tried here and removed: the
+    // slugged URL was unreliable, and a tappable-looking icon that leaves the app
+    // is worse than an obviously inert one.
     private func rotationBossStack(_ bosses: [RaidBoss], raids: [PoGoRaid]) -> some View {
         HStack(spacing: 6) {
             ForEach(bosses) { boss in
-                let raid = Self.matchRaid(named: boss.name, in: raids)
-                Group {
-                    if let raid {
-                        NavigationLink(value: raid) { bossIcon(boss) }
-                    } else {
-                        Button { openRaidBossInBrowser(boss, window: nil) } label: { bossIcon(boss) }
-                            .buttonStyle(.plain)
-                    }
+                if let raid = Self.matchRaid(named: boss.name, in: raids) {
+                    NavigationLink(value: raid) { bossIcon(boss) }
+                } else {
+                    bossIcon(boss)
+                        .accessibilityHidden(true)
                 }
             }
         }
@@ -585,10 +525,13 @@ struct PoGoHubView: View {
     }
 
     private func raidDayRow(_ day: RaidRotationWindow) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        let start = day.startDate(timeZone: timeZone)
+        let end = day.endDate(timeZone: timeZone)
+
+        return VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
                 BadgePill(text: "RAID DAY", color: Theme.Colors.cardRose)
-                if day.isCurrent() {
+                if day.isCurrent(timeZone: timeZone) {
                     Text("LIVE")
                         .font(Theme.Fonts.manrope(9, weight: .bold))
                         .foregroundStyle(Theme.Colors.success)
@@ -603,7 +546,7 @@ struct PoGoHubView: View {
                 .font(Theme.Fonts.manrope(13, weight: .semibold))
                 .foregroundStyle(Theme.Colors.textPrimary)
 
-            if let start = day.start, let end = day.end {
+            if let start, let end {
                 Text(rotationDateRange(start: start, end: end))
                     .font(Theme.Fonts.manrope(11))
                     .foregroundStyle(Theme.Colors.textMuted)
@@ -614,33 +557,51 @@ struct PoGoHubView: View {
         .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
     }
 
-    private static func matchRaid(named name: String, in raids: [PoGoRaid]) -> PoGoRaid? {
-        let normalized = name.lowercased()
-        if let exact = raids.first(where: { $0.name.lowercased() == normalized }) { return exact }
-        if let prefixed = name.split(separator: " ").last.map(String.init),
-           let match = raids.first(where: { $0.name.lowercased().hasSuffix(prefixed.lowercased()) }) {
-            return match
+    // Matches a rotation boss to a live raid by exact normalized name only.
+    //
+    // An earlier version also tried suffix and prefix matching, which looked
+    // reasonable and was badly wrong: taking the first word of "Mega Blastoise"
+    // yields "Mega", and `hasPrefix("mega")` then matched Mega Malamar, so
+    // tapping one Mega boss silently opened another. "Thundurus (Incarnate)"
+    // had the same problem in reverse, matching Shadow Thundurus by suffix.
+    // 8 of the 17 bosses in the live rotation resolved to the wrong Pokémon.
+    //
+    // Only normalization survives now: strip a leading Shadow/Mega qualifier
+    // from the raid name so "Shadow Thundurus (Incarnate)" answers to
+    // "Thundurus (Incarnate)", and drop non-alphanumerics so
+    // "Giratina (Origin Forme)" matches "Giratina (Origin)". Bosses absent
+    // from raids.json stay unresolvable rather than resolving to a neighbour,
+    // which is the lesser evil - a rotation is still readable as a schedule
+    // when a boss cannot be opened.
+    // nonisolated: View is @MainActor, so a plain static here inherits main-actor
+    // isolation and traps (dispatch_assert_queue) when a test calls it off-main.
+    // Character.isLetter does an executor-hopping Unicode scalar lookup, which is
+    // what made this crash rather than merely warn.
+    nonisolated static func matchRaid(named name: String, in raids: [PoGoRaid]) -> PoGoRaid? {
+        let target = normalizeRaidName(name)
+        guard !target.isEmpty else { return nil }
+        return raids.first { raid in
+            normalizeRaidName(raid.name) == target ||
+            normalizeRaidName(dropRaidQualifier(raid.name)) == target
         }
-        if let startsWith = name.split(separator: " ").first.map(String.init),
-           let match = raids.first(where: { $0.name.lowercased().hasPrefix(startsWith.lowercased()) }) {
-            return match
-        }
-        return nil
     }
 
-    private func openRaidBossInBrowser(_ boss: RaidBoss, window: RaidRotationWindow?) {
-        let slug = boss.name.lowercased()
-            .replacingOccurrences(of: " ", with: "-")
-            .replacingOccurrences(of: "(", with: "")
-            .replacingOccurrences(of: ")", with: "")
-        guard let url = URL(string: "https://leekduck.com/pokemon/\(slug)/") else { return }
-        UIApplication.shared.open(url)
+    nonisolated private static func dropRaidQualifier(_ name: String) -> String {
+        guard let space = name.firstIndex(of: " ") else { return name }
+        let head = name[name.startIndex..<space].lowercased()
+        return head == "shadow" || head == "mega" ? String(name[name.index(after: space)...]) : name
+    }
+
+    nonisolated private static func normalizeRaidName(_ name: String) -> String {
+        name.lowercased().filter { $0.isLetter || $0.isNumber }
     }
 
     private func rotationDateRange(start: Date, end: Date) -> String {
         let format = DateFormatter()
         format.dateFormat = "d MMM"
-        let calendar = Calendar.current
+        format.timeZone = timeZone
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
         if calendar.isDate(start, inSameDayAs: end) {
             return format.string(from: start)
         }
@@ -671,7 +632,7 @@ struct PoGoHubView: View {
 
     private func eventsTimeline(_ events: [PoGoEvent]) -> some View {
         let filtered = PoGoPipeline.filterByType(events, filter: selectedFilter)
-        let sections = PoGoPipeline.groupBySection(filtered)
+        let sections = PoGoPipeline.groupBySection(filtered, timeZone: timeZone)
 
         return VStack(alignment: .leading, spacing: 20) {
             eventFilterChips()
@@ -698,7 +659,7 @@ struct PoGoHubView: View {
     }
 
     private func timelineRow(_ event: PoGoEvent, isLast: Bool) -> some View {
-        let isOngoing = event.status == .ongoing
+        let isOngoing = event.status(timeZone: timeZone) == .ongoing
         let dotColor = isOngoing ? Theme.Colors.success : Theme.Colors.cardRose
 
         return HStack(alignment: .top, spacing: 14) {
@@ -764,7 +725,7 @@ struct PoGoHubView: View {
                                     .background(eventTypeColor(event.eventTypeColorHex).opacity(0.15), in: .capsule)
 
                                 if let start = event.start, let end = event.end {
-                                    Text(TimeFormat.localTimeRange(start: start, end: end))
+                                    Text(TimeFormat.localTimeRange(start: start, end: end, timeZone: timeZone))
                                         .font(Theme.Fonts.manrope(11))
                                         .foregroundStyle(Theme.Colors.textMuted)
                                         .lineLimit(1)
@@ -775,7 +736,7 @@ struct PoGoHubView: View {
                         Spacer()
 
                         if let start = event.start, let end = event.end {
-                            let countdown = TimeFormat.smartCountdown(start: start, end: end)
+                            let countdown = TimeFormat.smartCountdown(start: start, end: end, timeZone: timeZone)
                             if !countdown.isEmpty {
                                 Text(countdown)
                                     .font(Theme.Fonts.manrope(11, weight: .medium))
@@ -791,7 +752,7 @@ struct PoGoHubView: View {
                     }
 
                     if isOngoing, let start = event.start, let end = event.end {
-                        let progress = TimeFormat.eventProgress(start: start, end: end)
+                        let progress = TimeFormat.eventProgress(start: start, end: end, timeZone: timeZone)
                         GeometryReader { geo in
                             ZStack(alignment: .leading) {
                                 RoundedRectangle(cornerRadius: 2)

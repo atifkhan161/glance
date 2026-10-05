@@ -45,3 +45,54 @@ struct TimeFormatTests {
         #expect(TimeFormat.countdownTo(date) == "")
     }
 }
+
+@Suite("TimeFormat.parseISODate timeZone")
+struct ParseISODateTimeZoneTests {
+    private let tokyo = TimeZone(identifier: "Asia/Tokyo")!
+
+    @Test("offset-less timestamp is read as wall clock in the given zone")
+    func naiveReadsAsWallClockInZone() throws {
+        let date = try #require(TimeFormat.parseISODate("2026-09-30T19:00:00.000", timeZone: tokyo))
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = tokyo
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+        #expect(formatter.string(from: date) == "2026-09-30 19:00")
+    }
+
+    @Test("Tokyo parse trails the UTC parse by nine hours")
+    func tokyoParseTrailsUTCParse() throws {
+        let tokyoDate = try #require(TimeFormat.parseISODate("2026-09-30T19:00:00.000", timeZone: tokyo))
+        let utcDate = try #require(TimeFormat.parseISODate("2026-09-30T19:00:00.000"))
+        #expect(tokyoDate.timeIntervalSince(utcDate) == -9 * 3600)
+    }
+
+    @Test("explicit offset in the payload still wins over the zone")
+    func explicitOffsetWins() throws {
+        let date = try #require(TimeFormat.parseISODate("2026-09-30T19:00:00Z", timeZone: tokyo))
+        #expect(date == TimeFormat.parseISODate("2026-09-30T19:00:00.000"))
+    }
+
+    @Test("default zone stays UTC so existing callers are unchanged")
+    func defaultZoneIsUTC() throws {
+        let date = try #require(TimeFormat.parseISODate("2026-09-30T19:00:00.000"))
+        var utc = Calendar(identifier: .gregorian)
+        utc.timeZone = TimeZone(identifier: "UTC")!
+        #expect(utc.component(.hour, from: date) == 19)
+    }
+
+    @Test("date-only payload is read at midnight in the given zone")
+    func dateOnlyMidnightInZone() throws {
+        let date = try #require(TimeFormat.parseISODate("2026-09-30", timeZone: tokyo))
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = tokyo
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+        #expect(formatter.string(from: date) == "2026-09-30 00:00")
+    }
+
+    @Test("garbage still returns nil")
+    func garbageIsNil() {
+        #expect(TimeFormat.parseISODate("not-a-date", timeZone: tokyo) == nil)
+    }
+}

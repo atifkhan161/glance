@@ -5,6 +5,8 @@ struct EventDetailView: View {
     @State private var eventDescription = ""
     @State private var isLoadingDescription = false
 
+    private var timeZone: TimeZone { PoGoTimeZone.stored.timeZone }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -66,7 +68,7 @@ struct EventDetailView: View {
                             .background(Theme.Colors.cardRose.opacity(0.15), in: .capsule)
 
                         if let start = event.start, let end = event.end {
-                            let countdown = TimeFormat.smartCountdown(start: start, end: end)
+                            let countdown = TimeFormat.smartCountdown(start: start, end: end, timeZone: timeZone)
                             if !countdown.isEmpty {
                                 Text(countdown)
                                     .font(Theme.Fonts.manrope(11, weight: .medium))
@@ -81,14 +83,14 @@ struct EventDetailView: View {
                     if let start = event.start, let end = event.end {
                         HStack(spacing: 4) {
                             Image(systemName: "calendar")
-                            Text(TimeFormat.localTimeRange(start: start, end: end))
+                            Text(TimeFormat.localTimeRange(start: start, end: end, timeZone: timeZone))
                         }
                         .font(Theme.Fonts.manrope(14, weight: .regular))
                         .foregroundStyle(Theme.Colors.textMuted)
                     }
 
-                    if event.status == .ongoing, let start = event.start, let end = event.end {
-                        let progress = TimeFormat.eventProgress(start: start, end: end)
+                    if event.status(timeZone: timeZone) == .ongoing, let start = event.start, let end = event.end {
+                        let progress = TimeFormat.eventProgress(start: start, end: end, timeZone: timeZone)
                         VStack(alignment: .leading, spacing: 4) {
                             GeometryReader { geo in
                                 ZStack(alignment: .leading) {

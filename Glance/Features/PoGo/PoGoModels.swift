@@ -88,19 +88,28 @@ struct RaidRotationWindow: Codable, Sendable, Identifiable, Equatable, Hashable 
     let id: String
     let kind: RaidRotationKind
     let bosses: [RaidBoss]
-    let start: Date?
-    let end: Date?
+    let start: String?
+    let end: String?
     let image: String?
     let link: String?
     let isRaidDay: Bool
 
-    func isCurrent(at now: Date = Date.now) -> Bool {
-        guard let start, let end else { return false }
+    func startDate(timeZone: TimeZone) -> Date? {
+        start.flatMap { TimeFormat.parseISODate($0, timeZone: timeZone) }
+    }
+
+    func endDate(timeZone: TimeZone) -> Date? {
+        end.flatMap { TimeFormat.parseISODate($0, timeZone: timeZone) }
+    }
+
+    func isCurrent(at now: Date = Date.now, timeZone: TimeZone) -> Bool {
+        guard let start = startDate(timeZone: timeZone),
+              let end = endDate(timeZone: timeZone) else { return false }
         return start <= now && end > now
     }
 
-    func isPast(at now: Date = Date.now) -> Bool {
-        guard let end else { return false }
+    func isPast(at now: Date = Date.now, timeZone: TimeZone) -> Bool {
+        guard let end = endDate(timeZone: timeZone) else { return false }
         return end <= now
     }
 
@@ -214,39 +223,38 @@ struct PoGoEvent: Codable, Sendable, Identifiable, Equatable, Hashable {
         }
     }
 
-    var status: EventStatus {
+    func status(timeZone: TimeZone) -> EventStatus {
         let now = Date.now
         guard let start = start, let end = end,
-              let startDate = TimeFormat.parseISODate(start),
-              let endDate = TimeFormat.parseISODate(end) else { return .unknown }
+              let startDate = TimeFormat.parseISODate(start, timeZone: timeZone),
+              let endDate = TimeFormat.parseISODate(end, timeZone: timeZone) else { return .unknown }
         if startDate <= now && endDate > now { return .ongoing }
         if startDate > now { return .upcoming }
         return .unknown
     }
 
-    var sortKey: Date {
-        guard let start = start, let date = TimeFormat.parseISODate(start) else { return .distantFuture }
-        return date
+    func sortKey(timeZone: TimeZone) -> Date {
+        guard let start = start else { return .distantFuture }
+        return TimeFormat.parseISODate(start, timeZone: timeZone) ?? .distantFuture
     }
 
-    var section: EventSection {
-        let now = Date.now
+    func section(now: Date = Date.now, timeZone: TimeZone) -> EventSection {
         guard let start = start, let end = end,
-              let startDate = TimeFormat.parseISODate(start),
-              let endDate = TimeFormat.parseISODate(end) else { return .upcoming }
+              let startDate = TimeFormat.parseISODate(start, timeZone: timeZone),
+              let endDate = TimeFormat.parseISODate(end, timeZone: timeZone) else { return .upcoming }
         if startDate <= now && endDate > now { return .live }
-        let calendar = Calendar.current
-        if calendar.isDateInToday(endDate) { return .endsToday }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        if calendar.isDate(endDate, inSameDayAs: now) { return .endsToday }
         let daysUntilStart = calendar.dateComponents([.day], from: now, to: startDate).day ?? 999
         if daysUntilStart <= 7 { return .thisWeek }
         return .upcoming
     }
 
-    var percentComplete: Double {
+    func percentComplete(now: Date = Date.now, timeZone: TimeZone) -> Double {
         guard let start = start, let end = end,
-              let startDate = TimeFormat.parseISODate(start),
-              let endDate = TimeFormat.parseISODate(end) else { return 0 }
-        let now = Date.now
+              let startDate = TimeFormat.parseISODate(start, timeZone: timeZone),
+              let endDate = TimeFormat.parseISODate(end, timeZone: timeZone) else { return 0 }
         guard now >= startDate else { return 0 }
         guard endDate > startDate else { return 1 }
         let total = endDate.timeIntervalSince(startDate)

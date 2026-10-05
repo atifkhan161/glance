@@ -25,7 +25,7 @@ struct PoGoPipelineTests {
         #expect(filtered.first?.name == "Future")
     }
 
-    @Test("Group events by section")
+    @Test("Group events by section honours the injected now")
     func groupBySection() {
         let events = [
             PoGoEvent(eventID: "1", name: "Ongoing", eventType: "event",
@@ -33,8 +33,27 @@ struct PoGoPipelineTests {
             PoGoEvent(eventID: "2", name: "Future", eventType: "event",
                       start: "2026-12-01T00:00:00.000", end: "2026-12-31T00:00:00.000"),
         ]
-        let grouped = PoGoPipeline.groupBySection(events, now: Date(timeIntervalSince1970: 1757865600))
-        #expect(grouped.count >= 1)
+        let grouped = PoGoPipeline.groupBySection(
+            events, now: Date(timeIntervalSince1970: 1789574400), timeZone: TimeZone(identifier: "UTC")!
+        )
+        #expect(grouped.map(\.0) == [.live, .upcoming])
+        #expect(grouped.first?.1.map(\.name) == ["Ongoing"])
+        #expect(grouped.last?.1.map(\.name) == ["Future"])
+    }
+
+    @Test("Section day boundaries follow the selected zone, not the device")
+    func sectionUsesSelectedZoneForToday() throws {
+        let utc = TimeZone(identifier: "UTC")!
+        let tokyo = TimeZone(identifier: "Asia/Tokyo")!
+        let event = PoGoEvent(
+            eventID: "1", name: "Ended", eventType: "event",
+            start: "2026-09-16T10:00:00.000", end: "2026-09-16T11:00:00.000"
+        )
+        // 2026-09-16T15:30Z is still 2026-09-17 in Tokyo.
+        let now = try #require(TimeFormat.parseISODate("2026-09-16T15:30:00.000", timeZone: utc))
+
+        #expect(event.section(now: now, timeZone: utc) == .endsToday)
+        #expect(event.section(now: now, timeZone: tokyo) == .thisWeek)
     }
 
     @Test("Filter events by type")
@@ -226,24 +245,62 @@ struct PoGoRotationTests {
                          bosses: [("Mega Venusaur", true)])
         let windows = PoGoPipeline.buildRotationWindows(from: [past])
         #expect(windows.count == 1)
-        #expect(windows[0].isPast(at: Date(timeIntervalSince1970: 1800000000)))
-        #expect(!windows[0].isPast(at: Date(timeIntervalSince1970: 1789000000)))
+        let utc = TimeZone(identifier: "UTC")!
+        #expect(windows[0].isPast(at: Date(timeIntervalSince1970: 1800000000), timeZone: utc))
+        #expect(!windows[0].isPast(at: Date(timeIntervalSince1970: 1789000000), timeZone: utc))
     }
 
     @Test("isCurrent respects window boundaries")
     func currentBoundaries() throws {
-        let start = try #require(TimeFormat.parseISODate("2026-09-30T06:00:00.000"))
-        let end = try #require(TimeFormat.parseISODate("2026-10-06T22:00:00.000"))
+        let utc = TimeZone(identifier: "UTC")!
+        let start = try #require(TimeFormat.parseISODate("2026-09-30T06:00:00.000", timeZone: utc))
+        let end = try #require(TimeFormat.parseISODate("2026-10-06T22:00:00.000", timeZone: utc))
         let window = RaidRotationWindow(
             id: "c", kind: .fiveStar, bosses: [RaidBoss(name: "Xerneas", canBeShiny: true)],
-            start: start, end: end, image: nil, link: nil, isRaidDay: false
+            start: "2026-09-30T06:00:00.000", end: "2026-10-06T22:00:00.000",
+            image: nil, link: nil, isRaidDay: false
         )
 
-        #expect(window.isCurrent(at: start))
-        #expect(window.isCurrent(at: end.addingTimeInterval(-1)))
-        #expect(!window.isCurrent(at: end))
-        #expect(!window.isCurrent(at: start.addingTimeInterval(-1)))
-        #expect(window.isPast(at: end))
+        #expect(window.isCurrent(at: start, timeZone: utc))
+        #expect(window.isCurrent(at: end.addingTimeInterval(-1), timeZone: utc))
+        #expect(!window.isCurrent(at: end, timeZone: utc))
+        #expect(!window.isCurrent(at: start.addingTimeInterval(-1), timeZone: utc))
+        #expect(window.isPast(at: end, timeZone: utc))
+    }
+
+    @Test("Windows keep raw timestamps so a timezone change needs no refetch")
+    func windowsStoreRawStrings() throws {
+        let tokyo = TimeZone(identifier: "Asia/Tokyo")!
+        let event = self.event("z", "Mega Victreebel in Mega Raids",
+                               start: "2026-09-30T06:00:00.000", end: "2026-10-06T22:00:00.000",
+                               bosses: [("Mega Victreebel", true)])
+        let window = try #require(PoGoPipeline.buildRotationWindows(from: [event], timeZone: tokyo).first)
+        #expect(window.start == "2026-09-30T06:00:00.000")
+        #expect(window.end == "2026-10-06T22:00:00.000")
+        let tokyoStart = try #require(window.startDate(timeZone: tokyo))
+        let utcStart = try #require(window.startDate(timeZone: TimeZone(identifier: "UTC")!))
+        #expect(tokyoStart.timeIntervalSince(utcStart) == -9 * 3600)
+    }
+
+    @Test("Raid Hour ending 19:00 counts down against the selected zone")
+    func raidHourCountdownUsesSelectedZone() throws {
+        let tokyo = TimeZone(identifier: "Asia/Tokyo")!
+        let utc = TimeZone(identifier: "UTC")!
+        let window = RaidRotationWindow(
+            id: "rh", kind: .fiveStar, bosses: [],
+            start: "2026-09-30T18:00:00.000", end: "2026-09-30T19:00:00.000",
+            image: nil, link: nil, isRaidDay: false
+        )
+
+        let tokyoMidRaid = try #require(TimeFormat.parseISODate("2026-09-30T18:30:00.000", timeZone: tokyo))
+        #expect(window.isCurrent(at: tokyoMidRaid, timeZone: tokyo))
+        #expect(!window.isCurrent(at: tokyoMidRaid, timeZone: utc))
+
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = tokyo
+        formatter.dateFormat = "HH:mm"
+        #expect(formatter.string(from: try #require(window.endDate(timeZone: tokyo))) == "19:00")
     }
 
     @Test("Generic event image falls back to first boss icon")
@@ -260,15 +317,17 @@ struct PoGoRotationTests {
     func trackFiltering() {
         let mega = RaidRotationWindow(
             id: "m", kind: .mega, bosses: [RaidBoss(name: "Mega X")],
-            start: Date.now, end: Date.now, image: nil, link: nil, isRaidDay: false
+            start: "2026-01-01T00:00:00.000", end: "2026-01-01T01:00:00.000",
+            image: nil, link: nil, isRaidDay: false
         )
         let raidDay = RaidRotationWindow(
-            id: "rd", kind: .mega, bosses: [], start: Date.now, end: Date.now,
+            id: "rd", kind: .mega, bosses: [], start: "2026-01-01T00:00:00.000", end: "2026-01-01T01:00:00.000",
             image: nil, link: nil, isRaidDay: true
         )
         let fiveStar = RaidRotationWindow(
             id: "f", kind: .fiveStar, bosses: [RaidBoss(name: "Y")],
-            start: Date.now, end: Date.now, image: nil, link: nil, isRaidDay: false
+            start: "2026-01-01T00:00:00.000", end: "2026-01-01T01:00:00.000",
+            image: nil, link: nil, isRaidDay: false
         )
         let windows = [mega, raidDay, fiveStar]
         #expect(PoGoPipeline.rotationWindows(windows, kind: .mega) == [mega])
@@ -284,6 +343,61 @@ struct PoGoRotationTests {
         """
         let decoded = try JSONDecoder().decode(PoGoData.self, from: Data(json.utf8))
         #expect(decoded.rotations.isEmpty)
+    }
+
+    @Test("matchRaid resolves exact names only")
+    func matchRaidExact() {
+        let raids = [
+            PoGoRaid(name: "Buzzwole", tier: "5-Star Raids"),
+            PoGoRaid(name: "Pheromosa", tier: "5-Star Raids"),
+            PoGoRaid(name: "Xurkitree", tier: "5-Star Raids"),
+            PoGoRaid(name: "Mega Malamar", tier: "Mega Raids"),
+            PoGoRaid(name: "Shadow Thundurus (Incarnate)", tier: "5-Star Raids"),
+        ]
+        #expect(PoGoHubView.matchRaid(named: "Buzzwole", in: raids)?.name == "Buzzwole")
+        #expect(PoGoHubView.matchRaid(named: "Pheromosa", in: raids)?.name == "Pheromosa")
+        #expect(PoGoHubView.matchRaid(named: "Mega Malamar", in: raids)?.name == "Mega Malamar")
+    }
+
+    @Test("matchRaid strips a Shadow qualifier from the raid name")
+    func matchRaidShadowQualifier() {
+        let raids = [PoGoRaid(name: "Shadow Thundurus (Incarnate)", tier: "5-Star Raids")]
+        let match = PoGoHubView.matchRaid(named: "Thundurus (Incarnate)", in: raids)
+        #expect(match?.name == "Shadow Thundurus (Incarnate)")
+    }
+
+    @Test("matchRaid never resolves one Mega boss to another")
+    func matchRaidNoFalseMegaMatches() {
+        // Regression: the old prefix matcher took the first word of
+        // "Mega Blastoise" ("Mega") and hasPrefix-matched Mega Malamar, so
+        // 8 of 17 live bosses opened the wrong Pokemon.
+        let raids = [
+            PoGoRaid(name: "Mega Malamar", tier: "Mega Raids"),
+            PoGoRaid(name: "Buzzwole", tier: "5-Star Raids"),
+        ]
+        for name in ["Mega Blastoise", "Mega Charizard X", "Mega Charizard Y",
+                     "Mega Dragonite", "Mega Sableye", "Mega Victreebel"] {
+            #expect(PoGoHubView.matchRaid(named: name, in: raids) == nil,
+                    "\(name) must not resolve to Mega Malamar")
+        }
+        #expect(PoGoHubView.matchRaid(named: "Mega Malamar", in: raids)?.name == "Mega Malamar")
+    }
+
+    @Test("matchRaid normalizes punctuation and case")
+    func matchRaidNormalization() {
+        let raids = [PoGoRaid(name: "Giratina (Origin Forme)", tier: "5-Star Raids")]
+        #expect(PoGoHubView.matchRaid(named: "giratina (origin forme)", in: raids) != nil)
+        #expect(PoGoHubView.matchRaid(named: "GIRATINA ORIGIN FORME", in: raids) != nil)
+        #expect(PoGoHubView.matchRaid(named: "Giratina", in: raids) == nil)
+    }
+
+    @Test("matchRaid returns nil for absent and empty input")
+    func matchRaidNilCases() {
+        let raids = [PoGoRaid(name: "Buzzwole", tier: "5-Star Raids")]
+        #expect(PoGoHubView.matchRaid(named: "Dialga", in: raids) == nil)
+        #expect(PoGoHubView.matchRaid(named: "Xerneas", in: raids) == nil)
+        #expect(PoGoHubView.matchRaid(named: "", in: raids) == nil)
+        #expect(PoGoHubView.matchRaid(named: "Buzzwole", in: []) == nil)
     }
 
     @Test("filterActiveEvents preserves bosses and description")

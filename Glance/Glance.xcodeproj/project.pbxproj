@@ -35,6 +35,7 @@
 		12E679C512844CB0A323646C /* PoGoHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44568B552442758133DEF919 /* PoGoHubView.swift */; };
 		17E43F2670D9DD76CBBE7E74 /* Manrope-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B7ABFE1A44714303D7726BAE /* Manrope-Regular.ttf */; };
 		19E5B4F68F337ED811CBC50C /* PoGoModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 800D95490C31BEF2C11D06B1 /* PoGoModels.swift */; };
+		AA11BB22CC33DD44EE55FF66 /* PoGoTimeZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C0DE1A55A3B4C2D8E9F0117 /* PoGoTimeZone.swift */; };
 		1B7069441A5336A91CE2B6CD /* RaidDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5B2447E97774943AE055B07 /* RaidDetailView.swift */; };
 		1CF9807A87AAF6ECEE6C645B /* MadridDateParsing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DF0D56AA2D3E58D038DD154 /* MadridDateParsing.swift */; };
 		20C65BD7D4E849F2ABC8E612 /* PulseDot.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE285836ED3E944296D83FED /* PulseDot.swift */; };
@@ -44,6 +45,7 @@
 		2EA56F63353461298074E76E /* GlanceApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C520B3259951583C6815C6 /* GlanceApp.swift */; };
 		2FBA10BD76B3C8E6D5A75FDC /* Manrope-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 196E1870C937695D6A927719 /* Manrope-SemiBold.ttf */; };
 		34012DCF640F1EAC14E3F416 /* TimeFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C9DD56660DF3077E99A52C /* TimeFormatTests.swift */; };
+		BB22CC33DD44EE55FF667788 /* PoGoTimeZoneTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22CC33DD44EE55FF9988AA /* PoGoTimeZoneTests.swift */; };
 		43420A37FC0A235A69020B85 /* events.json in Resources */ = {isa = PBXBuildFile; fileRef = 59C98FF057511D43C9EDD34A /* events.json */; };
 		4480DF96B39661A2011114BD /* raids.json in Resources */ = {isa = PBXBuildFile; fileRef = 73FCEFE840005BDAE6E9BFDC /* raids.json */; };
 		47C63C93AFB93383EBBA3EFC /* CacheStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F65672F62EC7DA587E61CBB6 /* CacheStoreTests.swift */; };
@@ -214,6 +216,7 @@
 		7D29FA2484914D1C92BFEFEE /* SettingsStore.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
 		7DF0D56AA2D3E58D038DD154 /* MadridDateParsing.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = MadridDateParsing.swift; sourceTree = "<group>"; };
 		800D95490C31BEF2C11D06B1 /* PoGoModels.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = PoGoModels.swift; sourceTree = "<group>"; };
+		7C0DE1A55A3B4C2D8E9F0117 /* PoGoTimeZone.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = PoGoTimeZone.swift; sourceTree = "<group>"; };
 		8432ADC86D8071C0A729DC28 /* GeminiClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GeminiClient.swift; sourceTree = "<group>"; };
 		85F33B9C1FEF06261744DCCB /* FoundationModelsClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = FoundationModelsClient.swift; sourceTree = "<group>"; };
 		864D49570619C81F73AAA049 /* RepoDetailView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = RepoDetailView.swift; sourceTree = "<group>"; };
@@ -277,6 +280,7 @@
 		F0862D2780839821BE7EB6B1 /* GitHubPipeline.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubPipeline.swift; sourceTree = "<group>"; };
 		F2AC54314574769AC551ABBC /* KeychainStoreTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = KeychainStoreTests.swift; sourceTree = "<group>"; };
 		F2C9DD56660DF3077E99A52C /* TimeFormatTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = TimeFormatTests.swift; sourceTree = "<group>"; };
+		BB22CC33DD44EE55FF9988AA /* PoGoTimeZoneTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = PoGoTimeZoneTests.swift; sourceTree = "<group>"; };
 		F457B157FC966D801CD62CE1 /* SkeletonView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SkeletonView.swift; sourceTree = "<group>"; };
 		F65672F62EC7DA587E61CBB6 /* CacheStoreTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CacheStoreTests.swift; sourceTree = "<group>"; };
 		89C539EE7B074787A42B5258 /* CardOrderTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = CardOrderTests.swift; sourceTree = "<group>"; };
@@ -332,6 +336,7 @@
 				F65672F62EC7DA587E61CBB6 /* CacheStoreTests.swift */,
 				F2AC54314574769AC551ABBC /* KeychainStoreTests.swift */,
 				F2C9DD56660DF3077E99A52C /* TimeFormatTests.swift */,
+				BB22CC33DD44EE55FF9988AA /* PoGoTimeZoneTests.swift */,
 				A6B7C8D9E0F1A2B3C4D5E6F7 /* IntelligenceRouterTests.swift */,
 				BB2000000000000000000002 /* ArticleSummaryAccumulatorTests.swift */,
 				BB2000000000000000000004 /* ArticleModelsTests.swift */,
@@ -416,6 +421,7 @@
 			isa = PBXGroup;
 			children = (
 				800D95490C31BEF2C11D06B1 /* PoGoModels.swift */,
+				7C0DE1A55A3B4C2D8E9F0117 /* PoGoTimeZone.swift */,
 				D5618ACB47108C5ECE2A1DF1 /* PoGoPipeline.swift */,
 				44568B552442758133DEF919 /* PoGoHubView.swift */,
 				D5B2447E97774943AE055B07 /* RaidDetailView.swift */,
@@ -831,6 +837,7 @@
 				47C63C93AFB93383EBBA3EFC /* CacheStoreTests.swift in Sources */,
 				645351B4B35C32E3FE95EF0D /* KeychainStoreTests.swift in Sources */,
 				34012DCF640F1EAC14E3F416 /* TimeFormatTests.swift in Sources */,
+				BB22CC33DD44EE55FF667788 /* PoGoTimeZoneTests.swift in Sources */,
 				F5A6B7C8D9E0F1A2B3C4D5E6 /* IntelligenceRouterTests.swift in Sources */,
 				BB2000000000000000000001 /* ArticleSummaryAccumulatorTests.swift in Sources */,
 				BB2000000000000000000003 /* ArticleModelsTests.swift in Sources */,
@@ -890,6 +897,7 @@
 				CA4594EEC28F6837ACDA78F4 /* MadridArticleView.swift in Sources */,
 				B2C3D4E5F6A7B8C9D0E1F2A3 /* MatchTimelineView.swift in Sources */,
 				19E5B4F68F337ED811CBC50C /* PoGoModels.swift in Sources */,
+				AA11BB22CC33DD44EE55FF66 /* PoGoTimeZone.swift in Sources */,
 				E9DC9274D7EF30EAFCE6C500 /* PoGoPipeline.swift in Sources */,
 				12E679C512844CB0A323646C /* PoGoHubView.swift in Sources */,
 				1B7069441A5336A91CE2B6CD /* RaidDetailView.swift in Sources */,

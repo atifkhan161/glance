@@ -370,8 +370,9 @@ struct GlanceCardView: View {
                             }
                         }
                         Spacer()
-                        if let end = event.end {
-                            Text(TimeFormat.endsIn(ISO8601DateFormatter().date(from: end) ?? Date.now))
+                        if let end = event.end,
+                           let endDate = TimeFormat.parseISODate(end, timeZone: PoGoTimeZone.stored.timeZone) {
+                            Text(TimeFormat.endsIn(endDate))
                                 .font(Theme.Fonts.manrope(11))
                                 .foregroundStyle(card.accentColor)
                         }

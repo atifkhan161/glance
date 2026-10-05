@@ -134,6 +134,11 @@ final class SettingsStore {
         set { defaults.set(newValue, forKey: "pogo_events_url") }
     }
 
+    var pogoTimeZone: PoGoTimeZone {
+        get { PoGoTimeZone.stored }
+        set { PoGoTimeZone.store(newValue) }
+    }
+
     var githubSearchTopics: String {
         get { defaults.string(forKey: "github_search_topics") ?? "llm, ai" }
         set { defaults.set(newValue, forKey: "github_search_topics") }
