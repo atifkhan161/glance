@@ -55,6 +55,18 @@ exactly or SideStore silently stops offering updates. SideStore displays the *fi
 `versions[]` as latest regardless of version number, so that array is kept reverse-chronological.
 It validates against https://raw.githubusercontent.com/SideStore/sidestore-source-types/main/schema.json
 — note `versions[]` is required and the old top-level `version`/`downloadURL` fields are deprecated.
+Each publish also writes a `news[]` entry (`release.sh` does this unconditionally — keep it; News is
+the one surface that shows a release without depending on version comparison).
+
+Two dead ends, both already hit, so don't re-derive them:
+
+- **There is no `buildVersion` field.** The schema has zero mentions of it and sets
+  `additionalProperties: false`, so adding one makes the file schema-*invalid* — even though
+  SideStore's decoder does read the key (`AltStore/Core/Model/AppVersion.swift`). A missing update is
+  not caused by its absence.
+- **SideStore issue #975 is closed** (milestone 0.7.0), not open against 0.6.4. Its confirmed
+  workaround — remove and re-add the source — is no longer the default explanation. Re-check the
+  current SideStore release notes before citing it.
 
 - **Never sign twice, and clear `.zsign_cache` first.** zsign caches per-file signature data in the CWD;
   a stale entry makes it emit `Info.plist=not bound` and the bundle fails verification with
@@ -69,11 +81,38 @@ It validates against https://raw.githubusercontent.com/SideStore/sidestore-sourc
   confirm the SHA-256 of the asset downloaded back from the release. A `gh release upload` has silently
   no-opped before.
 
+### When an update doesn't appear, diagnose before editing `apps.json`
+
+Both gates below live in `hasUpdate` (`AltStore/Core/Model/InstalledApp.swift:193`), which opens with
+`guard isActive, let storeApp = self.storeApp, let latestVersion = storeApp.latestSupportedVersion`.
+When any one fails it returns `false` **structurally** — a perfectly correct `apps.json` still shows
+no update. Verify against the *served* file (`gh api repos/:owner/:repo/contents/apps.json`), not the
+local copy, before assuming the metadata is at fault.
+
+- **An app installed by tapping the IPA can never be offered an update.** `storeApp` is only set when
+  the app was installed *from this source*. Tap-installing leaves it nil and `isSideloaded` true, so
+  `hasUpdate` is `false` forever. Note this is *not* a filename problem — SideStore reads the bundle ID
+  from the IPA's `Info.plist`, not the asset name (`AppManager.readAppMetadata`). Recovery is to
+  remove and re-add the source, then install from Browse.
+- **`minOSVersion` gates update eligibility, not just installation.**
+  `latestSupportedVersion` is `versions.first(where: \.isSupported)` (`StoreApp.setVersions`), so on a
+  device below our `minOSVersion` *every* entry is filtered out and it becomes nil — again a silent
+  `hasUpdate == false`. We generate `"26.0"` from the built IPA, so expect this on any pre-26 device.
+
 ## Testing
 
 - Unit tests in `Glance/GlanceTests/`
 - UI tests in `Glance/GlanceUITests/`
 - Test file naming: `<Feature>Tests.swift`
+- **Never run tests unless explicitly asked.** Do not invoke `scripts/test-area.sh`,
+  `make test-quick`, `make test-full`, or a bare `xcodebuild test` on your own initiative
+  — not as a pre-commit check, not to "confirm a change works", not as part of cleanup or
+  verification. A single suite costs ~30s and a full run stalls ~10min, so an unrequested run
+  burns 10 minutes of wall time and can leave leaked parallel-testing clones behind in
+  `~/Library/Developer/XCTestDevices`. Write tests when asked, then stop and report what changed.
+  Compiling with `xcodebuild build` is still fine and does not run any test case.
+- Builds, `xcrun simctl` inspection, and file reads are fine unprompted. If a task seems to need a
+  test run to be trustworthy, say so and ask rather than starting one.
 
 ## Git Conventions
 
