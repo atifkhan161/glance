@@ -54,7 +54,7 @@ struct OpenRouterModelPicker: View {
                 }
                 .buttonStyle(.plain)
 
-                Text("Used for cloud article summaries and Smart Search. Free models cost nothing.")
+                Text("OpenRouter picks the fastest available free model per request. Free models cost nothing.")
                     .font(Theme.Fonts.manrope(11))
                     .foregroundStyle(Theme.Colors.textMuted)
             }
@@ -158,7 +158,7 @@ struct OpenRouterModelListView: View {
                     Text("Auto (Free Router)")
                         .font(Theme.Fonts.manrope(14, weight: .medium))
                         .foregroundStyle(Theme.Colors.textPrimary)
-                    Text("OpenRouter picks a free model per request")
+                    Text("OpenRouter picks the fastest available free model")
                         .font(Theme.Fonts.manrope(11))
                         .foregroundStyle(Theme.Colors.textMuted)
                 }

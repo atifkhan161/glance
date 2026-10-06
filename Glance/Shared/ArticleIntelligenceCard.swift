@@ -16,7 +16,17 @@ struct ArticleIntelligenceCard: View {
     @State private var accumulator = ArticleSummaryAccumulator(sectionLabels: [])
     @State private var isGenerating = true
     @State private var isExpanded = true
-    @State private var useCloudAI = false
+    @State private var useCloudAI: Bool
+
+    /// Seeds the backend from the user's default. The toolbar toggle below stays a
+    /// per-article override and deliberately does not write back to the setting —
+    /// flipping one article to cloud shouldn't silently flip every future article.
+    init(content: String, type: ArticleIntelligenceType, accentColor: Color) {
+        self.content = content
+        self.type = type
+        self.accentColor = accentColor
+        _useCloudAI = State(initialValue: SettingsStore().cloudSummariesByDefault)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {

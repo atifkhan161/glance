@@ -22,6 +22,8 @@ struct ApiKeysSection: View {
 
                 OpenRouterModelPicker()
 
+                cloudSummaryToggle
+
                 footballDataBlock
                 saveBlock
             }
@@ -109,6 +111,25 @@ struct ApiKeysSection: View {
                 Text("3.8 Flash").tag("gemini-3.8-flash")
             }
             .pickerStyle(.segmented)
+        }
+    }
+
+    /// Placed directly under the OpenRouter key it depends on, so the disabled state
+    /// points at the field that would fix it. Defaulting it on would be wrong: cloud
+    /// needs a key the user may not have, and is slower than the on-device model.
+    private var cloudSummaryToggle: some View {
+        let hasKey = settingsStore.isStored(.openRouter)
+
+        return SettingsRow(
+            "Use cloud summaries by default",
+            subtitle: hasKey
+                ? "Summaries start on OpenRouter instead of on-device Apple Intelligence."
+                : "Add an OpenRouter API key above to enable this.",
+            icon: "cloud.fill"
+        ) {
+            Toggle("", isOn: $settingsStore.cloudSummariesByDefault)
+                .labelsHidden()
+                .disabled(!hasKey)
         }
     }
 

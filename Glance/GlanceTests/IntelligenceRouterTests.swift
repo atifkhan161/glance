@@ -58,4 +58,25 @@ struct IntelligenceRouterTests {
         #expect(decoded != nil)
         #expect(decoded?.headToHead == nil)
     }
+
+    @Test("A missing cloud key fails visibly rather than ending empty")
+    func cloudFailureIsVisible() async {
+        // Without a stored key the router yields a `.modelUnavailable` event. The
+        // point is that it fails *visibly*, not which particular failure it is.
+        let stream = await IntelligenceRouter().streamCloudArticleIntelligence(
+            content: "Article body",
+            type: .generic
+        )
+
+        var sawFailure = false
+        for await event in stream {
+            if case .failed(let failure) = event {
+                sawFailure = true
+                #expect(!failure.isSilent)
+                #expect(!failure.message.isEmpty)
+            }
+        }
+
+        #expect(sawFailure)
+    }
 }

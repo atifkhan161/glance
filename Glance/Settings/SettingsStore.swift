@@ -97,6 +97,14 @@ final class SettingsStore {
         set { defaults.set(newValue, forKey: "showAiIntel") }
     }
 
+    /// Which backend a new article summary starts on. `false` prefers on-device
+    /// Foundation Models and only reaches for OpenRouter when the user escalates,
+    /// which is also why the default is local — cloud needs a key and is slower.
+    var cloudSummariesByDefault: Bool {
+        get { defaults.object(forKey: "cloud_summaries_default") as? Bool ?? false }
+        set { defaults.set(newValue, forKey: "cloud_summaries_default") }
+    }
+
     // MARK: - Provider URLs
 
     var madridRSSURL: String {

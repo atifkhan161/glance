@@ -87,9 +87,19 @@ struct OpenRouterModelsResponse: Codable, Sendable {
 enum OpenRouterModelPreference {
     /// Picks a free model per request. Always valid, never appears in the catalog.
     static let freeRouterID = "openrouter/free"
-    /// The pre-picker default. A routing variant, so it is pinned in the UI rather
-    /// than listed, and must never trigger the unavailable-model fallback.
-    static let legacyDefaultID = "openrouter/free:floor"
+    /// The pre-picker default, pinned in the UI rather than listed.
+    ///
+    /// `openrouter/free` picks a free model *at random*, and free-tier throughput
+    /// spans roughly three orders of magnitude — some models run at 4k tok/s, others
+    /// at single digits, and some never produce output at all. The `:nitro` variant
+    /// ranks the free tier by measured throughput and routes to the fastest model
+    /// available, so this default is the difference between a summary in a couple of
+    /// seconds and a spinner that times out. `:floor` (the old default) sorts by
+    /// price instead, which picks the slowest provider every time.
+    ///
+    /// Must never trigger the unavailable-model fallback, because a routing variant
+    /// is deliberately absent from the catalog.
+    static let legacyDefaultID = "openrouter/free:nitro"
 
     private static let defaultsKey = "openrouter_model"
 

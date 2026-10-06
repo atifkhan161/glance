@@ -9,6 +9,12 @@ actor IntelligenceRouter {
     /// snippets were already capped; the article paths were not.
     private let maxArticleChars = 12_000
 
+    /// The cloud prompts run over a remote model whose throughput is the bottleneck,
+    /// so a smaller slice of the article is worth more than the extra context: the
+    /// tail of a 12k-character article rarely changes the 280-word summary, and
+    /// every token of it is prefill the user waits through.
+    private let maxCloudArticleChars = 8_000
+
     init(
         foundationModels: FoundationModelsClient = FoundationModelsClient(),
         geminiClient: any GeminiClientProtocol = GeminiClient(),
@@ -107,19 +113,43 @@ actor IntelligenceRouter {
                     )
                     let stream = client.stream(
                         systemPrompt: type.systemPrompt,
-                        userPrompt: truncate(content, maxChars: maxArticleChars),
+                        userPrompt: truncate(content, maxChars: maxCloudArticleChars),
                         apiKey: apiKey,
                         temperature: 0.4,
                         model: model
                     )
+
+                    let started = Date.now
+                    var firstDeltaMs: Int?
+                    var charCount = 0
+
                     for try await delta in stream {
+                        if firstDeltaMs == nil { firstDeltaMs = Int(Date.now.timeIntervalSince(started) * 1000) }
+                        charCount += delta.count
                         continuation.yield(.delta(delta))
+                    }
+
+                    let totalMs = Int(Date.now.timeIntervalSince(started) * 1000)
+                    NSLog(
+                        "[AI] cloud %@ first=%@ms total=%dms chars=%d",
+                        model,
+                        firstDeltaMs.map { "\($0)" } ?? "none",
+                        totalMs,
+                        charCount
+                    )
+
+                    // A stream that ends without ever producing a token is a failure,
+                    // not an empty article. Finishing cleanly here made the UI fall
+                    // through to "No summary was generated", hiding the real cause.
+                    if firstDeltaMs == nil {
+                        continuation.yield(.failed(.unknown("The cloud model returned an empty response.")))
                     }
                     continuation.finish()
                 } catch is CancellationError {
                     continuation.yield(.failed(.cancelled))
                     continuation.finish()
                 } catch {
+                    NSLog("[AI] cloud failed: %@", "\(error)")
                     continuation.yield(.failed(Self.mapCloudError(error)))
                     continuation.finish()
                 }

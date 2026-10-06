@@ -165,3 +165,52 @@ struct SettingsStoreKeyPersistenceTests {
         }
     }
 }
+
+/// Separate suite because these write to `UserDefaults.standard` rather than the
+/// Keychain, and because the toggle is read by the summary card rather than the
+/// key forms. Every test restores the key it touched — the shared defaults object
+/// is a documented source of cross-suite interference in full/parallel runs.
+@Suite("Cloud summary default")
+@MainActor
+struct CloudSummaryDefaultTests {
+    private let defaultsKey = "cloud_summaries_default"
+
+    private func reset() {
+        UserDefaults.standard.removeObject(forKey: defaultsKey)
+    }
+
+    @Test("Defaults to on-device, not cloud")
+    func defaultsToLocal() {
+        reset()
+        defer { reset() }
+        #expect(!SettingsStore(keychain: InMemoryKeychain()).cloudSummariesByDefault)
+    }
+
+    @Test("Turning it on survives a fresh store instance")
+    func cloudDefaultPersists() {
+        reset()
+        defer { reset() }
+
+        let store = SettingsStore(keychain: InMemoryKeychain())
+        store.cloudSummariesByDefault = true
+
+        let reopened = SettingsStore(keychain: InMemoryKeychain())
+        #expect(reopened.cloudSummariesByDefault)
+    }
+
+    @Test("Turning it back off is stored, not treated as unset")
+    func explicitFalseIsStored() {
+        reset()
+        defer { reset() }
+
+        let store = SettingsStore(keychain: InMemoryKeychain())
+        store.cloudSummariesByDefault = true
+        store.cloudSummariesByDefault = false
+
+        // Guards the `object(forKey:) as? Bool` cast: a plain `bool(forKey:)`
+        // cannot tell a stored `false` from a missing key, and the default is
+        // also `false`, so this only catches a regression to a truthy default.
+        #expect(UserDefaults.standard.object(forKey: defaultsKey) != nil)
+        #expect(!SettingsStore(keychain: InMemoryKeychain()).cloudSummariesByDefault)
+    }
+}
