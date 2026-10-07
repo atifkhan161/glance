@@ -196,6 +196,9 @@ struct OpenRouterModelListView: View {
                     model.priceLabel,
                     color: model.isFree ? Theme.Colors.success : Theme.Colors.cardAmber
                 )
+                if model.thinksByDefault {
+                    badge("THINKS", color: Theme.Colors.textMuted)
+                }
                 checkmark(matching: model.id)
             }
         }

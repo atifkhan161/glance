@@ -49,11 +49,19 @@ private struct OpenRouterStreamErrorFrame: Decodable {
 }
 
 struct OpenRouterClient: Sendable {
-    /// The summary prompts budget 280–350 words (~450 tokens) with room for the
-    /// `**bold**` markup, so 700 is generous. The old 2048 let a slow free model
-    /// ramble for four times the work it was asked to do — and generation time is
-    /// decode-bound, so the overshoot is paid in direct proportion to latency.
-    private static let maxTokens = 700
+    /// `max_tokens` is a *ceiling*, not a target: generation stops when the model
+    /// emits its stop token, so raising this does not make a model ramble and costs
+    /// nothing when reasoning is off.
+    ///
+    /// It has to leave real headroom, because reasoning tokens are drawn from this
+    /// same budget. Measured on `z-ai/glm-5.3` with a 400 ceiling and a trivial
+    /// "write a short Python function" prompt, a default-max reasoning model spent
+    /// 402 tokens thinking and returned `finish_reason: "length"` with empty
+    /// content — while still billing for the reasoning. Our prompts ask for
+    /// 280-350 words (~470 tokens) plus `**bold**` markup, so ~600 visible tokens
+    /// is a realistic ceiling. Anything below ~1000 truncates a summarisation
+    /// prompt the moment a model reasons first.
+    private static let maxTokens = 2048
 
     /// Attempts per request. Two is enough to ride out a single transport blip;
     /// the old three, combined with a 60s timeout, let one bad request occupy the
@@ -75,7 +83,8 @@ struct OpenRouterClient: Sendable {
         userPrompt: String,
         apiKey: String,
         temperature: Double = 0.7,
-        model: String = OpenRouterModelPreference.legacyDefaultID
+        model: String = OpenRouterModelPreference.legacyDefaultID,
+        disableReasoning: Bool = false
     ) async throws -> String {
         let request = makeRequest(
             systemPrompt: systemPrompt,
@@ -83,6 +92,7 @@ struct OpenRouterClient: Sendable {
             apiKey: apiKey,
             temperature: temperature,
             model: model,
+            disableReasoning: disableReasoning,
             stream: false
         )
 
@@ -121,7 +131,8 @@ struct OpenRouterClient: Sendable {
         userPrompt: String,
         apiKey: String,
         temperature: Double = 0.4,
-        model: String = OpenRouterModelPreference.legacyDefaultID
+        model: String = OpenRouterModelPreference.legacyDefaultID,
+        disableReasoning: Bool = false
     ) -> AsyncThrowingStream<String, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
@@ -132,6 +143,7 @@ struct OpenRouterClient: Sendable {
                         apiKey: apiKey,
                         temperature: temperature,
                         model: model,
+                        disableReasoning: disableReasoning,
                         stream: true
                     )
                     let bytes = try await openStream(request)
@@ -195,6 +207,7 @@ struct OpenRouterClient: Sendable {
         apiKey: String,
         temperature: Double,
         model: String,
+        disableReasoning: Bool,
         stream: Bool
     ) -> URLRequest {
         var request = URLRequest(url: URL(string: "https://openrouter.ai/api/v1/chat/completions")!)
@@ -213,6 +226,14 @@ struct OpenRouterClient: Sendable {
             "temperature": temperature,
             "max_tokens": Self.maxTokens,
         ]
+        if disableReasoning {
+            // Summarisation gets no quality benefit from a reasoning trace, and the
+            // deltas arrive in `delta.reasoning`, which the decoder ignores — so the
+            // user watches a skeleton for the whole trace and then sees the answer
+            // arrive at once. Only sent for models that report reasoning and do not
+            // require it; a mandatory-reasoning model rejects this with a 400.
+            body["reasoning"] = ["enabled": false]
+        }
         if stream {
             body["stream"] = true
         }

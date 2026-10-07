@@ -108,15 +108,14 @@ actor IntelligenceRouter {
                 }
                 do {
                     let client = OpenRouterClient()
-                    let model = OpenRouterModelPreference.resolve(
-                        availableIDs: await OpenRouterModelPreference.cachedAvailableIDs()
-                    )
+                    let request = await OpenRouterModelPreference.resolveRequest()
                     let stream = client.stream(
                         systemPrompt: type.systemPrompt,
                         userPrompt: truncate(content, maxChars: maxCloudArticleChars),
                         apiKey: apiKey,
                         temperature: 0.4,
-                        model: model
+                        model: request.id,
+                        disableReasoning: request.disableReasoning
                     )
 
                     let started = Date.now
@@ -131,8 +130,9 @@ actor IntelligenceRouter {
 
                     let totalMs = Int(Date.now.timeIntervalSince(started) * 1000)
                     NSLog(
-                        "[AI] cloud %@ first=%@ms total=%dms chars=%d",
-                        model,
+                        "[AI] cloud %@ rsn-off=%@ first=%@ms total=%dms chars=%d",
+                        request.id,
+                        request.disableReasoning ? "yes" : "no",
                         firstDeltaMs.map { "\($0)" } ?? "none",
                         totalMs,
                         charCount

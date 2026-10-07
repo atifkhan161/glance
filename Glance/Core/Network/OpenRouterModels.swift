@@ -3,25 +3,49 @@ import Foundation
 /// Shared by the loader (which writes it) and the preference (which reads it).
 let openRouterModelsCacheKey = "cache_openrouter_models"
 
+/// A model's reasoning capability, as reported by `/api/v1/models`. Absent on
+/// non-reasoning models and on routers, which is itself the signal that there is
+/// nothing to disable.
+struct OpenRouterReasoning: Codable, Hashable, Sendable {
+    var mandatory: Bool?
+    var defaultEnabled: Bool?
+    var supportedEfforts: [String]?
+
+    enum CodingKeys: String, CodingKey {
+        case mandatory
+        case defaultEnabled = "default_enabled"
+        case supportedEfforts = "supported_efforts"
+    }
+}
+
 struct OpenRouterModel: Identifiable, Codable, Hashable, Sendable {
     let id: String
     let name: String
     let contextLength: Int
     let promptPrice: String
     let completionPrice: String
+    let reasoning: OpenRouterReasoning?
 
     enum CodingKeys: String, CodingKey {
-        case id, name
+        case id, name, reasoning
         case contextLength = "context_length"
         case promptPrice = "pricing"
     }
 
-    init(id: String, name: String, contextLength: Int, promptPrice: String, completionPrice: String) {
+    init(
+        id: String,
+        name: String,
+        contextLength: Int,
+        promptPrice: String,
+        completionPrice: String,
+        reasoning: OpenRouterReasoning? = nil
+    ) {
         self.id = id
         self.name = name
         self.contextLength = contextLength
         self.promptPrice = promptPrice
         self.completionPrice = completionPrice
+        self.reasoning = reasoning
     }
 
     init(from decoder: Decoder) throws {
@@ -32,6 +56,7 @@ struct OpenRouterModel: Identifiable, Codable, Hashable, Sendable {
         let pricing = try container.decodeIfPresent(Pricing.self, forKey: .promptPrice)
         promptPrice = pricing?.prompt ?? "0"
         completionPrice = pricing?.completion ?? "0"
+        reasoning = try container.decodeIfPresent(OpenRouterReasoning.self, forKey: .reasoning)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -43,11 +68,32 @@ struct OpenRouterModel: Identifiable, Codable, Hashable, Sendable {
             Pricing(prompt: promptPrice, completion: completionPrice),
             forKey: .promptPrice
         )
+        // Round-trips on purpose: the catalog is cached for 24h, and a list encoded
+        // before this field existed would otherwise decode with `reasoning == nil`
+        // and silently leave reasoning switched on.
+        try container.encodeIfPresent(reasoning, forKey: .reasoning)
     }
 
     private struct Pricing: Codable, Hashable, Sendable {
         let prompt: String
         let completion: String
+    }
+
+    /// The model reasons unless told otherwise. Free summarisation models that do
+    /// this spend tokens and seconds on a trace whose deltas we discard.
+    var thinksByDefault: Bool {
+        reasoning?.defaultEnabled == true
+    }
+
+    /// A mandatory-reasoning model rejects a disable request outright, so this
+    /// has to gate the suppression rather than merely inform it.
+    var reasoningIsMandatory: Bool {
+        reasoning?.mandatory == true
+    }
+
+    /// Whether it is safe to send `reasoning: {enabled: false}` for this model.
+    var canDisableReasoning: Bool {
+        reasoning != nil && !reasoningIsMandatory
     }
 
     /// Priced by `pricing` rather than the `:free` suffix: some zero-cost entries
@@ -112,25 +158,40 @@ enum OpenRouterModelPreference {
         selected == legacyDefaultID || selected == freeRouterID
     }
 
-    /// The id to actually send. A stored model that has rotated out of the catalog
-    /// degrades to the free router instead of failing the request.
-    ///
-    /// An empty `availableIDs` means the catalog has not been fetched yet, so the
-    /// stored choice is trusted — otherwise a cold cache would silently downgrade
-    /// every request to the free router.
-    static func resolve(availableIDs: Set<String>) -> String {
-        let model = selected
-        guard !isPinnedRouter, !availableIDs.isEmpty else { return model }
-        return availableIDs.contains(model) ? model : freeRouterID
-    }
-
-    /// The available ids from cache, without hitting the network. Empty when the
-    /// catalog was never fetched, which `resolve(availableIDs:)` treats as unknown.
-    static func cachedAvailableIDs() async -> Set<String> {
+    /// The cached catalog, without hitting the network. Empty when the
+    /// catalog was never fetched, which `resolveRequest()` treats as unknown.
+    static func cachedModels() async -> [OpenRouterModel] {
         guard let envelope: CacheEnvelope<[OpenRouterModel]> = await CacheStore.shared.load(openRouterModelsCacheKey),
               !envelope.isExpired
         else { return [] }
-        return Set(envelope.data.map { $0.id })
+        return envelope.data
+    }
+
+    /// What to actually request: the model id, and whether its reasoning trace
+    /// should be suppressed.
+    struct ResolvedRequest: Sendable, Equatable {
+        let id: String
+        let disableReasoning: Bool
+    }
+
+    /// One cache read instead of two, because the id and the reasoning flag both
+    /// come from the same catalog entry.
+    ///
+    /// An empty catalog means the models have never been fetched, so the stored
+    /// choice is trusted and its defaults are left alone — otherwise a cold cache
+    /// would downgrade every request to the free router and leave reasoning on.
+    static func resolveRequest() async -> ResolvedRequest {
+        let models = await cachedModels()
+        let selectedID = selected
+        guard !models.isEmpty else {
+            return ResolvedRequest(id: selectedID, disableReasoning: false)
+        }
+
+        let match = models.first { $0.id == selectedID }
+        let id = isPinnedRouter || match != nil ? selectedID : freeRouterID
+        let disableReasoning = match?.canDisableReasoning == true && match?.thinksByDefault == true
+
+        return ResolvedRequest(id: id, disableReasoning: disableReasoning)
     }
 }
 
@@ -226,7 +287,10 @@ final class OpenRouterModelsLoader {
     /// - OpenRouter encodes "no real price" as `-1` (Jev Router, Switchyard, the
     ///   `auto` family). Left in, those sort to the top of the paid section and
     ///   render as `-$1000000.00/Mtok`.
-    static func trim(_ models: [OpenRouterModel]) -> [OpenRouterModel] {
+    ///
+    /// `nonisolated` because it is a pure function of its input; the loader itself
+    /// is `@MainActor` because it owns observable state.
+    nonisolated static func trim(_ models: [OpenRouterModel]) -> [OpenRouterModel] {
         models.filter { model in
             guard model.id.contains("/"), !model.id.hasPrefix("openrouter/") else { return false }
             return model.hasRealPrice

@@ -53,14 +53,14 @@ struct SmartSearchPipeline: Sendable {
         (1) the key finding, (2) why it matters, (3) any consensus or disagreement. \
         Use **bold** for critical facts. Be direct — skip introductions and opinions.
         """
+        let resolved = await OpenRouterModelPreference.resolveRequest()
         let summary = try await openRouter.complete(
             systemPrompt: systemPrompt,
             userPrompt: "Query: \(query)\n\nSearch results:\n\(combinedHighlights)",
             apiKey: openRouterKey,
             temperature: 0.4,
-            model: OpenRouterModelPreference.resolve(
-                availableIDs: await OpenRouterModelPreference.cachedAvailableIDs()
-            )
+            model: resolved.id,
+            disableReasoning: resolved.disableReasoning
         )
 
         await cache.save(cacheKey, envelope: CacheEnvelope(data: summary, ttlMs: 24 * 3_600 * 1000))
