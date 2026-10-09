@@ -12,6 +12,13 @@
 
 **Prerequisite:** Plan A (`docs/superpowers/plans/2026-10-08-error-logging-core.md`) must be complete. This plan consumes `AppLog.record(_:subsystem:message:detail:)`, `AppLog.record(_:subsystem:message:error:)`, and `LogEntry`.
 
+> **Execution deviation (2026-10-08, human partner's explicit instruction):** this plan was
+> authored TDD-first but is being executed **without** TDD. Test files are **not** written,
+> and no test suite is run. Verification is **`xcodebuild build` succeeding only**. This also
+> matches `AGENTS.md`: "Never run tests unless explicitly asked." Every rule the tests were
+> written to pin still applies to the *implementation* — the tests were the verification
+> mechanism, not the design.
+
 ## Global Constraints
 
 - Build: `cd Glance && xcodebuild -project Glance.xcodeproj -scheme Glance -destination 'platform=iOS Simulator,id=4ABF9BBF-AB35-4739-B282-0EE19B2CE023,OS=26.5' CODE_SIGNING_ALLOWED=NO build 2>&1 | grep -E "error:|BUILD"`
