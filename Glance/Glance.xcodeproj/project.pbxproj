@@ -12,6 +12,12 @@
 		AA000000000000000000F103 /* JetBrainsMono-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F003 /* JetBrainsMono-SemiBold.ttf */; };
 		AA000000000000000000F104 /* JetBrainsMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F004 /* JetBrainsMono-Bold.ttf */; };
 		AA000000000000000000F105 /* JetBrainsMono-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F005 /* JetBrainsMono-ExtraBold.ttf */; };
+		EF8E500FD4BDC8DE51AF6042 /* LogExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF7E26FAE1699D72301584A /* LogExport.swift */; };
+		465F5F415068A1C15DC79F2D /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D42CA7C9D54F3A93E8E084C /* AppLog.swift */; };
+		BF209442BFF10A50C84081C1 /* LogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03733FFEBABE05BF8107A97 /* LogStore.swift */; };
+		31A0897EE8F159A194001F46 /* ErrorLogDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54EB5A8B226AA98539663622 /* ErrorLogDetail.swift */; };
+		2586E89850C5BFCF5A1A6AA9 /* LogLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F38610D9E3B5ADBE4F9588 /* LogLevel.swift */; };
+		E0A9A0E6255ACE027AF18BA8 /* LogEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB3D3CB9E72C65B94AE87243 /* LogEntry.swift */; };
 		0293474C8BAA89D4AD8F170F /* TimeFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0F51D16A6D39FCFAB1EE51 /* TimeFormat.swift */; };
 		5857340F517F43F189F6A9C1 /* CardOrderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89C539EE7B074787A42B5258 /* CardOrderTests.swift */; };
 		A1B2C3D400020001AAAA0002 /* GenericRSSClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D400020001AAAA0001 /* GenericRSSClientTests.swift */; };
@@ -164,6 +170,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7CF7E26FAE1699D72301584A /* LogExport.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = LogExport.swift; sourceTree = "<group>"; };
+		5D42CA7C9D54F3A93E8E084C /* AppLog.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
+		C03733FFEBABE05BF8107A97 /* LogStore.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = LogStore.swift; sourceTree = "<group>"; };
+		54EB5A8B226AA98539663622 /* ErrorLogDetail.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ErrorLogDetail.swift; sourceTree = "<group>"; };
+		D1F38610D9E3B5ADBE4F9588 /* LogLevel.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = LogLevel.swift; sourceTree = "<group>"; };
+		CB3D3CB9E72C65B94AE87243 /* LogEntry.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = LogEntry.swift; sourceTree = "<group>"; };
 		AA000000000000000000F001 /* JetBrainsMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Regular.ttf"; sourceTree = "<group>"; };
 		AA000000000000000000F002 /* JetBrainsMono-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Medium.ttf"; sourceTree = "<group>"; };
 		AA000000000000000000F003 /* JetBrainsMono-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-SemiBold.ttf"; sourceTree = "<group>"; };
@@ -460,9 +472,23 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		EA5535442534EDCBCE568AD8 /* Logging */ = {
+			isa = PBXGroup;
+			children = (
+				7CF7E26FAE1699D72301584A /* LogExport.swift */,
+				5D42CA7C9D54F3A93E8E084C /* AppLog.swift */,
+				C03733FFEBABE05BF8107A97 /* LogStore.swift */,
+				54EB5A8B226AA98539663622 /* ErrorLogDetail.swift */,
+				D1F38610D9E3B5ADBE4F9588 /* LogLevel.swift */,
+				CB3D3CB9E72C65B94AE87243 /* LogEntry.swift */,
+			);
+			path = Logging;
+			sourceTree = "<group>";
+		};
 		912CA63D0B9F8BB79753CF7F /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				EA5535442534EDCBCE568AD8 /* Logging */,
 				B295E612DF90E3CB44228365 /* Cache */,
 				18FEA4FE7CA2EB551AA1EB0B /* Network */,
 				FEAF5D8F61146446AB2C831A /* Intelligence */,
@@ -876,6 +902,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EF8E500FD4BDC8DE51AF6042 /* LogExport.swift in Sources */,
+				465F5F415068A1C15DC79F2D /* AppLog.swift in Sources */,
+				BF209442BFF10A50C84081C1 /* LogStore.swift in Sources */,
+				31A0897EE8F159A194001F46 /* ErrorLogDetail.swift in Sources */,
+				2586E89850C5BFCF5A1A6AA9 /* LogLevel.swift in Sources */,
+				E0A9A0E6255ACE027AF18BA8 /* LogEntry.swift in Sources */,
 				2EA56F63353461298074E76E /* GlanceApp.swift in Sources */,
 				5185E73DD56F4829173AC42B /* AppState.swift in Sources */,
 				58B6F4CDB81BADC61AB95F87 /* ContentView.swift in Sources */,
