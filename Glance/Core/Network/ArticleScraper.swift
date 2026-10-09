@@ -5,16 +5,15 @@ protocol ArticleScraperProtocol: Sendable {
 }
 
 struct ArticleScraper: ArticleScraperProtocol, Sendable {
+    private static let transport = HTTPTransport(subsystem: "scraper")
+
     func scrape(urlString: String) async throws -> String {
         guard let url = URL(string: urlString) else {
-            throw GlanceError.networkError("Invalid article URL: \(urlString)")
+            throw GlanceError.networkError("Invalid article URL")
         }
-        let (data, response) = try await URLSession.shared.data(from: url)
-        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-            throw GlanceError.networkError("Article fetch failed for \(urlString)")
-        }
+        let (data, _) = try await Self.transport.data(for: URLRequest(url: url), hint: "article")
         guard let html = String(data: data, encoding: .utf8) else {
-            throw GlanceError.networkError("Unable to decode article HTML")
+            throw GlanceError.decodingError("Unable to decode article HTML")
         }
         return Self.extractContent(from: html)
     }

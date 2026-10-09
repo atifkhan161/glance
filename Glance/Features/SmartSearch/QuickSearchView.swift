@@ -212,7 +212,13 @@ struct QuickSearchView: View {
                 state = .results(results)
                 generateSummary(for: results)
             } catch {
-                state = .error(error.localizedDescription)
+                await AppLog.shared.record(
+                    .error,
+                    subsystem: "search",
+                    message: "quick search failed",
+                    error: error
+                )
+                state = .error(error.logDetail ?? error.localizedDescription)
             }
         }
     }
@@ -230,7 +236,15 @@ struct QuickSearchView: View {
                     aggregatedSummary = summary
                 }
             } catch {
-                // Summary is optional — silently ignore errors
+                // Summary is optional: the results stay usable without it, so this
+                // never surfaced to the user. That silence is exactly why it has to
+                // be recorded explicitly.
+                await AppLog.shared.record(
+                    .error,
+                    subsystem: "search",
+                    message: "summary generation failed for \(currentSearchQuery)",
+                    error: error
+                )
             }
             isSummarizing = false
         }

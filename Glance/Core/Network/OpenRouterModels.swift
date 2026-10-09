@@ -263,8 +263,14 @@ final class OpenRouterModelsLoader {
                 envelope: CacheEnvelope(data: trimmed, ttlMs: Int64(cache.ttl(for: openRouterModelsCacheKey) * 1000))
             )
         } catch {
+            await AppLog.shared.record(
+                .error,
+                subsystem: "openrouter",
+                message: "model list fetch failed",
+                error: error
+            )
             // A cached list beats an empty picker, so keep whatever loaded already.
-            if models.isEmpty { loadError = error.localizedDescription }
+            if models.isEmpty { loadError = error.logDetail ?? error.localizedDescription }
         }
     }
 
@@ -310,13 +316,8 @@ struct OpenRouterModelsClient: Sendable {
         request.httpMethod = "GET"
         request.addValue("Glance-iOS", forHTTPHeaderField: "HTTP-Referer")
 
-        let (data, response) = try await session.data(for: request)
-        guard let http = response as? HTTPURLResponse else {
-            throw GlanceError.networkError("No HTTP response")
-        }
-        guard http.statusCode == 200 else {
-            throw GlanceError.httpStatus(http.statusCode)
-        }
+        let transport = HTTPTransport(session: session, subsystem: "openrouter")
+        let (data, _) = try await transport.data(for: request, hint: "model list")
         return try JSONDecoder().decode(OpenRouterModelsResponse.self, from: data).data
     }
 }

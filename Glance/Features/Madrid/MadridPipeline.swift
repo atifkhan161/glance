@@ -121,7 +121,12 @@ struct MadridPipeline: Sendable {
             await cache.save("cache_madrid", envelope: CacheEnvelope(data: data, ttlMs: 24 * 3_600_000))
             return .ready(data: data)
         } catch {
-            print("[MadridPipeline] API-Sports fetch failed: \(error)")
+            await AppLog.shared.record(
+                .error,
+                subsystem: "madrid",
+                message: "API-Sports fetch failed for \(teamName), falling back to Exa",
+                error: error
+            )
             return await refreshWithExaFallback(settings: settings, teamName: teamName)
         }
     }

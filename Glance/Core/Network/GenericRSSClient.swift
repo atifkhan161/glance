@@ -6,20 +6,22 @@ struct RSSFeedInfo: Sendable {
 }
 
 struct GenericRSSClient: Sendable {
+    private static let transport = HTTPTransport(subsystem: "rss")
+
     func fetchArticles(from urlString: String) async throws -> [MMArticle] {
         guard let url = URL(string: urlString) else {
-            throw GlanceError.networkError("Invalid RSS URL: \(urlString)")
+            throw GlanceError.networkError("Invalid RSS URL")
         }
-        let (data, _) = try await URLSession.shared.data(from: url)
+        let (data, _) = try await Self.transport.data(for: URLRequest(url: url), hint: "articles")
         let parser = GenericRSSParser()
         return parser.parse(data: data)
     }
 
     func fetchFeedInfo(from urlString: String) async throws -> RSSFeedInfo {
         guard let url = URL(string: urlString) else {
-            throw GlanceError.networkError("Invalid RSS URL: \(urlString)")
+            throw GlanceError.networkError("Invalid RSS URL")
         }
-        let (data, _) = try await URLSession.shared.data(from: url)
+        let (data, _) = try await Self.transport.data(for: URLRequest(url: url), hint: "feed info")
         let parser = GenericRSSParser()
         let (title, articles) = parser.parseWithFeedTitle(data: data)
         return RSSFeedInfo(title: title, articles: articles)

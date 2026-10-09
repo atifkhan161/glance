@@ -7,25 +7,27 @@ protocol ScrapedDuckClientProtocol: Sendable {
 }
 
 struct ScrapedDuckClient: ScrapedDuckClientProtocol, Sendable {
+    private static let transport = HTTPTransport(subsystem: "duckduckgo")
+
     func fetchRaids(raidsURL: String) async throws -> [PoGoRaid] {
         guard let url = URL(string: raidsURL) else {
-            throw GlanceError.networkError("Invalid raids URL: \(raidsURL)")
+            throw GlanceError.networkError("Invalid raids URL")
         }
-        let (data, _) = try await URLSession.shared.data(from: url)
+        let (data, _) = try await Self.transport.data(for: URLRequest(url: url), hint: "raids")
         return try JSONDecoder().decode([PoGoRaid].self, from: data)
     }
 
     func fetchEvents(eventsURL: String) async throws -> [PoGoEvent] {
         guard let url = URL(string: eventsURL) else {
-            throw GlanceError.networkError("Invalid events URL: \(eventsURL)")
+            throw GlanceError.networkError("Invalid events URL")
         }
-        let (data, _) = try await URLSession.shared.data(from: url)
+        let (data, _) = try await Self.transport.data(for: URLRequest(url: url), hint: "events")
         return try JSONDecoder().decode([PoGoEvent].self, from: data)
     }
 
     func fetchEventDescription(from url: String) async throws -> String {
         guard let url = URL(string: url) else { return "" }
-        let (html, _) = try await URLSession.shared.data(from: url)
+        let (html, _) = try await Self.transport.data(for: URLRequest(url: url), hint: "event description")
         guard let htmlString = String(data: html, encoding: .utf8) else { return "" }
 
         let pattern = #"<div class="event-description">\s*<p>(.*?)</p>\s*</div>"#

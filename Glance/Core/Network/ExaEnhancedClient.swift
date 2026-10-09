@@ -29,6 +29,8 @@ struct ExaEnhancedSearchRequest {
 }
 
 struct ExaEnhancedClient: Sendable {
+    private static let transport = HTTPTransport(subsystem: "exa")
+
     func search(request: ExaEnhancedSearchRequest, apiKey: String) async throws -> [ExaResult] {
         var urlRequest = URLRequest(url: URL(string: "https://api.exa.ai/search")!)
         urlRequest.timeoutInterval = 15
@@ -54,26 +56,19 @@ struct ExaEnhancedClient: Sendable {
         urlRequest.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         for attempt in 0 ..< 3 {
-            let (data, response) = try await URLSession.shared.data(for: urlRequest)
-            guard let http = response as? HTTPURLResponse else {
-                throw GlanceError.networkError("No HTTP response")
-            }
-            if http.statusCode == 200 {
+            do {
+                let (data, _) = try await Self.transport.data(for: urlRequest, hint: "enhanced search")
                 let decoded = try JSONDecoder().decode(ExaResponse.self, from: data)
                 return decoded.results
-            }
-            if http.statusCode == 429 {
+            } catch GlanceError.rateLimited(let retryAfter) {
                 let delay: UInt64
-                if let retryAfter = http.value(forHTTPHeaderField: "Retry-After"),
-                   let seconds = Double(retryAfter) {
-                    delay = UInt64(seconds * 1_000_000_000)
+                if let retryAfter {
+                    delay = UInt64(retryAfter * 1_000_000_000)
                 } else {
                     delay = attempt == 0 ? 1_000_000_000 : 2_000_000_000
                 }
                 try await Task.sleep(nanoseconds: delay)
-                continue
             }
-            throw GlanceError.networkError("Exa search failed with status \(http.statusCode)")
         }
         throw GlanceError.networkError("Exa search failed after retries")
     }
