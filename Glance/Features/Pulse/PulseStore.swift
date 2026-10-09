@@ -225,6 +225,8 @@ final class PulseStore {
         do {
             let data = try await githubPipeline.refresh(since: since)
             github = .ready(data: data, age: TimeFormat.age(from: data.timestamp))
+        } catch is CancellationError {
+            return
         } catch {
             await AppLog.shared.record(
                 .error,

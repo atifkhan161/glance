@@ -262,6 +262,8 @@ final class OpenRouterModelsLoader {
                 openRouterModelsCacheKey,
                 envelope: CacheEnvelope(data: trimmed, ttlMs: Int64(cache.ttl(for: openRouterModelsCacheKey) * 1000))
             )
+        } catch is CancellationError {
+            // The picker was dismissed mid-load; not a failure.
         } catch {
             await AppLog.shared.record(
                 .error,

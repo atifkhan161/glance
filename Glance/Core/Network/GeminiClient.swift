@@ -32,6 +32,7 @@ struct GeminiClient: GeminiClientProtocol, Sendable {
                 // Degradation is intentional here: callers treat nil as "no summary",
                 // so nothing throws. That also means no `catch` site above can see
                 // the failure — it has to be recorded explicitly.
+                if error is CancellationError { break }
                 await recordFailure(model: model, reason: error.logDetail ?? "\(error)")
                 let delay = backoffNanoseconds(for: error, attempt: attempt)
                 guard delay > 0, attempt < maxAttempts - 1 else { break }

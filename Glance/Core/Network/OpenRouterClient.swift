@@ -171,6 +171,8 @@ struct OpenRouterClient: Sendable {
                 else { throw GlanceError.rateLimited(retryAfter: retryAfter) }
                 try await Task.sleep(for: .seconds(delay))
             } catch is CancellationError {
+                // The transport throws a real CancellationError for a cancelled
+                // request, so this branch is reachable and retries never double-record.
                 throw CancellationError()
             } catch {
                 if attempt < Self.maxAttempts - 1 {

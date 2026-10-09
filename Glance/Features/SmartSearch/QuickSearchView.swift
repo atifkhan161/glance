@@ -211,6 +211,8 @@ struct QuickSearchView: View {
                 let results = try await pipeline.quickSearch(query: query, includeDomains: domains)
                 state = .results(results)
                 generateSummary(for: results)
+            } catch is CancellationError {
+                return
             } catch {
                 await AppLog.shared.record(
                     .error,
@@ -235,6 +237,8 @@ struct QuickSearchView: View {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     aggregatedSummary = summary
                 }
+            } catch is CancellationError {
+                // The user left before the summary finished; not a failure.
             } catch {
                 // Summary is optional: the results stay usable without it, so this
                 // never surfaced to the user. That silence is exactly why it has to

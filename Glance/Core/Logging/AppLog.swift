@@ -33,7 +33,7 @@ actor AppLog {
         message: String,
         detail: String? = nil
     ) async {
-        guard level >= minimumLevel else { return }
+        guard level <= minimumLevel else { return }
         await ensureLoaded()
         let entry = LogEntry(level: level, subsystem: subsystem, message: message, detail: detail)
         mirror.insert(entry, at: 0)

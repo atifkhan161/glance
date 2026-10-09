@@ -276,6 +276,40 @@ struct ArticleIntelligenceCard: View {
             accumulator.consume(event)
         }
         accumulator.finish()
+
+        // A cloud rate limit is the common failure, and it is not the user's fault:
+        // the free tier throttles hard. Falling back to the on-device model turns a
+        // blank card into a summary on hardware the user already has.
+        if useCloudAI, accumulator.failure != nil {
+            await fallBackToOnDevice(router: router)
+        }
+
         isGenerating = false
+    }
+
+    private func fallBackToOnDevice(router: IntelligenceRouter) async {
+        let status = await router.checkArticleIntelligenceAvailability()
+        guard status.available else { return }
+
+        // Read the cloud failure before the accumulator is reset below.
+        let cloudFailure = accumulator.failure
+
+        // Discard whatever the cloud produced before failing. Feeding a second
+        // stream into the same accumulator would concatenate partial cloud text
+        // with on-device text.
+        accumulator = ArticleSummaryAccumulator(type: type)
+
+        await AppLog.shared.record(
+            .info,
+            subsystem: "intelligence",
+            message: "cloud summary failed, falling back to on-device",
+            detail: cloudFailure?.isSilent == false ? cloudFailure?.message : nil
+        )
+
+        let fallback = await router.streamArticleIntelligence(content: content, type: type)
+        for await event in fallback {
+            accumulator.consume(event)
+        }
+        accumulator.finish()
     }
 }

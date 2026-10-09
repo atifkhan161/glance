@@ -93,6 +93,8 @@ import Foundation
                             }
                         }
                         continuation.finish()
+                    } catch is CancellationError {
+                        // Stream ended because the view went away; not a failure.
                     } catch {
                         await AppLog.shared.record(
                             .error,

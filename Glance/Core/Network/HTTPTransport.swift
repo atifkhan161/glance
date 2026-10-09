@@ -53,6 +53,10 @@ struct HTTPTransport: Sendable {
         } catch let error as GlanceError {
             throw error
         } catch let error as URLError {
+            if isCancellation(error) {
+                recordCancellation(request: request, hint: hint)
+                throw CancellationError()
+            }
             let mapped = GlanceError.networkError("\(subsystem): \(error.localizedDescription)")
             record(mapped, request: request, hint: hint)
             throw mapped
@@ -67,10 +71,21 @@ struct HTTPTransport: Sendable {
         } catch let error as GlanceError {
             throw error
         } catch let error as URLError {
+            if isCancellation(error) {
+                recordCancellation(request: request, hint: hint)
+                throw CancellationError()
+            }
             let mapped = GlanceError.networkError("\(subsystem): \(error.localizedDescription)")
             record(mapped, request: request, hint: hint)
             throw mapped
         }
+    }
+
+    /// A cancelled request is lifecycle, not failure: the user left the card, or a
+    /// refresh superseded an in-flight one. URLSession surfaces cancellation as a
+    /// `URLError`, so without this check every navigation away logs an error.
+    private func isCancellation(_ error: URLError) -> Bool {
+        error.code == .cancelled || Task.isCancelled
     }
 
     private func validated(
@@ -105,6 +120,14 @@ struct HTTPTransport: Sendable {
                 message: "\(identity): \(detail)",
                 detail: detail
             )
+        }
+    }
+
+    private func recordCancellation(request: URLRequest, hint: String?) {
+        let identity = request.url.map { URLRedactor.describe($0, hint: hint) } ?? hint ?? "unknown host"
+        let subsystem = subsystem
+        Task {
+            await AppLog.shared.record(.info, subsystem: subsystem, message: "\(identity): cancelled")
         }
     }
 }

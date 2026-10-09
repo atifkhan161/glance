@@ -120,6 +120,12 @@ struct MadridPipeline: Sendable {
 
             await cache.save("cache_madrid", envelope: CacheEnvelope(data: data, ttlMs: 24 * 3_600_000))
             return .ready(data: data)
+        } catch is CancellationError {
+            // The card was left mid-refresh. Callers switch exhaustively over
+            // MadridRefreshResult, and a cancelled refresh is not a degraded
+            // source, so re-surface whatever is already cached rather than
+            // inventing a state the UI would have to learn to handle.
+            return await refreshWithExaFallback(settings: settings, teamName: teamName)
         } catch {
             await AppLog.shared.record(
                 .error,

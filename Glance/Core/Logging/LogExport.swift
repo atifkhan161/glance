@@ -89,8 +89,13 @@ enum LogExport {
             .map { subsystem in
                 let group = grouped[subsystem] ?? []
                 let newest = group.first?.message ?? ""
-                let noun = group.count == 1 ? "error" : "errors"
-                return "- \(subsystem): \(group.count) \(noun) (last: \(sanitize(newest)))"
+                let errors = group.filter { $0.level == .error }.count
+                let notes = group.count - errors
+                var text = "- \(subsystem): \(errors) error\(errors == 1 ? "" : "s")"
+                if notes > 0 {
+                    text += ", \(notes) \(notes == 1 ? "note" : "notes")"
+                }
+                return "\(text) (last: \(sanitize(newest)))"
             }
     }
 

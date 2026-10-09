@@ -129,8 +129,9 @@ actor IntelligenceRouter {
                     }
 
                     let totalMs = Int(Date.now.timeIntervalSince(started) * 1000)
+                    let first = firstDeltaMs.map { "\($0)ms" } ?? "none"
                     let metrics = "cloud \(request.id) rsn-off=\(request.disableReasoning ? "yes" : "no") "
-                        + "first=\(firstDeltaMs.map { "\($0)" } ?? "none")ms "
+                        + "first=\(first) "
                         + "total=\(totalMs)ms chars=\(charCount)"
                     await AppLog.shared.record(.info, subsystem: "intelligence", message: metrics)
 
