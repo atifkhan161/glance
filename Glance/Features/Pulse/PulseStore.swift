@@ -226,11 +226,16 @@ final class PulseStore {
             let data = try await githubPipeline.refresh(since: since)
             github = .ready(data: data, age: TimeFormat.age(from: data.timestamp))
         } catch {
-            print("[PulseStore] GitHub refresh failed: \(error)")
+            await AppLog.shared.record(
+                .error,
+                subsystem: "pulse",
+                message: "GitHub refresh failed",
+                error: error
+            )
             if case .stale(let data, _) = github {
                 github = .offline(data: data, age: TimeFormat.age(from: data.timestamp))
             } else {
-                github = .error(message: "GitHub refresh failed: \(error.localizedDescription)")
+                github = .error(message: error.logDetail ?? error.localizedDescription)
             }
         }
     }

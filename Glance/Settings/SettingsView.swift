@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @State private var cacheStore = CacheStore.shared
     @State private var settingsStore = SettingsStore()
+    @State private var logViewerModel = LogViewerModel()
 
     var body: some View {
         ScrollView {
@@ -13,6 +14,7 @@ struct SettingsView: View {
                 intelligenceSection
                 ApiKeysSection(settingsStore: settingsStore)
                 CacheSection(settingsStore: settingsStore, cacheStore: cacheStore)
+                DiagnosticsSection(model: logViewerModel)
 
                 Divider()
                     .background(Theme.Colors.borderSubtle)

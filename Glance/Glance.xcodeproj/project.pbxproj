@@ -12,6 +12,17 @@
 		AA000000000000000000F103 /* JetBrainsMono-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F003 /* JetBrainsMono-SemiBold.ttf */; };
 		AA000000000000000000F104 /* JetBrainsMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F004 /* JetBrainsMono-Bold.ttf */; };
 		AA000000000000000000F105 /* JetBrainsMono-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F005 /* JetBrainsMono-ExtraBold.ttf */; };
+		0DF09822099E532C54632FE2 /* HTTPTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F51CF1627D85BFE9CBAF8666 /* HTTPTransport.swift */; };
+		1394713142FC84AD63530F9E /* URLRedactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6ED33C0331559AB8FD78379 /* URLRedactor.swift */; };
+		CB52DAEC9BC4CD1A52C3B4A4 /* GitHubTrendingClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1F76E21DEDC63BCD1707588 /* GitHubTrendingClientTests.swift */; };
+		2ADC09242523B88F5EDAD064 /* LogViewerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6287746E81B0B6FAB880395D /* LogViewerView.swift */; };
+		44F158EF8737CD4E6453AA83 /* DiagnosticsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE25AA3897D943A21B8B7CB /* DiagnosticsSection.swift */; };
+		EF8E500FD4BDC8DE51AF6042 /* LogExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF7E26FAE1699D72301584A /* LogExport.swift */; };
+		465F5F415068A1C15DC79F2D /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D42CA7C9D54F3A93E8E084C /* AppLog.swift */; };
+		BF209442BFF10A50C84081C1 /* LogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03733FFEBABE05BF8107A97 /* LogStore.swift */; };
+		31A0897EE8F159A194001F46 /* ErrorLogDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54EB5A8B226AA98539663622 /* ErrorLogDetail.swift */; };
+		2586E89850C5BFCF5A1A6AA9 /* LogLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F38610D9E3B5ADBE4F9588 /* LogLevel.swift */; };
+		E0A9A0E6255ACE027AF18BA8 /* LogEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB3D3CB9E72C65B94AE87243 /* LogEntry.swift */; };
 		0293474C8BAA89D4AD8F170F /* TimeFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0F51D16A6D39FCFAB1EE51 /* TimeFormat.swift */; };
 		5857340F517F43F189F6A9C1 /* CardOrderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89C539EE7B074787A42B5258 /* CardOrderTests.swift */; };
 		A1B2C3D400020001AAAA0002 /* GenericRSSClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D400020001AAAA0001 /* GenericRSSClientTests.swift */; };
@@ -164,6 +175,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		F51CF1627D85BFE9CBAF8666 /* HTTPTransport.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = HTTPTransport.swift; sourceTree = "<group>"; };
+		C6ED33C0331559AB8FD78379 /* URLRedactor.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = URLRedactor.swift; sourceTree = "<group>"; };
+		F1F76E21DEDC63BCD1707588 /* GitHubTrendingClientTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubTrendingClientTests.swift; sourceTree = "<group>"; };
+		6287746E81B0B6FAB880395D /* LogViewerView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = LogViewerView.swift; sourceTree = "<group>"; };
+		7EE25AA3897D943A21B8B7CB /* DiagnosticsSection.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = DiagnosticsSection.swift; sourceTree = "<group>"; };
+		7CF7E26FAE1699D72301584A /* LogExport.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = LogExport.swift; sourceTree = "<group>"; };
+		5D42CA7C9D54F3A93E8E084C /* AppLog.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
+		C03733FFEBABE05BF8107A97 /* LogStore.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = LogStore.swift; sourceTree = "<group>"; };
+		54EB5A8B226AA98539663622 /* ErrorLogDetail.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ErrorLogDetail.swift; sourceTree = "<group>"; };
+		D1F38610D9E3B5ADBE4F9588 /* LogLevel.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = LogLevel.swift; sourceTree = "<group>"; };
+		CB3D3CB9E72C65B94AE87243 /* LogEntry.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = LogEntry.swift; sourceTree = "<group>"; };
 		AA000000000000000000F001 /* JetBrainsMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Regular.ttf"; sourceTree = "<group>"; };
 		AA000000000000000000F002 /* JetBrainsMono-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Medium.ttf"; sourceTree = "<group>"; };
 		AA000000000000000000F003 /* JetBrainsMono-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-SemiBold.ttf"; sourceTree = "<group>"; };
@@ -335,6 +357,7 @@
 		0D77CB325514E74F6F1C281B /* GlanceTests */ = {
 			isa = PBXGroup;
 			children = (
+				F1F76E21DEDC63BCD1707588 /* GitHubTrendingClientTests.swift */,
 				61CCC1E587C8D063447BE25C /* MadridPipelineTests.swift */,
 				B5FB95C1730B6F97CC7F7701 /* PoGoPipelineTests.swift */,
 				453DA7F3953B22719544D662 /* GitHubPipelineTests.swift */,
@@ -373,6 +396,8 @@
 		18FEA4FE7CA2EB551AA1EB0B /* Network */ = {
 			isa = PBXGroup;
 			children = (
+				F51CF1627D85BFE9CBAF8666 /* HTTPTransport.swift */,
+				C6ED33C0331559AB8FD78379 /* URLRedactor.swift */,
 				032774EA8666009381F3C760 /* ExaClient.swift */,
 				BB22CC33DD44EE55FF660077 /* SportsDBClient.swift */,
 				8432ADC86D8071C0A729DC28 /* GeminiClient.swift */,
@@ -460,9 +485,23 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		EA5535442534EDCBCE568AD8 /* Logging */ = {
+			isa = PBXGroup;
+			children = (
+				7CF7E26FAE1699D72301584A /* LogExport.swift */,
+				5D42CA7C9D54F3A93E8E084C /* AppLog.swift */,
+				C03733FFEBABE05BF8107A97 /* LogStore.swift */,
+				54EB5A8B226AA98539663622 /* ErrorLogDetail.swift */,
+				D1F38610D9E3B5ADBE4F9588 /* LogLevel.swift */,
+				CB3D3CB9E72C65B94AE87243 /* LogEntry.swift */,
+			);
+			path = Logging;
+			sourceTree = "<group>";
+		};
 		912CA63D0B9F8BB79753CF7F /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				EA5535442534EDCBCE568AD8 /* Logging */,
 				B295E612DF90E3CB44228365 /* Cache */,
 				18FEA4FE7CA2EB551AA1EB0B /* Network */,
 				FEAF5D8F61146446AB2C831A /* Intelligence */,
@@ -537,6 +576,8 @@
 		C96E1E2D80C219B311D3B21B /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				6287746E81B0B6FAB880395D /* LogViewerView.swift */,
+				7EE25AA3897D943A21B8B7CB /* DiagnosticsSection.swift */,
 				7D29FA2484914D1C92BFEFEE /* SettingsStore.swift */,
 				0DDB5287486413A1BC7A95B1 /* SettingsView.swift */,
 				BB22CC33DD44EE55FF660079 /* FoundationModelsStatus.swift */,
@@ -839,6 +880,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CB52DAEC9BC4CD1A52C3B4A4 /* GitHubTrendingClientTests.swift in Sources */,
 				1085346A0AD944BC6DFF3E16 /* MadridPipelineTests.swift in Sources */,
 				A3999457EEF16025ACBDDBCD /* PoGoPipelineTests.swift in Sources */,
 				86F7F32AACE55A180FD274B8 /* GitHubPipelineTests.swift in Sources */,
@@ -876,6 +918,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0DF09822099E532C54632FE2 /* HTTPTransport.swift in Sources */,
+				1394713142FC84AD63530F9E /* URLRedactor.swift in Sources */,
+				2ADC09242523B88F5EDAD064 /* LogViewerView.swift in Sources */,
+				44F158EF8737CD4E6453AA83 /* DiagnosticsSection.swift in Sources */,
+				EF8E500FD4BDC8DE51AF6042 /* LogExport.swift in Sources */,
+				465F5F415068A1C15DC79F2D /* AppLog.swift in Sources */,
+				BF209442BFF10A50C84081C1 /* LogStore.swift in Sources */,
+				31A0897EE8F159A194001F46 /* ErrorLogDetail.swift in Sources */,
+				2586E89850C5BFCF5A1A6AA9 /* LogLevel.swift in Sources */,
+				E0A9A0E6255ACE027AF18BA8 /* LogEntry.swift in Sources */,
 				2EA56F63353461298074E76E /* GlanceApp.swift in Sources */,
 				5185E73DD56F4829173AC42B /* AppState.swift in Sources */,
 				58B6F4CDB81BADC61AB95F87 /* ContentView.swift in Sources */,

@@ -17,11 +17,14 @@ struct MMArticle: Codable, Sendable, Identifiable, Equatable, Hashable {
 }
 
 struct ManagingMadridClient: ManagingMadridClientProtocol, Sendable {
+    private static let transport = HTTPTransport(subsystem: "madrid")
+
     func fetchArticles(rssURL: String) async throws -> [MMArticle] {
         guard let url = URL(string: rssURL) else {
-            throw GlanceError.networkError("Invalid RSS URL: \(rssURL)")
+            throw GlanceError.networkError("Invalid RSS URL")
         }
-        let (data, _) = try await URLSession.shared.data(from: url)
+        let request = URLRequest(url: url)
+        let (data, _) = try await Self.transport.data(for: request, hint: "articles")
         let parser = MMXMLParser()
         return parser.parse(data: data)
     }

@@ -158,16 +158,7 @@ struct LicenseInfo: Codable, Sendable, Hashable {
 }
 
 struct GitHubClient: GitHubClientProtocol, Sendable {
-    private static let session: URLSession = {
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 15
-        config.timeoutIntervalForResource = 15
-        config.waitsForConnectivity = false
-        if #available(iOS 16.0, *) {
-            config.tlsMinimumSupportedProtocolVersion = .TLSv12
-        }
-        return URLSession(configuration: config)
-    }()
+    private static let transport = HTTPTransport(subsystem: "github")
 
     func searchRepos(topics: [String], sort: String, since: String) async throws -> GitHubSearchResult {
         var components = URLComponents(string: "https://api.github.com/search/repositories")!
@@ -179,51 +170,21 @@ struct GitHubClient: GitHubClientProtocol, Sendable {
             URLQueryItem(name: "per_page", value: "10"),
         ]
         guard let url = components.url else {
-            print("[GitHubClient] ERROR: Invalid URL")
             throw GlanceError.networkError("Invalid GitHub URL")
         }
-        print("[GitHubClient] Requesting: \(url.absoluteString)")
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
         request.addValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         request.addValue("Glance-iOS", forHTTPHeaderField: "User-Agent")
-        do {
-            let (data, response) = try await Self.session.data(for: request)
-            guard let http = response as? HTTPURLResponse else {
-                print("[GitHubClient] ERROR: No HTTP response")
-                throw GlanceError.networkError("GitHub request failed")
-            }
-            print("[GitHubClient] Status: \(http.statusCode), Bytes: \(data.count)")
-            if http.statusCode == 403 {
-                let retryAfter = http.value(forHTTPHeaderField: "Retry-After")
-                print("[GitHubClient] Rate limited, retryAfter: \(retryAfter ?? "nil")")
-                throw GlanceError.rateLimited(retryAfter: retryAfter.flatMap { Double($0) })
-            }
-            guard http.statusCode == 200 else {
-                let body = String(data: data, encoding: .utf8) ?? "unable to decode"
-                print("[GitHubClient] ERROR: Status \(http.statusCode), Body: \(body.prefix(200))")
-                throw GlanceError.networkError("GitHub API returned \(http.statusCode)")
-            }
-            var result = try JSONDecoder().decode(GitHubSearchResult.self, from: data)
-            if let remaining = http.value(forHTTPHeaderField: "x-ratelimit-remaining") {
-                result = GitHubSearchResult(
-                    totalCount: result.totalCount,
-                    items: result.items,
-                    rateLimitRemaining: Int(remaining)
-                )
-            }
-            print("[GitHubClient] Success: \(result.totalCount) repos, \(result.items.count) items")
-            return result
-        } catch let error as GlanceError {
-            throw error
-        } catch let error as URLError {
-            print("[GitHubClient] URLError: code=\(error.code.rawValue), \(error.localizedDescription)")
-            if let url = error.failingURL {
-                print("[GitHubClient] Failing URL: \(url.absoluteString)")
-            }
-            throw GlanceError.networkError("GitHub network error: \(error.localizedDescription)")
-        } catch {
-            print("[GitHubClient] Unknown error: \(error)")
-            throw GlanceError.networkError("GitHub error: \(error.localizedDescription)")
+
+        let (data, http) = try await Self.transport.data(for: request, hint: "search")
+        var result = try JSONDecoder().decode(GitHubSearchResult.self, from: data)
+        if let remaining = http.value(forHTTPHeaderField: "x-ratelimit-remaining") {
+            result = GitHubSearchResult(
+                totalCount: result.totalCount,
+                items: result.items,
+                rateLimitRemaining: Int(remaining)
+            )
         }
+        return result
     }
 }
