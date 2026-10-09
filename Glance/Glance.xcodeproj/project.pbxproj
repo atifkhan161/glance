@@ -12,6 +12,9 @@
 		AA000000000000000000F103 /* JetBrainsMono-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F003 /* JetBrainsMono-SemiBold.ttf */; };
 		AA000000000000000000F104 /* JetBrainsMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F004 /* JetBrainsMono-Bold.ttf */; };
 		AA000000000000000000F105 /* JetBrainsMono-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F005 /* JetBrainsMono-ExtraBold.ttf */; };
+		0DF09822099E532C54632FE2 /* HTTPTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F51CF1627D85BFE9CBAF8666 /* HTTPTransport.swift */; };
+		1394713142FC84AD63530F9E /* URLRedactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6ED33C0331559AB8FD78379 /* URLRedactor.swift */; };
+		CB52DAEC9BC4CD1A52C3B4A4 /* GitHubTrendingClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1F76E21DEDC63BCD1707588 /* GitHubTrendingClientTests.swift */; };
 		2ADC09242523B88F5EDAD064 /* LogViewerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6287746E81B0B6FAB880395D /* LogViewerView.swift */; };
 		44F158EF8737CD4E6453AA83 /* DiagnosticsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE25AA3897D943A21B8B7CB /* DiagnosticsSection.swift */; };
 		EF8E500FD4BDC8DE51AF6042 /* LogExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF7E26FAE1699D72301584A /* LogExport.swift */; };
@@ -172,6 +175,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		F51CF1627D85BFE9CBAF8666 /* HTTPTransport.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = HTTPTransport.swift; sourceTree = "<group>"; };
+		C6ED33C0331559AB8FD78379 /* URLRedactor.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = URLRedactor.swift; sourceTree = "<group>"; };
+		F1F76E21DEDC63BCD1707588 /* GitHubTrendingClientTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubTrendingClientTests.swift; sourceTree = "<group>"; };
 		6287746E81B0B6FAB880395D /* LogViewerView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = LogViewerView.swift; sourceTree = "<group>"; };
 		7EE25AA3897D943A21B8B7CB /* DiagnosticsSection.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = DiagnosticsSection.swift; sourceTree = "<group>"; };
 		7CF7E26FAE1699D72301584A /* LogExport.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = LogExport.swift; sourceTree = "<group>"; };
@@ -351,6 +357,7 @@
 		0D77CB325514E74F6F1C281B /* GlanceTests */ = {
 			isa = PBXGroup;
 			children = (
+				F1F76E21DEDC63BCD1707588 /* GitHubTrendingClientTests.swift */,
 				61CCC1E587C8D063447BE25C /* MadridPipelineTests.swift */,
 				B5FB95C1730B6F97CC7F7701 /* PoGoPipelineTests.swift */,
 				453DA7F3953B22719544D662 /* GitHubPipelineTests.swift */,
@@ -389,6 +396,8 @@
 		18FEA4FE7CA2EB551AA1EB0B /* Network */ = {
 			isa = PBXGroup;
 			children = (
+				F51CF1627D85BFE9CBAF8666 /* HTTPTransport.swift */,
+				C6ED33C0331559AB8FD78379 /* URLRedactor.swift */,
 				032774EA8666009381F3C760 /* ExaClient.swift */,
 				BB22CC33DD44EE55FF660077 /* SportsDBClient.swift */,
 				8432ADC86D8071C0A729DC28 /* GeminiClient.swift */,
@@ -871,6 +880,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CB52DAEC9BC4CD1A52C3B4A4 /* GitHubTrendingClientTests.swift in Sources */,
 				1085346A0AD944BC6DFF3E16 /* MadridPipelineTests.swift in Sources */,
 				A3999457EEF16025ACBDDBCD /* PoGoPipelineTests.swift in Sources */,
 				86F7F32AACE55A180FD274B8 /* GitHubPipelineTests.swift in Sources */,
@@ -908,6 +918,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0DF09822099E532C54632FE2 /* HTTPTransport.swift in Sources */,
+				1394713142FC84AD63530F9E /* URLRedactor.swift in Sources */,
 				2ADC09242523B88F5EDAD064 /* LogViewerView.swift in Sources */,
 				44F158EF8737CD4E6453AA83 /* DiagnosticsSection.swift in Sources */,
 				EF8E500FD4BDC8DE51AF6042 /* LogExport.swift in Sources */,
