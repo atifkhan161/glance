@@ -12,6 +12,8 @@
 		AA000000000000000000F103 /* JetBrainsMono-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F003 /* JetBrainsMono-SemiBold.ttf */; };
 		AA000000000000000000F104 /* JetBrainsMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F004 /* JetBrainsMono-Bold.ttf */; };
 		AA000000000000000000F105 /* JetBrainsMono-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F005 /* JetBrainsMono-ExtraBold.ttf */; };
+		2ADC09242523B88F5EDAD064 /* LogViewerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6287746E81B0B6FAB880395D /* LogViewerView.swift */; };
+		44F158EF8737CD4E6453AA83 /* DiagnosticsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE25AA3897D943A21B8B7CB /* DiagnosticsSection.swift */; };
 		EF8E500FD4BDC8DE51AF6042 /* LogExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF7E26FAE1699D72301584A /* LogExport.swift */; };
 		465F5F415068A1C15DC79F2D /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D42CA7C9D54F3A93E8E084C /* AppLog.swift */; };
 		BF209442BFF10A50C84081C1 /* LogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03733FFEBABE05BF8107A97 /* LogStore.swift */; };
@@ -170,6 +172,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		6287746E81B0B6FAB880395D /* LogViewerView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = LogViewerView.swift; sourceTree = "<group>"; };
+		7EE25AA3897D943A21B8B7CB /* DiagnosticsSection.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = DiagnosticsSection.swift; sourceTree = "<group>"; };
 		7CF7E26FAE1699D72301584A /* LogExport.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = LogExport.swift; sourceTree = "<group>"; };
 		5D42CA7C9D54F3A93E8E084C /* AppLog.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
 		C03733FFEBABE05BF8107A97 /* LogStore.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = LogStore.swift; sourceTree = "<group>"; };
@@ -563,6 +567,8 @@
 		C96E1E2D80C219B311D3B21B /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				6287746E81B0B6FAB880395D /* LogViewerView.swift */,
+				7EE25AA3897D943A21B8B7CB /* DiagnosticsSection.swift */,
 				7D29FA2484914D1C92BFEFEE /* SettingsStore.swift */,
 				0DDB5287486413A1BC7A95B1 /* SettingsView.swift */,
 				BB22CC33DD44EE55FF660079 /* FoundationModelsStatus.swift */,
@@ -902,6 +908,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2ADC09242523B88F5EDAD064 /* LogViewerView.swift in Sources */,
+				44F158EF8737CD4E6453AA83 /* DiagnosticsSection.swift in Sources */,
 				EF8E500FD4BDC8DE51AF6042 /* LogExport.swift in Sources */,
 				465F5F415068A1C15DC79F2D /* AppLog.swift in Sources */,
 				BF209442BFF10A50C84081C1 /* LogStore.swift in Sources */,
