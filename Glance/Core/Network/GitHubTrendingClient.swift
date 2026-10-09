@@ -5,21 +5,10 @@ protocol GitHubTrendingClientProtocol: Sendable {
 }
 
 struct GitHubTrendingClient: GitHubTrendingClientProtocol, Sendable {
-    private static let defaultSession: URLSession = {
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 15
-        config.timeoutIntervalForResource = 15
-        config.waitsForConnectivity = false
-        if #available(iOS 16.0, *) {
-            config.tlsMinimumSupportedProtocolVersion = .TLSv12
-        }
-        return URLSession(configuration: config)
-    }()
+    private let transport: HTTPTransport
 
-    private let session: URLSession
-
-    init(session: URLSession = .shared) {
-        self.session = session
+    init(session: URLSession? = .shared) {
+        self.transport = HTTPTransport(session: session, subsystem: "github")
     }
 
     func fetchTrending(since: String) async throws -> [GitHubTrendingRepo] {
@@ -35,19 +24,7 @@ struct GitHubTrendingClient: GitHubTrendingClientProtocol, Sendable {
         request.addValue("text/html,application/xhtml+xml", forHTTPHeaderField: "Accept")
         request.addValue("en-US,en;q=0.9", forHTTPHeaderField: "Accept-Language")
 
-        let (data, response) = try await session.data(for: request)
-
-        guard let http = response as? HTTPURLResponse else {
-            throw GlanceError.networkError("No HTTP response")
-        }
-
-        if http.statusCode == 429 {
-            throw GlanceError.rateLimited(retryAfter: nil)
-        }
-
-        guard http.statusCode == 200 else {
-            throw GlanceError.networkError("GitHub returned \(http.statusCode)")
-        }
+        let (data, _) = try await transport.data(for: request, hint: "trending \(since)")
 
         guard let html = String(data: data, encoding: .utf8) else {
             throw GlanceError.decodingError("Failed to decode HTML")

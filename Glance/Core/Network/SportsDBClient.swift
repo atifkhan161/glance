@@ -189,6 +189,7 @@ protocol SportsDBClientProtocol: Sendable {
 }
 
 struct SportsDBClient: SportsDBClientProtocol, Sendable {
+    private static let transport = HTTPTransport(subsystem: "sportsdb")
 
     func searchTeam(name: String) async throws -> SDBTeam? {
         var components = URLComponents(string: "\(SportsDB.baseURL)/searchteams.php")!
@@ -240,29 +241,15 @@ struct SportsDBClient: SportsDBClientProtocol, Sendable {
         request.timeoutInterval = 15
 
         for attempt in 0..<3 {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            guard let http = response as? HTTPURLResponse else {
-                throw GlanceError.networkError("No HTTP response")
+            do {
+                let (data, _) = try await SportsDBClient.transport.data(for: request, hint: label)
+                return try JSONDecoder().decode(T.self, from: data)
+            } catch GlanceError.rateLimited(let retryAfter) {
+                guard attempt < 2 else { throw GlanceError.rateLimited(retryAfter: retryAfter) }
+                try await Task.sleep(nanoseconds: attempt == 0 ? 1_000_000_000 : 2_000_000_000)
+            } catch is DecodingError {
+                throw GlanceError.networkError("API-Sports decode failed (\(label))")
             }
-
-            if http.statusCode == 200 {
-                do {
-                    return try JSONDecoder().decode(T.self, from: data)
-                } catch {
-                    print("[SportsDB] Decode failed (\(label)): \(error)")
-                    throw GlanceError.networkError("API-Sports decode failed (\(label))")
-                }
-            }
-
-            if http.statusCode == 429 {
-                let delay = UInt64(attempt == 0 ? 1_000_000_000 : 2_000_000_000)
-                print("[SportsDB] Rate limited (\(label)), retrying in \(delay / 1_000_000_000)s")
-                try await Task.sleep(nanoseconds: delay)
-                continue
-            }
-
-            print("[SportsDB] Error \(http.statusCode) (\(label))")
-            throw GlanceError.networkError("API-Sports error \(http.statusCode) (\(label))")
         }
 
         throw GlanceError.networkError("API-Sports failed after retries (\(label))")
