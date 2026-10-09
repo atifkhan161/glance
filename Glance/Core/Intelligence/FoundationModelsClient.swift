@@ -94,7 +94,12 @@ import Foundation
                         }
                         continuation.finish()
                     } catch {
-                        NSLog("[AI] streamSummary error: %@", "\(error)")
+                        await AppLog.shared.record(
+                            .error,
+                            subsystem: "intelligence",
+                            message: "on-device stream failed",
+                            error: error
+                        )
                         continuation.yield(.failed(Self.mapStreamError(error)))
                         continuation.finish()
                     }

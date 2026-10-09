@@ -5,9 +5,14 @@ protocol GeminiClientProtocol: Sendable {
 }
 
 struct GeminiClient: GeminiClientProtocol, Sendable {
+    private static let transport = HTTPTransport(subsystem: "gemini")
+
     func generate(prompt: String, model: String, apiKey: String) async throws -> String? {
         let urlString = "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent?key=\(apiKey)"
-        guard let url = URL(string: urlString) else { return nil }
+        guard let url = URL(string: urlString) else {
+            await recordFailure(model: model, reason: "invalid URL")
+            return nil
+        }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -20,40 +25,48 @@ struct GeminiClient: GeminiClientProtocol, Sendable {
         let maxAttempts = 3
         for attempt in 0 ..< maxAttempts {
             do {
-                let (data, response) = try await URLSession.shared.data(for: request)
-                guard let http = response as? HTTPURLResponse else { continue }
-                
-                if http.statusCode == 200 {
-                    let decoded = try JSONDecoder().decode(GeminiResponse.self, from: data)
-                    return decoded.candidates?.first?.content?.parts?.first?.text
-                }
-                
-                // Parse Retry-After header for 429/503
-                let delay: UInt64
-                if http.statusCode == 429 || http.statusCode == 503 {
-                    if let retryAfter = http.value(forHTTPHeaderField: "Retry-After"),
-                       let seconds = Double(retryAfter) {
-                        delay = UInt64(seconds * 1_000_000_000)
-                    } else {
-                        // Exponential backoff: 429 -> 1/2/4s, 503 -> 5/15/45s
-                        let base: UInt64 = http.statusCode == 429 ? 1 : 5
-                        let multiplier: UInt64 = http.statusCode == 429 ? 2 : 3
-                        delay = base * UInt64(pow(Double(multiplier), Double(attempt))) * 1_000_000_000
-                    }
-                    try await Task.sleep(nanoseconds: delay)
-                    continue
-                }
-                
-                // Other errors: return nil (don't throw, let caller handle gracefully)
-                return nil
+                let (data, _) = try await Self.transport.data(for: request, hint: "model \(model)")
+                let decoded = try JSONDecoder().decode(GeminiResponse.self, from: data)
+                return decoded.candidates?.first?.content?.parts?.first?.text
             } catch {
-                // Network error: retry with 1s delay
-                if attempt < maxAttempts - 1 {
-                    try await Task.sleep(nanoseconds: 1_000_000_000)
-                }
+                // Degradation is intentional here: callers treat nil as "no summary",
+                // so nothing throws. That also means no `catch` site above can see
+                // the failure — it has to be recorded explicitly.
+                await recordFailure(model: model, reason: error.logDetail ?? "\(error)")
+                let delay = backoffNanoseconds(for: error, attempt: attempt)
+                guard delay > 0, attempt < maxAttempts - 1 else { break }
+                try await Task.sleep(nanoseconds: delay)
             }
         }
         return nil
+    }
+
+    /// Exponential backoff preserved from the pre-transport implementation:
+    /// 429 → 1/2/4s, 503 → 5/15/45s. Anything else is not retryable, so the
+    /// failure surfaces immediately as nil instead of burning three attempts.
+    private func backoffNanoseconds(for error: Error, attempt: Int) -> UInt64 {
+        let status: UInt64?
+        switch error {
+        case GlanceError.rateLimited:
+            status = 429
+        case GlanceError.httpStatus(503):
+            status = 503
+        default:
+            status = nil
+        }
+        guard let status else { return 0 }
+        let base: UInt64 = status == 429 ? 1 : 5
+        let multiplier: UInt64 = status == 429 ? 2 : 3
+        return base * UInt64(pow(Double(multiplier), Double(attempt))) * 1_000_000_000
+    }
+
+    private func recordFailure(model: String, reason: String) async {
+        await AppLog.shared.record(
+            .error,
+            subsystem: "gemini",
+            message: "generation returned nil (model \(model))",
+            detail: reason
+        )
     }
 }
 

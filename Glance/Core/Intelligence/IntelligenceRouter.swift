@@ -129,14 +129,10 @@ actor IntelligenceRouter {
                     }
 
                     let totalMs = Int(Date.now.timeIntervalSince(started) * 1000)
-                    NSLog(
-                        "[AI] cloud %@ rsn-off=%@ first=%@ms total=%dms chars=%d",
-                        request.id,
-                        request.disableReasoning ? "yes" : "no",
-                        firstDeltaMs.map { "\($0)" } ?? "none",
-                        totalMs,
-                        charCount
-                    )
+                    let metrics = "cloud \(request.id) rsn-off=\(request.disableReasoning ? "yes" : "no") "
+                        + "first=\(firstDeltaMs.map { "\($0)" } ?? "none")ms "
+                        + "total=\(totalMs)ms chars=\(charCount)"
+                    await AppLog.shared.record(.info, subsystem: "intelligence", message: metrics)
 
                     // A stream that ends without ever producing a token is a failure,
                     // not an empty article. Finishing cleanly here made the UI fall
@@ -149,7 +145,12 @@ actor IntelligenceRouter {
                     continuation.yield(.failed(.cancelled))
                     continuation.finish()
                 } catch {
-                    NSLog("[AI] cloud failed: %@", "\(error)")
+                    await AppLog.shared.record(
+                        .error,
+                        subsystem: "intelligence",
+                        message: "cloud stream failed",
+                        error: error
+                    )
                     continuation.yield(.failed(Self.mapCloudError(error)))
                     continuation.finish()
                 }

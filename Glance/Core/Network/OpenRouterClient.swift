@@ -49,6 +49,8 @@ private struct OpenRouterStreamErrorFrame: Decodable {
 }
 
 struct OpenRouterClient: Sendable {
+    private static let transport = HTTPTransport(subsystem: "openrouter")
+
     /// `max_tokens` is a *ceiling*, not a target: generation stops when the model
     /// emits its stop token, so raising this does not make a model ramble and costs
     /// nothing when reasoning is off.
@@ -97,29 +99,23 @@ struct OpenRouterClient: Sendable {
         )
 
         for attempt in 0 ..< Self.maxAttempts {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            guard let http = response as? HTTPURLResponse else {
-                throw GlanceError.networkError("No HTTP response")
-            }
-            if http.statusCode == 200 {
+            do {
+                let (data, _) = try await Self.transport.data(for: request, hint: "complete")
                 let decoded = try JSONDecoder().decode(OpenRouterResponse.self, from: data)
                 guard let content = decoded.choices.first?.message.content else {
                     throw GlanceError.networkError("Empty response from OpenRouter")
                 }
                 return content
-            }
-            if http.statusCode == 429 {
+            } catch GlanceError.rateLimited(let retryAfter) {
+                // Only wait out a rate limit the provider expects us to wait out.
+                // A long Retry-After on the free tier means "come back much later",
+                // and burning it inline is worse than surfacing the failure.
                 guard attempt < Self.maxAttempts - 1,
-                      let delay = Self.retryAfterSeconds(http: http),
+                      let delay = retryAfter,
                       delay <= Self.maxRetryAfter
-                else { throw GlanceError.rateLimited(retryAfter: Self.retryAfterSeconds(http: http)) }
+                else { throw GlanceError.rateLimited(retryAfter: retryAfter) }
                 try await Task.sleep(for: .seconds(delay))
-                continue
             }
-            if http.statusCode == 401 || http.statusCode == 403 {
-                throw GlanceError.unauthorized
-            }
-            throw GlanceError.httpStatus(http.statusCode)
         }
         throw GlanceError.rateLimited(retryAfter: nil)
     }
@@ -166,36 +162,22 @@ struct OpenRouterClient: Sendable {
     private func openStream(_ request: URLRequest) async throws -> URLSession.AsyncBytes {
         for attempt in 0 ..< Self.maxAttempts {
             do {
-                let (bytes, response) = try await URLSession.shared.bytes(for: request)
-                guard let http = response as? HTTPURLResponse else {
-                    throw GlanceError.networkError("No HTTP response")
-                }
-                if http.statusCode == 200 { return bytes }
-                if http.statusCode == 429 {
-                    // Only wait out a rate limit the provider expects us to wait out.
-                    // A long Retry-After on the free tier means "come back much later",
-                    // and burning it inline is worse than surfacing the failure.
-                    guard attempt < Self.maxAttempts - 1,
-                          let delay = Self.retryAfterSeconds(http: http),
-                          delay <= Self.maxRetryAfter
-                    else { throw GlanceError.rateLimited(retryAfter: Self.retryAfterSeconds(http: http)) }
-                    try await Task.sleep(for: .seconds(delay))
-                    continue
-                }
-                if http.statusCode == 401 || http.statusCode == 403 {
-                    throw GlanceError.unauthorized
-                }
-                throw GlanceError.httpStatus(http.statusCode)
-            } catch let error as GlanceError {
-                throw error
+                let (bytes, _) = try await Self.transport.bytes(for: request, hint: "stream")
+                return bytes
+            } catch GlanceError.rateLimited(let retryAfter) {
+                guard attempt < Self.maxAttempts - 1,
+                      let delay = retryAfter,
+                      delay <= Self.maxRetryAfter
+                else { throw GlanceError.rateLimited(retryAfter: retryAfter) }
+                try await Task.sleep(for: .seconds(delay))
             } catch is CancellationError {
                 throw CancellationError()
             } catch {
                 if attempt < Self.maxAttempts - 1 {
                     try? await Task.sleep(nanoseconds: 1_000_000_000)
-                    continue
+                } else {
+                    throw GlanceError.networkError(error.localizedDescription)
                 }
-                throw GlanceError.networkError(error.localizedDescription)
             }
         }
         throw GlanceError.rateLimited(retryAfter: nil)
@@ -242,12 +224,6 @@ struct OpenRouterClient: Sendable {
     }
 
     /// Only honors an explicit `Retry-After`. The old fallback invented its own
-    /// 2s/4s backoff, which for a free-tier rate limit is just an arbitrary delay
-    /// before the same failure.
-    private static func retryAfterSeconds(http: HTTPURLResponse) -> Double? {
-        guard let raw = http.value(forHTTPHeaderField: "Retry-After") else { return nil }
-        return Double(raw)
-    }
 }
 
 private struct OpenRouterResponse: Codable {
