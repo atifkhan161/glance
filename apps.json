@@ -23,6 +23,14 @@
       ],
       "versions": [
         {
+          "version": "1.4.4",
+          "date": "2026-10-09",
+          "downloadURL": "https://github.com/atifkhan161/glance/releases/download/v1.4.4/Glance-1.4.4.ipa",
+          "size": 3292801,
+          "minOSVersion": "26.0",
+          "localizedDescription": "Personal intelligence dashboard aggregating Real Madrid, Pok\u00e9mon GO, GitHub Trending, AI intel and custom RSS into one card feed."
+        },
+        {
           "version": "1.4.3",
           "date": "2026-10-09",
           "downloadURL": "https://github.com/atifkhan161/glance/releases/download/v1.4.3/Glance-1.4.3.ipa",
@@ -83,10 +91,10 @@
   ],
   "news": [
     {
-      "title": "Glance 1.4.3",
-      "caption": "Version 1.4.3 is available.",
+      "title": "Glance 1.4.4",
+      "caption": "Version 1.4.4 is available.",
       "date": "2026-10-09",
-      "identifier": "glance-1.4.3",
+      "identifier": "glance-1.4.4",
       "appID": "com.atifkhan.glance",
       "notify": true
     }
