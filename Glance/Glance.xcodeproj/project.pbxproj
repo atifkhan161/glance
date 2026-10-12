@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CC00000000000000000005DFCC /* GitHubPipelineReadmeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000001F541 /* GitHubPipelineReadmeTests.swift */; };
 		CC0000000000000000000567AB /* GitHubReadmeClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000001CD36 /* GitHubReadmeClientTests.swift */; };
 		CC0000000000000000000479B5 /* GitHubReadmeClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000017DE4 /* GitHubReadmeClient.swift */; };
 		AA000000000000000000F101 /* JetBrainsMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F001 /* JetBrainsMono-Regular.ttf */; };
@@ -177,6 +178,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		BB00000000000000000001F541 /* GitHubPipelineReadmeTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubPipelineReadmeTests.swift; sourceTree = "<group>"; };
 		BB00000000000000000001CD36 /* GitHubReadmeClientTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubReadmeClientTests.swift; sourceTree = "<group>"; };
 		BB000000000000000000017DE4 /* GitHubReadmeClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubReadmeClient.swift; sourceTree = "<group>"; };
 		BB00000000000000000000953E /* MockGitHubURLProtocol.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = MockGitHubURLProtocol.swift; sourceTree = "<group>"; };
@@ -362,6 +364,7 @@
 		0D77CB325514E74F6F1C281B /* GlanceTests */ = {
 			isa = PBXGroup;
 			children = (
+				BB00000000000000000001F541 /* GitHubPipelineReadmeTests.swift */,
 				BB00000000000000000001CD36 /* GitHubReadmeClientTests.swift */,
 				BB00000000000000000000953E /* MockGitHubURLProtocol.swift */,
 				F1F76E21DEDC63BCD1707588 /* GitHubTrendingClientTests.swift */,
@@ -889,6 +892,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC00000000000000000005DFCC /* GitHubPipelineReadmeTests.swift in Sources */,
 				CC0000000000000000000567AB /* GitHubReadmeClientTests.swift in Sources */,
 				CC000000000000000000020AD7 /* MockGitHubURLProtocol.swift in PBXSourcesBuildPhase */,
 				CB52DAEC9BC4CD1A52C3B4A4 /* GitHubTrendingClientTests.swift in Sources */,

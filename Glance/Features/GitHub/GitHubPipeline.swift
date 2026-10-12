@@ -2,11 +2,17 @@ import Foundation
 
 struct GitHubPipeline: Sendable {
     private let trendingClient: any GitHubTrendingClientProtocol
+    private let readmeClient: any GitHubReadmeClientProtocol
     private let cache: CacheStore
 
-    init(trendingClient: any GitHubTrendingClientProtocol = GitHubTrendingClient(), cache: CacheStore = .shared) {
+    init(
+        trendingClient: any GitHubTrendingClientProtocol = GitHubTrendingClient(),
+        cache: CacheStore = .shared,
+        readmeClient: any GitHubReadmeClientProtocol = GitHubReadmeClient()
+    ) {
         self.trendingClient = trendingClient
         self.cache = cache
+        self.readmeClient = readmeClient
     }
 
     static func languageColor(for language: String?) -> String {
@@ -55,4 +61,25 @@ struct GitHubPipeline: Sendable {
         await cache.save(cacheKey, envelope: CacheEnvelope(data: data, ttlMs: 24 * 3_600_000))
         return data
     }
+
+    /// A repo with no README caches `nil` deliberately: without it every tap of a
+    /// README-less repo re-downloads a ~440 KB page.
+    func readme(owner: String, name: String, forceRefresh: Bool = false) async throws -> GitHubReadme? {
+        let key = CacheStore.readmeKey(owner: owner, name: name)
+        if !forceRefresh,
+           let envelope: CacheEnvelope<ReadmeCacheEntry> = await cache.load(key),
+           !envelope.isExpired {
+            return envelope.data.readme
+        }
+        let fetched = try await readmeClient.fetchReadme(owner: owner, name: name)
+        await cache.save(
+            key,
+            envelope: CacheEnvelope(data: ReadmeCacheEntry(readme: fetched), ttlMs: 24 * 3_600_000)
+        )
+        return fetched
+    }
+}
+
+struct ReadmeCacheEntry: Codable, Sendable {
+    let readme: GitHubReadme?
 }
