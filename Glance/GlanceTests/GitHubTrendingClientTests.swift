@@ -2,35 +2,12 @@ import Testing
 @testable import Glance
 import Foundation
 
-private class MockURLProtocol: URLProtocol {
-    static var responseData: Data?
-    static var responseError: Error?
-
-    override class func canInit(with request: URLRequest) -> Bool { true }
-    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
-
-    override func startLoading() {
-        if let error = Self.responseError {
-            client?.urlProtocol(self, didFailWithError: error)
-        } else if let data = Self.responseData {
-            client?.urlProtocol(self, didLoad: data)
-            client?.urlProtocolDidFinishLoading(self)
-        }
-    }
-
-    override func stopLoading() {}
-}
-
 @Suite("GitHubTrendingClient")
 struct GitHubTrendingClientTests {
     private func mockClient(html: String) -> GitHubTrendingClient {
-        let mockData = Data(html.utf8)
-        MockURLProtocol.responseData = mockData
-        MockURLProtocol.responseError = nil
-        let config = URLSessionConfiguration.default
-        config.protocolClasses = [MockURLProtocol.self]
-        let session = URLSession(configuration: config)
-        return GitHubTrendingClient(session: session)
+        MockGitHubURLProtocol.reset()
+        MockGitHubURLProtocol.stubs = [.init(statusCode: 200, data: Data(html.utf8))]
+        return GitHubTrendingClient(session: MockGitHubURLProtocol.makeSession())
     }
 
     @Test("Trending repos have descriptions from parsed HTML")
