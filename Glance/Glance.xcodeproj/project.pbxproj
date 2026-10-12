@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CC000000000000000000047DFC /* RepoDetailStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000017F51 /* RepoDetailStore.swift */; };
 		CC000000000000000000046ED8 /* READMEDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000017A45 /* READMEDocumentTests.swift */; };
 		CC000000000000000000036045 /* READMEWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000012014 /* READMEWebView.swift */; };
 		CC00000000000000000005DFCC /* GitHubPipelineReadmeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000001F541 /* GitHubPipelineReadmeTests.swift */; };
@@ -180,6 +181,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		BB000000000000000000017F51 /* RepoDetailStore.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = RepoDetailStore.swift; sourceTree = "<group>"; };
 		BB000000000000000000017A45 /* READMEDocumentTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = READMEDocumentTests.swift; sourceTree = "<group>"; };
 		BB000000000000000000012014 /* READMEWebView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = READMEWebView.swift; sourceTree = "<group>"; };
 		BB00000000000000000001F541 /* GitHubPipelineReadmeTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubPipelineReadmeTests.swift; sourceTree = "<group>"; };
@@ -669,6 +671,7 @@
 		F393856C854949D7C2FA7B83 /* GitHub */ = {
 			isa = PBXGroup;
 			children = (
+				BB000000000000000000017F51 /* RepoDetailStore.swift */,
 				A6263EFE1565E274CD9BBE16 /* GitHubModels.swift */,
 				F0862D2780839821BE7EB6B1 /* GitHubPipeline.swift */,
 				B92DC84F647A42D0148EDD88 /* GitHubHubView.swift */,
@@ -940,6 +943,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC000000000000000000047DFC /* RepoDetailStore.swift in Sources */,
 				CC000000000000000000036045 /* READMEWebView.swift in Sources */,
 				CC0000000000000000000479B5 /* GitHubReadmeClient.swift in Sources */,
 				0DF09822099E532C54632FE2 /* HTTPTransport.swift in Sources */,

@@ -2,6 +2,13 @@ import SwiftUI
 
 struct RepoDetailView: View {
     let repository: GitHubTrendingRepo
+    @State private var store: RepoDetailStore
+    @Environment(\.openURL) private var openURL
+
+    init(repository: GitHubTrendingRepo) {
+        self.repository = repository
+        _store = State(initialValue: RepoDetailStore(repository: repository))
+    }
 
     var body: some View {
         ScrollView {
@@ -96,6 +103,8 @@ struct RepoDetailView: View {
                     .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
                 }
 
+                readmeSection
+
                 // Open on GitHub button
                 if let url = URL(string: repository.url) {
                     Link(destination: url) {
@@ -119,6 +128,39 @@ struct RepoDetailView: View {
         .glanceBackground()
         .navigationTitle(repository.fullName)
         .navigationBarTitleDisplayMode(.inline)
+        .id(repository.fullName)
+        .task { await store.load() }
+    }
+
+    // MARK: - README
+
+    @ViewBuilder
+    private var readmeSection: some View {
+        switch store.state {
+        case .idle, .loading:
+            READMEPlaceholder()
+        case .ready(let readme):
+            READMEWebView(
+                readme: readme,
+                onHeightChange: { store.height = $0 },
+                onOpenExternal: { url in openURL(url) }
+            )
+            .frame(height: store.height)
+            .padding(Theme.cardPadding)
+            .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                    .stroke(Theme.Colors.cardEmerald.opacity(0.3), lineWidth: 1)
+            )
+            .padding(.top, 4)
+        case .empty:
+            EmptyView()
+        case .failed(let message):
+            READMEFailureNotice(message: message) {
+                Task { await store.retry() }
+            }
+            .padding(.top, 4)
+        }
     }
 
     // MARK: - Helpers
@@ -151,6 +193,64 @@ struct RepoDetailView: View {
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .background(color.opacity(0.1), in: .capsule)
+    }
+}
+
+private struct READMEPlaceholder: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("README")
+                .font(Theme.Fonts.manrope(10, weight: .bold))
+                .foregroundStyle(Theme.Colors.textMuted)
+                .tracking(1.2)
+
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(0 ..< 5, id: \.self) { index in
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Theme.Colors.surface2)
+                        .frame(height: 12)
+                        .frame(maxWidth: index == 4 ? 180 : .infinity)
+                }
+            }
+        }
+        .padding(Theme.cardPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                .stroke(Theme.Colors.cardEmerald.opacity(0.3), lineWidth: 1)
+        )
+        .padding(.top, 4)
+    }
+}
+
+private struct READMEFailureNotice: View {
+    let message: String
+    let onRetry: () -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.Colors.error)
+
+            Text(message)
+                .font(Theme.Fonts.manrope(12))
+                .foregroundStyle(Theme.Colors.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button(action: onRetry) {
+                Text("Retry")
+                    .font(Theme.Fonts.manrope(12, weight: .semibold))
+                    .foregroundStyle(Theme.Colors.cardEmerald)
+            }
+        }
+        .padding(12)
+        .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.Radius.medium))
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.Radius.medium)
+                .stroke(Theme.Colors.error.opacity(0.3), lineWidth: 1)
+        )
     }
 }
 
