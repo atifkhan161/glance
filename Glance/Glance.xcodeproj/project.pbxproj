@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CC0000000000000000000567AB /* GitHubReadmeClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000001CD36 /* GitHubReadmeClientTests.swift */; };
+		CC0000000000000000000479B5 /* GitHubReadmeClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000017DE4 /* GitHubReadmeClient.swift */; };
 		AA000000000000000000F101 /* JetBrainsMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F001 /* JetBrainsMono-Regular.ttf */; };
 		AA000000000000000000F102 /* JetBrainsMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F002 /* JetBrainsMono-Medium.ttf */; };
 		AA000000000000000000F103 /* JetBrainsMono-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F003 /* JetBrainsMono-SemiBold.ttf */; };
@@ -175,6 +177,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		BB00000000000000000001CD36 /* GitHubReadmeClientTests.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubReadmeClientTests.swift; sourceTree = "<group>"; };
+		BB000000000000000000017DE4 /* GitHubReadmeClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubReadmeClient.swift; sourceTree = "<group>"; };
 		BB00000000000000000000953E /* MockGitHubURLProtocol.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = MockGitHubURLProtocol.swift; sourceTree = "<group>"; };
 		F51CF1627D85BFE9CBAF8666 /* HTTPTransport.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = HTTPTransport.swift; sourceTree = "<group>"; };
 		C6ED33C0331559AB8FD78379 /* URLRedactor.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = URLRedactor.swift; sourceTree = "<group>"; };
@@ -358,6 +362,7 @@
 		0D77CB325514E74F6F1C281B /* GlanceTests */ = {
 			isa = PBXGroup;
 			children = (
+				BB00000000000000000001CD36 /* GitHubReadmeClientTests.swift */,
 				BB00000000000000000000953E /* MockGitHubURLProtocol.swift */,
 				F1F76E21DEDC63BCD1707588 /* GitHubTrendingClientTests.swift */,
 				61CCC1E587C8D063447BE25C /* MadridPipelineTests.swift */,
@@ -398,6 +403,7 @@
 		18FEA4FE7CA2EB551AA1EB0B /* Network */ = {
 			isa = PBXGroup;
 			children = (
+				BB000000000000000000017DE4 /* GitHubReadmeClient.swift */,
 				F51CF1627D85BFE9CBAF8666 /* HTTPTransport.swift */,
 				C6ED33C0331559AB8FD78379 /* URLRedactor.swift */,
 				032774EA8666009381F3C760 /* ExaClient.swift */,
@@ -883,6 +889,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC0000000000000000000567AB /* GitHubReadmeClientTests.swift in Sources */,
 				CC000000000000000000020AD7 /* MockGitHubURLProtocol.swift in PBXSourcesBuildPhase */,
 				CB52DAEC9BC4CD1A52C3B4A4 /* GitHubTrendingClientTests.swift in Sources */,
 				1085346A0AD944BC6DFF3E16 /* MadridPipelineTests.swift in Sources */,
@@ -922,6 +929,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC0000000000000000000479B5 /* GitHubReadmeClient.swift in Sources */,
 				0DF09822099E532C54632FE2 /* HTTPTransport.swift in Sources */,
 				1394713142FC84AD63530F9E /* URLRedactor.swift in Sources */,
 				2ADC09242523B88F5EDAD064 /* LogViewerView.swift in Sources */,

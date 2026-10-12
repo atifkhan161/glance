@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
-"""Insert a file into project.pbxproj: build file, file ref, group child, Sources phase.
+"""Insert a file into project.pbxproj: build file, file ref, group child, sources phase.
 
 Usage:
-  pbxproj-add.py <project.pbxproj> <relative/path/File.swift> [--group <name>] [--target-sources-only] [--resources]
+  pbxproj-add.py <project.pbxproj> <path/File.swift> [--group Name] [--app] [--resources]
 
-Group is matched by the group comment block name (e.g. GlanceTests, DesignSystem).
+The Glance app target and its GlanceTests target BOTH have a build phase whose
+build files are commented "in Sources", so comments cannot distinguish them. The
+owning target is resolved by walking PBXNativeTarget.buildPhases.
 """
 import re
 import subprocess
 import sys
 
 
-def new_id(seed, taken, prefix="AA"):
+def make_id(seed, taken, prefix):
     n = 1
     while True:
         candidate = "%s%024X" % (prefix, (seed + n) & 0xFFFFFFFFFFFFFFFFFF)
@@ -21,63 +23,76 @@ def new_id(seed, taken, prefix="AA"):
         n += 1
 
 
+def sources_phase_for(src, product):
+    for m in re.finditer(r"([0-9A-F]{24}) /\* [^*]*? \*/ = \{\n\t\t\tisa = PBXNativeTarget;", src):
+        block = re.match(r"([0-9A-F]{24}) /\* [^*]*? \*/ = \{\n\t\t\tisa = PBXNativeTarget;((?:.|\n)*?)\n\t\t\};",
+                         src[m.start():])
+        if not block:
+            continue
+        if product not in block.group(2):
+            continue
+        phases = re.search(r"buildPhases = \(\n((?:.|\n)*?)\t\t\t\);", block.group(2))
+        if not phases:
+            continue
+        for pid in re.findall(r"([0-9A-F]{24})", phases.group(1)):
+            pm = re.search(r"%s /\* [^*]*? \*/ = \{\n\t\t\tisa = PBXSourcesBuildPhase;" % pid, src)
+            if pm:
+                return pid
+    return None
+
+
 def main():
-    path = sys.argv[1]
-    rel = sys.argv[2]
-    group_name = "GlanceTests"
-    resources = False
+    path, rel = sys.argv[1], sys.argv[2]
     args = sys.argv[3:]
-    if "--group" in args:
-        group_name = args[args.index("--group") + 1]
-    if "--resources" in args:
-        resources = True
+    group_name = args[args.index("--group") + 1] if "--group" in args else "GlanceTests"
+    resources = "--resources" in args
+    app = "--app" in args
 
     name = rel.rsplit("/", 1)[-1]
     src = open(path).read()
-
     if name in src:
         print("already present: %s" % name)
         return 0
 
+    product = "Glance.app" if app else "GlanceTests.xctest"
+    phase_id = sources_phase_for(src, product)
+    if not phase_id:
+        print("no PBXSourcesBuildPhase found for %s" % product)
+        return 1
+
     taken = set(re.findall(r"\b[0-9A-F]{24}\b", src))
-    seed = sum(ord(c) * (i + 1) for i, c in enumerate(name))
-    file_ref = new_id(seed, taken, "BB")
-    build_file = new_id(seed + 7, taken, "CC")
-    seed2 = sum(ord(c) * (i + 7) for i, c in enumerate(rel))
-    build_file = new_id(seed2, taken, "CC")
-    file_ref = new_id(seed, taken, "BB")
+    seed = sum(ord(c) * (i + 1) for i, c in enumerate(rel))
+    file_ref = make_id(seed, taken, "BB")
+    build_file = make_id(seed * 3 + 11, taken, "CC")
+    phase_label = "Resources" if resources else "Sources"
 
-    phase = "PBXResourcesBuildPhase" if resources else "PBXSourcesBuildPhase"
+    build_line = '\t\t%s /* %s in %s */ = {isa = PBXBuildFile; fileRef = %s /* %s */; };' % (
+        build_file, name, phase_label, file_ref, name)
+    anchor = "/* Begin PBXBuildFile section */"
+    src = src.replace(anchor, anchor + "\n" + build_line, 1)
 
-    # 1. PBXBuildFile
-    anchor = "/* Begin %s section */" % phase
-    line = "\t\t%s /* %s in %s */ = {isa = PBXBuildFile; fileRef = %s /* %s */; };\n" % (
-        build_file, name, phase, file_ref, name)
-    src = src.replace(anchor, anchor + "\n" + line.rstrip("\n"), 1)
+    ftype = "text.html" if name.endswith(".html") else "sourcecode.swift"
+    ref_line = '\t\t%s /* %s */ = {isa = PBXFileReference; explicitFileType = %s; path = %s; sourceTree = "<group>"; };' % (
+        file_ref, name, ftype, name)
+    anchor = "/* Begin PBXFileReference section */"
+    src = src.replace(anchor, anchor + "\n" + ref_line, 1)
 
-    # 2. PBXFileReference
-    ref_anchor = "/* Begin PBXFileReference section */"
-    ref_line = "\t\t%s /* %s */ = {isa = PBXFileReference; explicitFileType = %s; path = %s; sourceTree = \"<group>\"; };" % (
-        file_ref, name,
-        "text.html" if name.endswith(".html") else "sourcecode.swift",
-        name)
-    src = src.replace(ref_anchor, ref_anchor + "\n" + ref_line, 1)
-
-    # 3. group child
-    m = re.search(r"([0-9A-F]{24}) /\* %s \*/ = \{\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = \(\n" % re.escape(group_name), src)
-    if not m:
+    gm = re.search(r"[0-9A-F]{24} /\* %s \*/ = \{\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = \(\n" % re.escape(group_name), src)
+    if not gm:
         print("group %s not found" % group_name)
         return 1
-    insert_at = m.end()
-    src = src[:insert_at] + "\t\t\t\t%s /* %s */,\n" % (file_ref, name) + src[insert_at:]
+    at = gm.end()
+    src = src[:at] + "\t\t\t\t%s /* %s */,\n" % (file_ref, name) + src[at:]
 
-    # 4. phase file entry
-    m2 = re.search(r"isa = %s;\n(?:.*\n)*?\t\t\tfiles = \(\n" % re.escape(phase), src)
-    if not m2:
-        print("phase %s not found" % phase)
+    # Resolved LAST: the three insertions above all shift byte offsets, so an
+    # anchor computed before them would land in the wrong place.
+    files_anchor = re.search(
+        r"%s /\* [^*]*? \*/ = \{\n\t\t\tisa = PBXSourcesBuildPhase;\n(?:.|\n)*?\t\t\tfiles = \(\n" % phase_id, src)
+    if not files_anchor:
+        print("could not locate files list for phase %s" % phase_id)
         return 1
-    insert_at = m2.end()
-    src = src[:insert_at] + "\t\t\t\t%s /* %s in %s */,\n" % (build_file, name, phase) + src[insert_at:]
+    at = files_anchor.end()
+    src = src[:at] + "\t\t\t\t%s /* %s in %s */,\n" % (build_file, name, phase_label) + src[at:]
 
     open(path, "w").write(src)
     r = subprocess.run(["plutil", "-lint", path], capture_output=True, text=True)
