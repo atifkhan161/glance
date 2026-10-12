@@ -75,10 +75,7 @@ struct OpenRouterClient: Sendable {
     /// that the network is slow.
     private static let streamTimeout: TimeInterval = 30
 
-    /// A `Retry-After` longer than this is not worth blocking on. Free-tier
-    /// OpenRouter 429s persistently, so waiting out a long one usually just means
-    /// the user watches a spinner instead of reading the failure.
-    private static let maxRetryAfter: TimeInterval = 5
+    
 
     func complete(
         systemPrompt: String,
@@ -107,12 +104,8 @@ struct OpenRouterClient: Sendable {
                 }
                 return content
             } catch GlanceError.rateLimited(let retryAfter) {
-                // Only wait out a rate limit the provider expects us to wait out.
-                // A long Retry-After on the free tier means "come back much later",
-                // and burning it inline is worse than surfacing the failure.
                 guard attempt < Self.maxAttempts - 1,
-                      let delay = retryAfter,
-                      delay <= Self.maxRetryAfter
+                      let delay = RateLimitBackoff.delay(retryAfter: retryAfter, attempt: attempt)
                 else { throw GlanceError.rateLimited(retryAfter: retryAfter) }
                 try await Task.sleep(for: .seconds(delay))
             }
@@ -166,8 +159,7 @@ struct OpenRouterClient: Sendable {
                 return bytes
             } catch GlanceError.rateLimited(let retryAfter) {
                 guard attempt < Self.maxAttempts - 1,
-                      let delay = retryAfter,
-                      delay <= Self.maxRetryAfter
+                      let delay = RateLimitBackoff.delay(retryAfter: retryAfter, attempt: attempt)
                 else { throw GlanceError.rateLimited(retryAfter: retryAfter) }
                 try await Task.sleep(for: .seconds(delay))
             } catch is CancellationError {
@@ -224,8 +216,6 @@ struct OpenRouterClient: Sendable {
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         return request
     }
-
-    /// Only honors an explicit `Retry-After`. The old fallback invented its own
 }
 
 private struct OpenRouterResponse: Codable {

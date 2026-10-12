@@ -15,8 +15,48 @@ enum HTTPStatusMapper {
     }
 
     static func retryAfter(_ http: HTTPURLResponse) -> Double? {
-        guard let raw = http.value(forHTTPHeaderField: "Retry-After") else { return nil }
-        return Double(raw)
+        if let raw = http.value(forHTTPHeaderField: "Retry-After"),
+           let seconds = Double(raw) {
+            return seconds
+        }
+        return rateLimitReset(http)
+    }
+
+    /// `X-RateLimit-Reset` is an epoch-milliseconds timestamp, and OpenRouter sends
+    /// it on every platform-limit 429 while frequently omitting `Retry-After`.
+    /// Reading only the latter meant those responses mapped to a nil delay, which
+    /// callers treat as "cannot retry" — so the one header that always carries the
+    /// reset time was being discarded. Negative deltas mean the window has already
+    /// rolled over, so they collapse to zero rather than a nonsensical negative sleep.
+    static func rateLimitReset(_ http: HTTPURLResponse, now: Date = Date()) -> Double? {
+        guard let raw = http.value(forHTTPHeaderField: "X-RateLimit-Reset"),
+              let resetMillis = Double(raw)
+        else { return nil }
+
+        let seconds = resetMillis / 1000 - now.timeIntervalSince1970
+        guard seconds.isFinite else { return nil }
+        return max(0, seconds)
+    }
+}
+
+/// How long to wait before retrying a rate-limited request, or `nil` when the wait
+/// is not worth blocking on.
+///
+/// A nil provider hint is *not* a reason to give up. It means the provider declined
+/// to say when the window resets, not that retrying is pointless — and these limits
+/// are documented as transient. Refusing to retry on a nil hint was why a single
+/// 429 could end a summary request that a two-attempt budget should have covered.
+enum RateLimitBackoff {
+    static let maxRetryAfter: TimeInterval = 5
+
+    static func delay(retryAfter: Double?, attempt: Int) -> TimeInterval? {
+        if let retryAfter {
+            // A long explicit hint on the free tier means "come back much later",
+            // and burning it inline is worse than surfacing the failure.
+            guard retryAfter <= maxRetryAfter else { return nil }
+            return max(0, retryAfter)
+        }
+        return min(pow(2, Double(attempt)), maxRetryAfter)
     }
 }
 

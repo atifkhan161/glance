@@ -6,13 +6,49 @@ struct RSSFeedInfo: Sendable {
 }
 
 struct GenericRSSClient: Sendable {
-    private static let transport = HTTPTransport(subsystem: "rss")
+    private let transport: HTTPTransport
+
+    init(transport: HTTPTransport = HTTPTransport(subsystem: "rss")) {
+        self.transport = transport
+    }
+
+    private static let maxAttempts = 2
+
+    /// Reddit — the most common feed among user-added sources — serves 429s to
+    /// requests without an identifying User-Agent, and then supplies no usable
+    /// retry hint. Every refresh of a rate-limited feed therefore failed outright,
+    /// even though those limits are documented as transient.
+    private static func feedRequest(_ url: URL) -> URLRequest {
+        var request = URLRequest(url: url)
+        request.setValue(
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 26_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Glance/1.4.4",
+            forHTTPHeaderField: "User-Agent"
+        )
+        request.setValue("application/rss+xml, application/xml;q=0.9, */*;q=0.8", forHTTPHeaderField: "Accept")
+        return request
+    }
+
+    private func fetchData(from url: URL, hint: String) async throws -> Data {
+        let request = Self.feedRequest(url)
+        for attempt in 0 ..< Self.maxAttempts {
+            do {
+                let (data, _) = try await transport.data(for: request, hint: hint)
+                return data
+            } catch GlanceError.rateLimited(let retryAfter) {
+                guard attempt < Self.maxAttempts - 1,
+                      let delay = RateLimitBackoff.delay(retryAfter: retryAfter, attempt: attempt)
+                else { throw GlanceError.rateLimited(retryAfter: retryAfter) }
+                try await Task.sleep(for: .seconds(delay))
+            }
+        }
+        throw GlanceError.rateLimited(retryAfter: nil)
+    }
 
     func fetchArticles(from urlString: String) async throws -> [MMArticle] {
         guard let url = URL(string: urlString) else {
             throw GlanceError.networkError("Invalid RSS URL")
         }
-        let (data, _) = try await Self.transport.data(for: URLRequest(url: url), hint: "articles")
+        let data = try await fetchData(from: url, hint: "articles")
         let parser = GenericRSSParser()
         return parser.parse(data: data)
     }
@@ -21,7 +57,7 @@ struct GenericRSSClient: Sendable {
         guard let url = URL(string: urlString) else {
             throw GlanceError.networkError("Invalid RSS URL")
         }
-        let (data, _) = try await Self.transport.data(for: URLRequest(url: url), hint: "feed info")
+        let data = try await fetchData(from: url, hint: "feed info")
         let parser = GenericRSSParser()
         let (title, articles) = parser.parseWithFeedTitle(data: data)
         return RSSFeedInfo(title: title, articles: articles)
