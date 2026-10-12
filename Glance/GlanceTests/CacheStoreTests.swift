@@ -54,6 +54,14 @@ struct CacheStoreTests {
         #expect(ttl == 24 * 3_600)
     }
 
+    @Test("Readme key combines owner and name")
+    func readmeKey() {
+        let key = CacheStore.readmeKey(owner: "vercel", name: "next.js")
+        #expect(key == "cache_github_readme_vercel_next.js")
+        #expect(key.hasPrefix(CacheStore.readmePrefix))
+        #expect(CacheStore.readmeKey(owner: "a", name: "b") != CacheStore.readmeKey(owner: "a", name: "c"))
+    }
+
     @Test("Custom RSS save and load round-trip")
     func customRSSRoundTrip() async {
         let store = makeStore()

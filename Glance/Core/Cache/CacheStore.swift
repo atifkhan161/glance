@@ -34,6 +34,12 @@ actor CacheStore {
         customRSSPrefix + feedID
     }
 
+    static let readmePrefix = "cache_github_readme_"
+
+    static func readmeKey(owner: String, name: String) -> String {
+        readmePrefix + owner + "_" + name
+    }
+
     private func allKeys() -> [String] {
         var keys = Set(Self.allCacheKeys)
         let defaultsKeys = defaults.dictionaryRepresentation().keys
