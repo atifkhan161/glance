@@ -5,6 +5,7 @@ struct READMEWebView: UIViewRepresentable {
     let readme: GitHubReadme
     var onHeightChange: (CGFloat) -> Void = { _ in }
     var onOpenExternal: (URL) -> Void = { _ in }
+    var onLoadFailure: () -> Void = {}
 
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: self)
@@ -33,8 +34,10 @@ struct READMEWebView: UIViewRepresentable {
     func updateUIView(_ webView: WKWebView, context: Context) {
         context.coordinator.parent = self
         guard context.coordinator.loadedKey != readme.fullName else { return }
-        guard let url = context.coordinator.writeDocument(for: readme) else { return }
+        let scheme = READMEDocument.effectiveScheme(webView)
+        guard let url = context.coordinator.writeDocument(for: readme, scheme: scheme) else { return }
         context.coordinator.loadedKey = readme.fullName
+        context.coordinator.observeContentSize(webView)
         webView.loadFileURL(url, allowingReadAccessTo: context.coordinator.readAccessURL)
     }
 
@@ -68,33 +71,36 @@ struct READMEWebView: UIViewRepresentable {
 
         var parent: READMEWebView
         var loadedKey: String?
-        private var temporaryURL: URL?
+        private var documentURL: URL?
         private var lastReportedHeight: CGFloat = -1
+        private var contentSizeObservation: NSKeyValueObservation?
 
-        let readAccessURL: URL = Bundle.main.resourceURL ?? Bundle.main.bundleURL
+        /// The document and the staged fonts must sit under one directory so a
+        /// single read grant covers both, which is what lets `@font-face` resolve.
+        let readAccessURL: URL = READMEResources.directory
 
         init(parent: READMEWebView) {
             self.parent = parent
         }
 
-        func writeDocument(for readme: GitHubReadme) -> URL? {
-            removeTemporaryFile()
-            let html = READMEDocument.html(article: readme.html)
-            let url = FileManager.default.temporaryDirectory
-                .appendingPathComponent("glance-readme-\(abs(readme.fullName.hashValue))-\(UUID().uuidString).html")
+        func writeDocument(for readme: GitHubReadme, scheme: UIUserInterfaceStyle) -> URL? {
+            let html = READMEDocument.html(article: readme.html, scheme: scheme)
+            READMEResources.stageFonts()
+            let url = READMEResources.documentURL(named: "readme-\(abs(readme.fullName.hashValue)).html")
             do {
                 try html.write(to: url, atomically: true, encoding: .utf8)
             } catch {
+                parent.onLoadFailure()
                 return nil
             }
-            temporaryURL = url
+            documentURL = url
             return url
         }
 
         func removeTemporaryFile() {
-            guard let temporaryURL else { return }
-            try? FileManager.default.removeItem(at: temporaryURL)
-            self.temporaryURL = nil
+            guard let documentURL else { return }
+            try? FileManager.default.removeItem(at: documentURL)
+            self.documentURL = nil
         }
 
         func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
@@ -106,6 +112,29 @@ struct READMEWebView: UIViewRepresentable {
             webView.evaluateJavaScript("Math.max(document.body ? document.body.scrollHeight : 0, document.documentElement.scrollHeight)") { [weak self] result, _ in
                 guard let self, let height = result as? Double else { return }
                 Task { @MainActor in self.report(height: CGFloat(height)) }
+            }
+        }
+
+        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            guard !Task.isCancelled else { return }
+            reportFailure(error)
+        }
+
+        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            guard !Task.isCancelled else { return }
+            reportFailure(error)
+        }
+
+        private func reportFailure(_ error: Error) {
+            loadedKey = nil
+            lastReportedHeight = -1
+            parent.onLoadFailure()
+        }
+
+        func observeContentSize(_ webView: WKWebView) {
+            contentSizeObservation = webView.scrollView.observe(\.contentSize, options: [.new]) { [weak self] _, change in
+                guard let self, let size = change.newValue else { return }
+                Task { @MainActor in self.report(height: size.height) }
             }
         }
 
@@ -133,10 +162,58 @@ struct READMEWebView: UIViewRepresentable {
     }
 }
 
+/// The generated document is written to a temp file that must be able to reach the
+/// bundled `.ttf` files for `@font-face` to resolve, so both the document and a
+/// copy of the fonts live in one directory which is then granted as the read scope.
+enum READMEResources {
+    static let fontFiles = [
+        "Manrope-Regular.ttf", "Manrope-Medium.ttf", "Manrope-SemiBold.ttf",
+        "Manrope-Bold.ttf", "Manrope-ExtraBold.ttf",
+        "JetBrainsMono-Regular.ttf", "JetBrainsMono-Medium.ttf",
+        "JetBrainsMono-SemiBold.ttf", "JetBrainsMono-Bold.ttf", "JetBrainsMono-ExtraBold.ttf",
+    ]
+
+    private static let root: URL = {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("glance-readme-resources", isDirectory: true)
+        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        return url
+    }()
+
+    static var directory: URL { root }
+
+    static func fontURL(_ file: String) -> URL? {
+        let bundled = Bundle.main.url(forResource: file, withExtension: nil)
+            ?? Bundle.main.url(forResource: file, withExtension: nil, subdirectory: "Fonts")
+        guard let bundled else { return nil }
+        return bundled
+    }
+
+    static func documentURL(named name: String) -> URL {
+        root.appendingPathComponent(name)
+    }
+
+    @discardableResult
+    static func stageFonts() -> Bool {
+        var ok = true
+        for file in fontFiles {
+            let destination = root.appendingPathComponent(file)
+            guard let source = fontURL(file) else { continue }
+            if FileManager.default.fileExists(atPath: destination.path) { continue }
+            do {
+                try FileManager.default.copyItem(at: source, to: destination)
+            } catch {
+                ok = false
+            }
+        }
+        return ok
+    }
+}
+
 enum READMEDocument {
-    static func html(article: String) -> String {
+    static func html(article: String, scheme: UIUserInterfaceStyle) -> String {
         let theme = ThemeManager.shared.current
-        let css = stylesheet(colors: theme.colors, family: theme.typography.family)
+        let css = stylesheet(colors: theme.colors, family: theme.typography.family, scheme: scheme)
         return """
         <!DOCTYPE html>
         <html><head>
@@ -147,17 +224,48 @@ enum READMEDocument {
         """
     }
 
-    static func stylesheet(colors c: ThemeColors, family: String) -> String {
-        let body = hex(c.surface1)
-        let text = hex(c.textSecondary)
-        let primary = hex(c.textPrimary)
-        let muted = hex(c.textMuted)
-        let border = hex(c.borderSubtle)
-        let deep = hex(c.canvasDeep)
-        let link = hex(c.accent)
-        let codeBg = hex(c.surface3)
+    /// Fonts registered through `UIAppFonts` are installed in the *app* process.
+    /// `WKWebView` renders in a separate WebContent process that never sees them, so
+    /// a bare `font-family: 'Manrope'` silently falls back to the system face. Each
+    /// face therefore needs an explicit `@font-face` pointing at the bundled file.
+    static func fontFaces(family: String) -> String {
+        var faces: [String] = []
+        for (prefix, name) in [
+            ("Manrope", "Manrope"),
+            ("JetBrainsMono", "JetBrains Mono"),
+            ("HankenGrotesk", "Hanken Grotesk"),
+        ] {
+            guard name == family || prefix == "JetBrainsMono" else { continue }
+            for (file, weight) in [
+                ("Regular", 400), ("Medium", 500), ("SemiBold", 600), ("Bold", 700), ("ExtraBold", 800),
+            ] {
+                guard READMEResources.fontURL("\(prefix)-\(file).ttf") != nil else { continue }
+                faces.append(
+                    "@font-face{font-family:'\(name)';font-style:normal;font-weight:\(weight);"
+                    + "src:url('\(prefix)-\(file).ttf') format('truetype');}"
+                )
+            }
+        }
+        return faces.joined(separator: "\n")
+    }
+
+    static func stylesheet(colors c: ThemeColors, family: String, scheme: UIUserInterfaceStyle) -> String {
+        let body = hex(c.surface1, scheme)
+        let text = hex(c.textSecondary, scheme)
+        let primary = hex(c.textPrimary, scheme)
+        let muted = hex(c.textMuted, scheme)
+        let border = hex(c.borderSubtle, scheme)
+        let deep = hex(c.canvasDeep, scheme)
+        let link = hex(c.accent, scheme)
+        let codeBg = hex(c.surface3, scheme)
+        let purple = hex(c.tierPurple, scheme)
+        let cyan = hex(c.cardCyan, scheme)
+        let emerald = hex(c.cardEmerald, scheme)
+        let amber = hex(c.cardAmber, scheme)
+        let gold = hex(c.starGold, scheme)
 
         return """
+        \(fontFaces(family: family))
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; background: \(body); }
         body {
@@ -216,28 +324,31 @@ enum READMEDocument {
         div.highlight pre { background: none; border: none; padding: 0; margin: 0; }
 
         /* Syntax tokens mapped onto the active theme. */
-        .pl-k, .pl-kn, .pl-kc, .pl-kt, .pl-kd { color: \(hex(c.tierPurple)); }
-        .pl-s, .pl-s1, .pl-s2, .pl-sa, .pl-sr { color: \(hex(c.cardCyan)); }
-        .pl-en, .pl-fc { color: \(hex(c.cardEmerald)); }
-        .pl-n, .pl-no, .pl-nc { color: \(hex(c.cardAmber)); }
+        .pl-k, .pl-kn, .pl-kc, .pl-kt, .pl-kd { color: \(purple); }
+        .pl-s, .pl-s1, .pl-s2, .pl-sa, .pl-sr { color: \(cyan); }
+        .pl-en, .pl-fc { color: \(emerald); }
+        .pl-n, .pl-no, .pl-nc { color: \(amber); }
         .pl-c, .pl-c1, .pl-cm { color: \(muted); font-style: italic; }
         .pl-v, .pl-vb, .pl-py { color: \(primary); }
         .pl-o, .pl-p { color: \(text); }
-        .pl-t { color: \(hex(c.starGold)); }
+        .pl-t { color: \(gold); }
         """
     }
 
-    static func hex(_ color: Color) -> String {
-        let ui = UIColor(color).resolvedColor(with: UITraitCollection(userInterfaceStyle: effectiveScheme))
+    static func hex(_ color: Color, _ scheme: UIUserInterfaceStyle) -> String {
+        let ui = UIColor(color).resolvedColor(with: UITraitCollection(userInterfaceStyle: scheme))
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
         ui.getRed(&r, green: &g, blue: &b, alpha: &a)
         return String(format: "#%02X%02X%02X", Int(round(r * 255)), Int(round(g * 255)), Int(round(b * 255)))
     }
 
-    static var effectiveScheme: UIUserInterfaceStyle {
+    /// The document is generated outside a UIKit draw pass, where
+    /// `UITraitCollection.current` is not dependable, so the webview's own trait
+    /// collection is the authority when a theme does not force a scheme.
+    static func effectiveScheme(_ webView: WKWebView) -> UIUserInterfaceStyle {
         let override = ThemeManager.shared.current.colorSchemeOverride
-        if override == .light { return .light }
-        if override == .dark { return .dark }
-        return UITraitCollection.current.userInterfaceStyle
+        if let override { return override == .dark ? .dark : .light }
+        let resolved = webView.traitCollection.userInterfaceStyle
+        return resolved == .unspecified ? .dark : resolved
     }
 }

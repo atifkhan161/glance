@@ -52,6 +52,7 @@ struct GitHubReadmeClientTests {
     @Test("follows a redirect and reports the resolved URL")
     func followsRedirect() async throws {
         let html = try fixture("readme-with-decoy")
+        MockGitHubURLProtocol.reset()
         MockGitHubURLProtocol.stubs = [
             .init(statusCode: 301, headers: ["Location": "https://github.com/react/react"]),
             .init(statusCode: 200, data: Data(html.utf8)),
@@ -64,6 +65,7 @@ struct GitHubReadmeClientTests {
 
     @Test("returns nil when the api fallback is a 404")
     func returnsNilWhenApiIs404() async throws {
+        MockGitHubURLProtocol.reset()
         MockGitHubURLProtocol.stubs = [
             .init(statusCode: 200, data: Data(try fixture("no-readme").utf8)),
             .init(statusCode: 404, data: Data(#"{"message":"Not Found"}"#.utf8)),
@@ -75,6 +77,7 @@ struct GitHubReadmeClientTests {
 
     @Test("does not fall back after a transport failure")
     func noFallbackAfterTransportFailure() async {
+        MockGitHubURLProtocol.reset()
         MockGitHubURLProtocol.error = URLError(.notConnectedToInternet)
         do {
             _ = try await GitHubReadmeClient(session: MockGitHubURLProtocol.makeSession())
@@ -102,5 +105,40 @@ struct GitHubReadmeClientTests {
         #expect(!result.contains("iframe"))
         #expect(!result.contains("object"))
         #expect(result.contains("<b>x</b>"))
+    }
+
+    @Test("sanitize strips single quoted and unquoted event handlers")
+    func sanitizeStripsAllHandlerQuoting() {
+        let result = GitHubReadmeClient.sanitize(
+            "<div onclick='steal()' onmouseover=go()>ok</div>"
+        )
+        #expect(!result.contains("onclick"))
+        #expect(!result.contains("onmouseover"))
+        #expect(!result.contains("steal()"))
+        #expect(result.contains("ok"))
+    }
+
+    @Test("absolutize neutralises javascript hrefs")
+    func absolutizeNeutralisesDangerousSchemes() {
+        let base = URL(string: "https://github.com/vercel/next.js")!
+        let result = GitHubReadmeClient.absolutizeURLs(
+            in: "<a href=\"javascript:alert(1)\">x</a><a href=\"/docs\">d</a>",
+            base: base
+        )
+        #expect(!result.contains("javascript:"))
+        #expect(result.contains("href=\"https://github.com/docs\""))
+    }
+
+    @Test("api fallback absolutizes relative readme links")
+    func apiFallbackAbsolutizes() async throws {
+        let html = "<div id=\"readme\"><a href=\"/contributing.md\">contributing</a></div>"
+        MockGitHubURLProtocol.reset()
+        MockGitHubURLProtocol.stubs = [
+            .init(statusCode: 404, data: Data(#"{"message":"Not Found"}"#.utf8)),
+            .init(statusCode: 200, data: Data(html.utf8)),
+        ]
+        let readme = try await GitHubReadmeClient(session: MockGitHubURLProtocol.makeSession())
+            .fetchReadme(owner: "vercel", name: "next.js")
+        #expect(readme?.html.contains("https://api.github.com/contributing.md") == true)
     }
 }

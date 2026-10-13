@@ -1,6 +1,6 @@
 import Foundation
 
-final class MockGitHubURLProtocol: URLProtocol {
+final class MockGitHubURLProtocol: URLProtocol, @unchecked Sendable {
     struct Stub {
         let statusCode: Int
         let data: Data?

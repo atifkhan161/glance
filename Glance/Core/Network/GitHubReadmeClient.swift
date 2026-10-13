@@ -78,10 +78,12 @@ struct GitHubReadmeClient: GitHubReadmeClientProtocol, Sendable {
             guard let body = String(data: data, encoding: .utf8), !body.isEmpty else {
                 return nil
             }
+            let sanitized = Self.sanitize(body)
+            let base = http.url ?? url
             return GitHubReadme(
                 fullName: fullName,
-                html: Self.sanitize(body),
-                resolvedURL: http.url?.absoluteString ?? ""
+                html: Self.absolutizeURLs(in: sanitized, base: base),
+                resolvedURL: base.absoluteString
             )
         } catch let error as GlanceError {
             if case .httpStatus(404) = error { return nil }
@@ -131,19 +133,27 @@ struct GitHubReadmeClient: GitHubReadmeClientProtocol, Sendable {
         var result = ""
         var cursor = fragment.startIndex
         for match in matches {
-            guard let whole = Range(match.range, in: fragment),
-                  let valueRange = Range(match.range(at: 2), in: fragment) else { continue }
+            guard let valueRange = Range(match.range(at: 2), in: fragment) else { continue }
             result += fragment[cursor..<valueRange.lowerBound]
             let value = String(fragment[valueRange])
-            result += Self.absoluteURL(for: value, base: base) ?? value
+            if Self.isDangerousScheme(value) {
+                result += "#"
+            } else {
+                result += Self.absoluteURL(for: value, base: base) ?? value
+            }
             cursor = valueRange.upperBound
-            _ = whole
         }
         result += fragment[cursor...]
         return result
     }
 
     private static let absoluteSchemes = ["http://", "https://", "//", "data:", "mailto:", "#", "tel:"]
+    private static let dangerousSchemes = ["javascript:", "vbscript:", "file:"]
+
+    static func isDangerousScheme(_ value: String) -> Bool {
+        let trimmed = value.trimmingCharacters(in: .whitespaces).lowercased()
+        return dangerousSchemes.contains { trimmed.hasPrefix($0) }
+    }
 
     static func absoluteURL(for value: String, base: URL) -> String? {
         let trimmed = value.trimmingCharacters(in: .whitespaces)
@@ -151,6 +161,9 @@ struct GitHubReadmeClient: GitHubReadmeClientProtocol, Sendable {
         let lowercased = trimmed.lowercased()
         if absoluteSchemes.contains(where: { lowercased.hasPrefix($0) }) { return nil }
         guard let resolved = URL(string: trimmed, relativeTo: base)?.absoluteURL else { return nil }
+        guard let scheme = resolved.scheme?.lowercased(), scheme == "http" || scheme == "https" else {
+            return nil
+        }
         return resolved.absoluteString
     }
 
@@ -176,14 +189,22 @@ struct GitHubReadmeClient: GitHubReadmeClientProtocol, Sendable {
                 withTemplate: ""
             )
         }
-        guard let handler = try? NSRegularExpression(
-            pattern: #"\son[a-z]+\s*=\s*"[^"]*""#,
-            options: [.caseInsensitive]
-        ) else { return result }
-        return handler.stringByReplacingMatches(
-            in: result,
-            range: NSRange(result.startIndex..., in: result),
-            withTemplate: ""
-        )
+        let handlerPatterns = [
+            #"\son[a-z]+\s*=\s*"[^"]*""#,
+            #"\son[a-z]+\s*=\s*'[^']*'"#,
+            #"\son[a-z]+\s*=\s*[^\s>]+"#,
+        ]
+        for pattern in handlerPatterns {
+            guard let handler = try? NSRegularExpression(
+                pattern: pattern,
+                options: [.caseInsensitive]
+            ) else { continue }
+            result = handler.stringByReplacingMatches(
+                in: result,
+                range: NSRange(result.startIndex..., in: result),
+                withTemplate: ""
+            )
+        }
+        return result
     }
 }

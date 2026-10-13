@@ -11,6 +11,11 @@ struct RepoDetailView: View {
     }
 
     var body: some View {
+        content
+            .id(repository.fullName)
+    }
+
+    private var content: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 // Header card
@@ -128,8 +133,7 @@ struct RepoDetailView: View {
         .glanceBackground()
         .navigationTitle(repository.fullName)
         .navigationBarTitleDisplayMode(.inline)
-        .id(repository.fullName)
-        .task { await store.load() }
+        .task(id: repository.fullName) { await store.load() }
     }
 
     // MARK: - README
@@ -140,19 +144,27 @@ struct RepoDetailView: View {
         case .idle, .loading:
             READMEPlaceholder()
         case .ready(let readme):
-            READMEWebView(
-                readme: readme,
-                onHeightChange: { store.height = $0 },
-                onOpenExternal: { url in openURL(url) }
-            )
-            .frame(height: store.height)
-            .padding(Theme.cardPadding)
-            .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
-            .overlay(
-                RoundedRectangle(cornerRadius: Theme.cornerRadius)
-                    .stroke(Theme.Colors.cardEmerald.opacity(0.3), lineWidth: 1)
-            )
-            .padding(.top, 4)
+            if store.renderFailed {
+                READMEFailureNotice(message: "Could not display the README.") {
+                    Task { await store.retry() }
+                }
+                .padding(.top, 4)
+            } else {
+                READMEWebView(
+                    readme: readme,
+                    onHeightChange: { store.height = $0 },
+                    onOpenExternal: { url in openURL(url) },
+                    onLoadFailure: { store.renderFailed = true }
+                )
+                .frame(height: store.height)
+                .padding(Theme.cardPadding)
+                .background(Theme.Colors.surface1, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+                .overlay(
+                    RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                        .stroke(Theme.Colors.cardEmerald.opacity(0.3), lineWidth: 1)
+                )
+                .padding(.top, 4)
+            }
         case .empty:
             EmptyView()
         case .failed(let message):

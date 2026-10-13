@@ -7,7 +7,8 @@ struct READMEDocumentTests {
     private func css() -> String {
         READMEDocument.stylesheet(
             colors: ThemeManager.shared.current.colors,
-            family: "Manrope"
+            family: "Manrope",
+            scheme: .dark
         )
     }
 
@@ -34,9 +35,7 @@ struct READMEDocumentTests {
 
     @Test("document embeds the article and a viewport meta tag")
     func buildsDocument() {
-        let html = READMEDocument.html(
-            article: GitHubReadme(fullName: "a/b", html: "<p>hello</p>", resolvedURL: "").html
-        )
+        let html = READMEDocument.html(article: "<p>hello</p>", scheme: .dark)
         #expect(html.contains("<p>hello</p>"))
         #expect(html.contains("name=\"viewport\""))
         #expect(html.contains("<style>"))
@@ -44,18 +43,33 @@ struct READMEDocumentTests {
 
     @Test("document strips scripts from article content")
     func stripsScripts() {
-        let html = READMEDocument.html(
-            article: GitHubReadme(fullName: "a/b", html: "<p>ok</p><script>bad()</script>", resolvedURL: "").html
-        )
+        let html = READMEDocument.html(article: "<p>ok</p><script>bad()</script>", scheme: .dark)
         #expect(!html.contains("bad()"))
         #expect(html.contains("<p>ok</p>"))
     }
 
     @Test("hex emits a six digit css colour")
     func hexFormat() {
-        let value = READMEDocument.hex(.white)
+        let value = READMEDocument.hex(.white, .dark)
         #expect(value.hasPrefix("#"))
         #expect(value.count == 7)
         #expect(value == "#FFFFFF")
+    }
+
+    @Test("stylesheet declares font faces so bundled fonts resolve in the webview")
+    func declaresFontFaces() {
+        let style = css()
+        #expect(style.contains("@font-face"))
+        #expect(style.contains("font-family:'Manrope'"))
+        #expect(style.contains("Manrope-Regular.ttf"))
+        #expect(style.contains("JetBrainsMono-Regular.ttf"))
+    }
+
+    @Test("hex resolves differently for light and dark schemes")
+    func hexRespectsScheme() {
+        let theme = ThemeManager.shared.current.colors
+        let light = READMEDocument.hex(theme.canvas, .light)
+        let dark = READMEDocument.hex(theme.canvas, .dark)
+        #expect(light != dark)
     }
 }
