@@ -10,11 +10,14 @@
 # Standard macOS runner minutes are free on public repos; this pinned setup
 # matches the toolchain the Mac used:
 #
-#   macos-26      - pinned, NOT macos-latest (the label migrates between OS
-#                   versions without a commit; macos-14 retired 2026-11-02)
-#   Xcode 26.6    - the image's default, iOS 26.5 SDK, matching the project's
-#                   IPHONEOS_DEPLOYMENT_TARGET = 26.0. Pinned via DEVELOPER_DIR
-#                   so a future image update cannot move it silently.
+#   xcode-27      - the Xcode 27 image (GA 2026-10-15), required because
+#                   FoundationModelsClient.swift references LanguageModelError,
+#                   an iOS 27-SDK-only type guarded by #available(iOS 27.0, *)
+#                   (Apple's documented migration pattern). The iOS 26.5 SDK on
+#                   the macos-26 image cannot compile it.
+#   Xcode 27.1    - pinned via DEVELOPER_DIR so a future image update cannot
+#                   move it silently. IPHONEOS_DEPLOYMENT_TARGET stays 26.0,
+#                   so apps.json's generated minOSVersion is unaffected.
 #
 # The job token carries contents:write, which release.sh needs for its git
 # push, tag, gh release create/upload/download. Events caused by GITHUB_TOKEN
@@ -44,11 +47,11 @@ concurrency:
 
 jobs:
   release:
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 60
 
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_27.1.app/Contents/Developer
       GH_TOKEN: ${{ github.token }}
       INPUT_VERSION: ${{ inputs.version }}
 

@@ -61,9 +61,13 @@ gh run watch                           # release is up when the run goes green
   release asset must never change.
 - The workflow's optional `version` input must match `Info.plist` exactly when given; empty
   means "release what the plist says".
-- Pinned toolchain (verified 2026-11-17): `runs-on: macos-26` (not the drifting
-  `macos-latest` label) with `DEVELOPER_DIR` = Xcode 26.6 → iOS 26.5 SDK, matching
-  `IPHONEOS_DEPLOYMENT_TARGET = 26.0`. Standard macOS runner minutes are free on public repos.
+- Pinned toolchain (updated 2026-11-17): `runs-on: xcode-27` (GA 2026-10-15, arm64-only)
+  with `DEVELOPER_DIR` = Xcode 27.1 → iOS 27.x SDK. Required because
+  `FoundationModelsClient.swift` references `LanguageModelError`, an iOS 27-SDK-only
+  type guarded by `#available(iOS 27.0, *)` — the iOS 26.5 SDK on the old `macos-26`
+  pin cannot compile it. `IPHONEOS_DEPLOYMENT_TARGET = 26.0` is unchanged, so
+  `apps.json`'s generated `minOSVersion` stays truthful. Standard macOS runner minutes
+  are free on public repos.
 
 `apps.json` (SideStore source) is **generated from the built IPA** — version, size and downloadURL are
 read out of the product, never hand-typed. `version` there must equal `CFBundleShortVersionString`
