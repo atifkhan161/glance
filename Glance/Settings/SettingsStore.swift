@@ -4,12 +4,14 @@ enum ApiKey: String, CaseIterable, Hashable, Sendable {
     case exa = "keys_exa"
     case gemini = "keys_gemini"
     case openRouter = "keys_openrouter"
+    case footballData = "keys_football_data"
 
     var displayName: String {
         switch self {
         case .exa: "Exa"
         case .gemini: "Gemini"
         case .openRouter: "OpenRouter"
+        case .footballData: "Football Data"
         }
     }
 }
@@ -20,6 +22,7 @@ final class SettingsStore {
     var exaAPIKey: String = ""
     var geminiAPIKey: String = ""
     var openrouterAPIKey: String = ""
+    var footballDataAPIKey: String = ""
 
     private(set) var storedKeys: Set<ApiKey> = []
 
@@ -113,12 +116,12 @@ final class SettingsStore {
     }
 
     var madridTeamID: String {
-        get { defaults.string(forKey: "madrid_team_id") ?? "133738" }
+        get { FootballData.modernTeamID(for: defaults.string(forKey: "madrid_team_id") ?? "86") }
         set { defaults.set(newValue, forKey: "madrid_team_id") }
     }
 
     var madridLeagueID: String {
-        get { defaults.string(forKey: "madrid_league_id") ?? "4335" }
+        get { FootballData.modernLeagueID(for: defaults.string(forKey: "madrid_league_id") ?? "PD") }
         set { defaults.set(newValue, forKey: "madrid_league_id") }
     }
 
@@ -196,6 +199,7 @@ final class SettingsStore {
         case .exa: exaAPIKey
         case .gemini: geminiAPIKey
         case .openRouter: openrouterAPIKey
+        case .footballData: footballDataAPIKey
         }
     }
 
@@ -204,6 +208,7 @@ final class SettingsStore {
         case .exa: exaAPIKey = value
         case .gemini: geminiAPIKey = value
         case .openRouter: openrouterAPIKey = value
+        case .footballData: footballDataAPIKey = value
         }
     }
 

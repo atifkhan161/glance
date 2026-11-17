@@ -29,73 +29,82 @@ struct MadridPipelineTests {
         #expect(result == nil)
     }
 
+    private static func fdMatch(
+        id: Int,
+        utcDate: String,
+        status: String,
+        matchday: Int? = nil,
+        competition: String = "La Liga",
+        competitionCode: String = "PD",
+        home: FDTeamRef,
+        away: FDTeamRef,
+        winner: String? = nil,
+        fullTime: FDFullTime? = nil
+    ) -> FDMatch {
+        FDMatch(
+            id: id,
+            utcDate: utcDate,
+            status: status,
+            matchday: matchday,
+            competition: FDCompetitionRef(id: 2014, name: competition, code: competitionCode),
+            homeTeam: home,
+            awayTeam: away,
+            score: FDScore(winner: winner, fullTime: fullTime)
+        )
+    }
+
+    private static let madrid = FDTeamRef(id: 86, name: "Real Madrid CF", crest: "https://crests.football-data.org/86.png")
+    private static let atletico = FDTeamRef(id: 78, name: "Club Atlético de Madrid", crest: "https://crests.football-data.org/78.png")
+    private static let elche = FDTeamRef(id: 89, name: "Elche CF", crest: "https://crests.football-data.org/89.png")
+    private static let rayo = FDTeamRef(id: 87, name: "Rayo Vallecano de Madrid", crest: "https://crests.football-data.org/87.png")
+    private static let barcelona = FDTeamRef(id: 81, name: "FC Barcelona", crest: "https://crests.football-data.org/81.png")
+
     @Test("parseMatchTimeline returns upcoming first then recent finished")
     func parseMatchTimeline_basic() {
-        let teamID = "133738"
+        let teamID = "86"
         let teamName = "Real Madrid"
 
-        let finished1 = SDBEvent(
-            idEvent: "1", strEvent: "Elche vs Real Madrid", strLeague: "La Liga",
-            strSeason: "2026-2027", strTimestamp: "2026-09-15T19:30:00Z",
-            dateEvent: "2026-09-15", strTime: "19:30:00",
-            strHomeTeam: "Elche", strAwayTeam: "Real Madrid",
-            idHomeTeam: "134384", idAwayTeam: "133738",
-            strVenue: "Estadio Martínez Valero", intRound: "6",
-            strStatus: "FT", intHomeScore: 2, intAwayScore: 3,
-            strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+        let finished1 = Self.fdMatch(
+            id: 1, utcDate: "2026-09-15T19:30:00Z", status: "FINISHED", matchday: 6,
+            home: Self.elche, away: Self.madrid,
+            fullTime: FDFullTime(home: 2, away: 3)
         )
 
-        let finished2 = SDBEvent(
-            idEvent: "2", strEvent: "Real Madrid vs Rayo Vallecano", strLeague: "La Liga",
-            strSeason: "2026-2027", strTimestamp: "2026-09-12T19:00:00Z",
-            dateEvent: "2026-09-12", strTime: "19:00:00",
-            strHomeTeam: "Real Madrid", strAwayTeam: "Rayo Vallecano",
-            idHomeTeam: "133738", idAwayTeam: "133728",
-            strVenue: "Santiago Bernabéu", intRound: "5",
-            strStatus: "FT", intHomeScore: 4, intAwayScore: 1,
-            strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+        let finished2 = Self.fdMatch(
+            id: 2, utcDate: "2026-09-12T19:00:00Z", status: "FINISHED", matchday: 5,
+            home: Self.madrid, away: Self.rayo,
+            fullTime: FDFullTime(home: 4, away: 1)
         )
 
-        let upcoming1 = SDBEvent(
-            idEvent: "3", strEvent: "Atlético Madrid vs Real Madrid", strLeague: "La Liga",
-            strSeason: "2026-2027", strTimestamp: "2026-09-20T14:15:00Z",
-            dateEvent: "2026-09-20", strTime: "14:15:00",
-            strHomeTeam: "Atlético Madrid", strAwayTeam: "Real Madrid",
-            idHomeTeam: "133729", idAwayTeam: "133738",
-            strVenue: "Riyadh Air Metropolitano", intRound: "7",
-            strStatus: "NS", intHomeScore: nil, intAwayScore: nil,
-            strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+        let upcoming1 = Self.fdMatch(
+            id: 3, utcDate: "2026-09-20T14:15:00Z", status: "TIMED", matchday: 7,
+            home: Self.atletico, away: Self.madrid
         )
-
-        let recentEvents = [finished1, finished2]
-        let nextEvents = [upcoming1]
 
         let timeline = MadridPipeline.parseMatchTimeline(
-            recentEvents: recentEvents,
-            nextEvents: nextEvents,
+            matches: [finished1, finished2, upcoming1],
             teamID: teamID,
             teamName: teamName
         )
 
         #expect(timeline.count == 3)
-        #expect(timeline[0].opponent == "Atlético Madrid")
+        #expect(timeline[0].opponent == "Club Atlético de Madrid")
         #expect(timeline[0].isFinished == false)
         #expect(timeline[0].result == nil)
         #expect(timeline[0].homeScore == nil)
         #expect(timeline[0].isHome == false)
 
-        #expect(timeline[1].opponent == "Elche")
+        #expect(timeline[1].opponent == "Elche CF")
         #expect(timeline[1].isFinished == true)
         #expect(timeline[1].result == "W")
         #expect(timeline[1].homeScore == 2)
         #expect(timeline[1].awayScore == 3)
         #expect(timeline[1].isHome == false)
-        // Away win: score must read from Madrid's perspective, not home/away
         #expect(timeline[1].teamScore == 3)
         #expect(timeline[1].opponentScore == 2)
         #expect(timeline[1].scoreText == "3 - 2")
 
-        #expect(timeline[2].opponent == "Rayo Vallecano")
+        #expect(timeline[2].opponent == "Rayo Vallecano de Madrid")
         #expect(timeline[2].isFinished == true)
         #expect(timeline[2].result == "W")
         #expect(timeline[2].isHome == true)
@@ -106,20 +115,14 @@ struct MadridPipelineTests {
 
     @Test("Away loss reads 1 - 2 for Madrid, not 2 - 1")
     func awayLossScoreOrientation() {
-        let awayLoss = SDBEvent(
-            idEvent: "9", strEvent: "Barcelona vs Real Madrid", strLeague: "La Liga",
-            strSeason: "2026-2027", strTimestamp: "2026-09-05T19:30:00Z",
-            dateEvent: "2026-09-05", strTime: "19:30:00",
-            strHomeTeam: "Barcelona", strAwayTeam: "Real Madrid",
-            idHomeTeam: "133739", idAwayTeam: "133738",
-            strVenue: "Spotify Camp Nou", intRound: "4",
-            strStatus: "FT", intHomeScore: 2, intAwayScore: 1,
-            strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+        let awayLoss = Self.fdMatch(
+            id: 9, utcDate: "2026-09-05T19:30:00Z", status: "FINISHED", matchday: 4,
+            home: Self.barcelona, away: Self.madrid,
+            fullTime: FDFullTime(home: 2, away: 1)
         )
 
         let timeline = MadridPipeline.parseMatchTimeline(
-            recentEvents: [awayLoss], nextEvents: [],
-            teamID: "133738", teamName: "Real Madrid"
+            matches: [awayLoss], teamID: "86", teamName: "Real Madrid"
         )
 
         let item = try! #require(timeline.first)
@@ -132,22 +135,45 @@ struct MadridPipelineTests {
         #expect(item.scoreText == "1 - 2")
     }
 
-    @Test("convertToLastMatch and convertToFixture carry team-relative scores")
-    func conversionsAreTeamRelative() {
-        let awayLoss = SDBEvent(
-            idEvent: "9", strEvent: "Barcelona vs Real Madrid", strLeague: "La Liga",
-            strSeason: "2026-2027", strTimestamp: "2026-09-05T19:30:00Z",
-            dateEvent: "2026-09-05", strTime: "19:30:00",
-            strHomeTeam: "Barcelona", strAwayTeam: "Real Madrid",
-            idHomeTeam: "133739", idAwayTeam: "133738",
-            strVenue: "Spotify Camp Nou", intRound: "4",
-            strStatus: "FT", intHomeScore: 2, intAwayScore: 1,
-            strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+    @Test("Result falls back to the winner field when fullTime goals are null")
+    func winnerFieldFallback() {
+        let draw = Self.fdMatch(
+            id: 10, utcDate: "2026-09-05T19:30:00Z", status: "FINISHED",
+            home: Self.madrid, away: Self.barcelona,
+            winner: "DRAW", fullTime: FDFullTime(home: nil, away: nil)
+        )
+        let homeWin = Self.fdMatch(
+            id: 11, utcDate: "2026-09-06T19:30:00Z", status: "FINISHED",
+            home: Self.madrid, away: Self.rayo,
+            winner: "HOME_TEAM", fullTime: FDFullTime(home: nil, away: nil)
+        )
+        let awayLoss = Self.fdMatch(
+            id: 12, utcDate: "2026-09-07T19:30:00Z", status: "FINISHED",
+            home: Self.atletico, away: Self.madrid,
+            winner: "HOME_TEAM", fullTime: FDFullTime(home: nil, away: nil)
         )
 
         let timeline = MadridPipeline.parseMatchTimeline(
-            recentEvents: [awayLoss], nextEvents: [],
-            teamID: "133738", teamName: "Real Madrid"
+            matches: [draw, homeWin, awayLoss], teamID: "86", teamName: "Real Madrid"
+        )
+
+        #expect(timeline.count == 3)
+        #expect(timeline[0].result == "D")
+        #expect(timeline[1].result == "W")
+        #expect(timeline[2].result == "L")
+        #expect(timeline[0].homeScore == nil)
+    }
+
+    @Test("convertToLastMatch and convertToFixture carry team-relative scores")
+    func conversionsAreTeamRelative() {
+        let awayLoss = Self.fdMatch(
+            id: 9, utcDate: "2026-09-05T19:30:00Z", status: "FINISHED", matchday: 4,
+            home: Self.barcelona, away: Self.madrid,
+            fullTime: FDFullTime(home: 2, away: 1)
+        )
+
+        let timeline = MadridPipeline.parseMatchTimeline(
+            matches: [awayLoss], teamID: "86", teamName: "Real Madrid"
         )
         let item = try! #require(timeline.first)
 
@@ -165,21 +191,16 @@ struct MadridPipelineTests {
 
     @Test("generateIntel reports an away loss as a loss")
     func generateIntelAwayLoss() {
-        let awayLoss = SDBEvent(
-            idEvent: "9", strEvent: "Barcelona vs Real Madrid", strLeague: "La Liga",
-            strSeason: "2026-2027", strTimestamp: "2026-09-05T19:30:00Z",
-            dateEvent: "2026-09-05", strTime: "19:30:00",
-            strHomeTeam: "Barcelona", strAwayTeam: "Real Madrid",
-            idHomeTeam: "133739", idAwayTeam: "133738",
-            strVenue: "Spotify Camp Nou", intRound: "4",
-            strStatus: "FT", intHomeScore: 2, intAwayScore: 1,
-            strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+        let awayLoss = Self.fdMatch(
+            id: 9, utcDate: "2026-09-05T19:30:00Z", status: "FINISHED", matchday: 4,
+            home: Self.barcelona, away: Self.madrid,
+            fullTime: FDFullTime(home: 2, away: 1)
         )
 
-        let lastMatch = try! #require(MadridPipeline.parseLastMatch(from: [awayLoss], teamID: "133738"))
+        let lastMatch = try! #require(MadridPipeline.parseLastMatch(from: [awayLoss], teamID: "86"))
         let intel = MadridPipeline.generateIntel(nextFixture: nil, lastMatch: lastMatch, teamName: "Real Madrid")
 
-        #expect(intel == "Lost last match 1-2 vs Barcelona")
+        #expect(intel == "Lost last match 1-2 vs FC Barcelona")
     }
 
     @Test("MatchScore maps home/away to team/opponent")
@@ -197,49 +218,27 @@ struct MadridPipelineTests {
 
     // MARK: - Form
 
-    /// Real fixtures from TheSportsDB (id 4335, season 2026-2027), in the
-    /// ascending order the pipeline actually produces: rounds are appended 1...9.
-    private static func realFormEvents() -> [SDBEvent] {
+    private static func realFormMatches() -> [FDMatch] {
         [
-            SDBEvent(
-                idEvent: "r2", strEvent: "Espanyol vs Real Madrid", strLeague: "La Liga",
-                strSeason: "2026-2027", strTimestamp: "2026-08-22T19:00:00Z",
-                dateEvent: "2026-08-22", strTime: "19:00:00",
-                strHomeTeam: "Espanyol", strAwayTeam: "Real Madrid",
-                idHomeTeam: "133734", idAwayTeam: "133738",
-                strVenue: "RCDE Stadium", intRound: "2",
-                strStatus: "FT", intHomeScore: 1, intAwayScore: 2,
-                strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+            Self.fdMatch(
+                id: 22, utcDate: "2026-08-22T19:00:00Z", status: "FINISHED", matchday: 2,
+                home: FDTeamRef(id: 80, name: "RCD Espanyol de Barcelona", crest: nil), away: Self.madrid,
+                fullTime: FDFullTime(home: 1, away: 2)
             ),
-            SDBEvent(
-                idEvent: "r4", strEvent: "Real Betis vs Real Madrid", strLeague: "La Liga",
-                strSeason: "2026-2027", strTimestamp: "2026-09-04T19:00:00Z",
-                dateEvent: "2026-09-04", strTime: "19:00:00",
-                strHomeTeam: "Real Betis", strAwayTeam: "Real Madrid",
-                idHomeTeam: "133722", idAwayTeam: "133738",
-                strVenue: "Benito Villamarín", intRound: "4",
-                strStatus: "FT", intHomeScore: 1, intAwayScore: 0,
-                strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+            Self.fdMatch(
+                id: 24, utcDate: "2026-09-04T19:00:00Z", status: "FINISHED", matchday: 4,
+                home: FDTeamRef(id: 90, name: "Real Betis Balompié", crest: nil), away: Self.madrid,
+                fullTime: FDFullTime(home: 1, away: 0)
             ),
-            SDBEvent(
-                idEvent: "r5", strEvent: "Real Madrid vs Rayo Vallecano", strLeague: "La Liga",
-                strSeason: "2026-2027", strTimestamp: "2026-09-12T19:00:00Z",
-                dateEvent: "2026-09-12", strTime: "19:00:00",
-                strHomeTeam: "Real Madrid", strAwayTeam: "Rayo Vallecano",
-                idHomeTeam: "133738", idAwayTeam: "133728",
-                strVenue: "Santiago Bernabéu", intRound: "5",
-                strStatus: "FT", intHomeScore: 4, intAwayScore: 1,
-                strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+            Self.fdMatch(
+                id: 25, utcDate: "2026-09-12T19:00:00Z", status: "FINISHED", matchday: 5,
+                home: Self.madrid, away: Self.rayo,
+                fullTime: FDFullTime(home: 4, away: 1)
             ),
-            SDBEvent(
-                idEvent: "r6", strEvent: "Elche vs Real Madrid", strLeague: "La Liga",
-                strSeason: "2026-2027", strTimestamp: "2026-09-15T19:30:00Z",
-                dateEvent: "2026-09-15", strTime: "19:30:00",
-                strHomeTeam: "Elche", strAwayTeam: "Real Madrid",
-                idHomeTeam: "133729", idAwayTeam: "133738",
-                strVenue: "Estadio Martínez Valero", intRound: "6",
-                strStatus: "FT", intHomeScore: 2, intAwayScore: 3,
-                strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+            Self.fdMatch(
+                id: 26, utcDate: "2026-09-15T19:30:00Z", status: "FINISHED", matchday: 6,
+                home: Self.elche, away: Self.madrid,
+                fullTime: FDFullTime(home: 2, away: 3)
             ),
         ]
     }
@@ -247,98 +246,78 @@ struct MadridPipelineTests {
     @Test("parseForm returns newest first, not oldest first")
     func parseForm_newestFirst() {
         let form = MadridPipeline.parseForm(
-            from: Self.realFormEvents(), teamID: "133738"
+            from: Self.realFormMatches(), teamID: "86"
         )
 
         #expect(form.count == 4)
-        // Newest match leads the strip: Elche 2-3, an away win for Madrid.
         #expect(form[0].result == "W")
         #expect(form[0].score == "3-2")
         #expect(form[0].opponent == "ELC")
-        // Then the Rayo home win.
         #expect(form[1].result == "W")
         #expect(form[1].score == "4-1")
         #expect(form[1].opponent == "RAY")
-        // Real Betis 1-0 was the only away defeat.
         #expect(form[2].result == "L")
         #expect(form[2].score == "0-1")
         #expect(form[2].opponent == "REA")
-        // Espanyol 1-2 was also an away win, not a loss.
         #expect(form[3].result == "W")
         #expect(form[3].score == "2-1")
-        #expect(form[3].opponent == "ESP")
+        #expect(form[3].opponent == "RCD")
     }
 
     @Test("parseForm keeps the latest 5 and drops older matches")
     func parseForm_keepsLatestFive() {
-        // Seven finished matches, ascending - more than the 5-entry limit.
         let extra = (17...20).map { day in
-            SDBEvent(
-                idEvent: "extra\(day)", strEvent: "Match \(day)", strLeague: "La Liga",
-                strSeason: "2026-2027", strTimestamp: "2026-09-\(day)T19:00:00Z",
-                dateEvent: "2026-09-\(day)", strTime: "19:00:00",
-                strHomeTeam: "Real Madrid", strAwayTeam: "Rayo Vallecano",
-                idHomeTeam: "133738", idAwayTeam: "133728",
-                strVenue: "Santiago Bernabéu", intRound: "7",
-                strStatus: "FT", intHomeScore: 1, intAwayScore: 0,
-                strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+            Self.fdMatch(
+                id: 100 + day, utcDate: "2026-09-\(day)T19:00:00Z", status: "FINISHED", matchday: 7,
+                home: Self.madrid, away: Self.rayo,
+                fullTime: FDFullTime(home: 1, away: 0)
             )
         }
 
         let form = MadridPipeline.parseForm(
-            from: Self.realFormEvents() + extra, teamID: "133738"
+            from: Self.realFormMatches() + extra, teamID: "86"
         )
 
         #expect(form.count == 5)
-        // The newest match must survive the prefix; the oldest must not appear.
-        #expect(form[0].opponent == "RAY")   // 2026-09-20, the latest
+        #expect(form[0].opponent == "RAY")
         #expect(form[0].result == "W")
-        // The stale August fixture is the one dropped.
-        #expect(!form.contains { $0.opponent == "ESP" })
+        #expect(!form.contains { $0.opponent == "RCD" })
     }
 
     @Test("parseForm ignores unfinished matches")
     func parseForm_ignoresUnfinished() {
-        let upcoming = SDBEvent(
-            idEvent: "r7", strEvent: "Real Madrid vs Sevilla", strLeague: "La Liga",
-            strSeason: "2026-2027", strTimestamp: "2026-09-28T19:00:00Z",
-            dateEvent: "2026-09-28", strTime: "19:00:00",
-            strHomeTeam: "Real Madrid", strAwayTeam: "Sevilla",
-            idHomeTeam: "133738", idAwayTeam: "133727",
-            strVenue: "Santiago Bernabéu", intRound: "7",
-            strStatus: "NS", intHomeScore: nil, intAwayScore: nil,
-            strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+        let upcoming = Self.fdMatch(
+            id: 27, utcDate: "2026-09-28T19:00:00Z", status: "TIMED", matchday: 7,
+            home: Self.madrid, away: FDTeamRef(id: 82, name: "Getafe CF", crest: nil)
         )
 
         let form = MadridPipeline.parseForm(
-            from: Self.realFormEvents() + [upcoming], teamID: "133738"
+            from: Self.realFormMatches() + [upcoming], teamID: "86"
         )
 
         #expect(form.count == 4)
-        #expect(!form.contains { $0.opponent == "SEV" })
+        #expect(!form.contains { $0.opponent == "GET" })
     }
 
     @Test("parseForm handles empty events")
     func parseForm_empty() {
-        #expect(MadridPipeline.parseForm(from: [], teamID: "133738").isEmpty)
+        #expect(MadridPipeline.parseForm(from: [], teamID: "86").isEmpty)
     }
 
     @Test("parseForm matches the timeline ordering")
     func parseForm_agreesWithTimeline() {
-        let events = Self.realFormEvents()
-        let form = MadridPipeline.parseForm(from: events, teamID: "133738")
+        let events = Self.realFormMatches()
+        let form = MadridPipeline.parseForm(from: events, teamID: "86")
         let timeline = MadridPipeline.parseMatchTimeline(
-            recentEvents: events, nextEvents: [], teamID: "133738", teamName: "Real Madrid"
+            matches: events, teamID: "86", teamName: "Real Madrid"
         )
         let finishedInTimeline = timeline.filter { $0.isFinished }
 
-        // Both surfaces should read newest-first off the same fixtures.
         #expect(form.count == finishedInTimeline.count)
         for (formEntry, item) in zip(form, finishedInTimeline) {
             #expect(formEntry.result == item.result)
             #expect(item.teamScore != nil)
             #expect(item.opponentScore != nil)
-            // teamScore/opponentScore are optionals - unwrap before interpolating.
             #expect(formEntry.score == "\(item.teamScore ?? -1)-\(item.opponentScore ?? -1)")
         }
     }
@@ -346,9 +325,8 @@ struct MadridPipelineTests {
     @Test("parseMatchTimeline handles empty events")
     func parseMatchTimeline_empty() {
         let timeline = MadridPipeline.parseMatchTimeline(
-            recentEvents: [],
-            nextEvents: [],
-            teamID: "133738",
+            matches: [],
+            teamID: "86",
             teamName: "Real Madrid"
         )
         #expect(timeline.isEmpty)
@@ -356,45 +334,145 @@ struct MadridPipelineTests {
 
     @Test("parseMatchTimeline limits to 4 finished and 3 upcoming")
     func parseMatchTimeline_limits() {
-        let teamID = "133738"
+        let teamID = "86"
         let teamName = "Real Madrid"
         let finishedEvents = (1...6).map { i in
-            SDBEvent(
-                idEvent: "\(i)", strEvent: "Match \(i)", strLeague: "La Liga",
-                strSeason: "2026-2027", strTimestamp: "2026-09-\(10 + i)T19:00:00Z",
-                dateEvent: "2026-09-\(10 + i)", strTime: "19:00:00",
-                strHomeTeam: i % 2 == 0 ? "Real Madrid" : "Opponent \(i)",
-                strAwayTeam: i % 2 == 0 ? "Opponent \(i)" : "Real Madrid",
-                idHomeTeam: i % 2 == 0 ? "133738" : "13400\(i)",
-                idAwayTeam: i % 2 == 0 ? "13400\(i)" : "133738",
-                strVenue: "Stadium \(i)", intRound: "\(i)",
-                strStatus: "FT", intHomeScore: 2, intAwayScore: 1,
-                strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+            let isHome = i % 2 == 0
+            return Self.fdMatch(
+                id: i, utcDate: "2026-09-\(10 + i)T19:00:00Z", status: "FINISHED", matchday: i,
+                home: isHome ? Self.madrid : FDTeamRef(id: 9000 + i, name: "Opponent \(i)", crest: nil),
+                away: isHome ? FDTeamRef(id: 9000 + i, name: "Opponent \(i)", crest: nil) : Self.madrid,
+                fullTime: FDFullTime(home: 2, away: 1)
             )
         }
         let upcomingEvents = (1...5).map { i in
-            SDBEvent(
-                idEvent: "up-\(i)", strEvent: "Upcoming \(i)", strLeague: "La Liga",
-                strSeason: "2026-2027", strTimestamp: "2026-10-\(10 + i)T19:00:00Z",
-                dateEvent: "2026-10-\(10 + i)", strTime: "19:00:00",
-                strHomeTeam: i % 2 == 0 ? "Real Madrid" : "Opponent \(i)",
-                strAwayTeam: i % 2 == 0 ? "Opponent \(i)" : "Real Madrid",
-                idHomeTeam: i % 2 == 0 ? "133738" : "13400\(i)",
-                idAwayTeam: i % 2 == 0 ? "13400\(i)" : "133738",
-                strVenue: "Stadium \(i)", intRound: "\(i)",
-                strStatus: "NS", intHomeScore: nil, intAwayScore: nil,
-                strHomeTeamBadge: nil, strAwayTeamBadge: nil, strPostponed: "no"
+            let isHome = i % 2 == 0
+            return Self.fdMatch(
+                id: 100 + i, utcDate: "2026-10-\(10 + i)T19:00:00Z", status: "SCHEDULED", matchday: i,
+                home: isHome ? Self.madrid : FDTeamRef(id: 9000 + i, name: "Opponent \(i)", crest: nil),
+                away: isHome ? FDTeamRef(id: 9000 + i, name: "Opponent \(i)", crest: nil) : Self.madrid
             )
         }
 
         let timeline = MadridPipeline.parseMatchTimeline(
-            recentEvents: finishedEvents,
-            nextEvents: upcomingEvents,
+            matches: finishedEvents + upcomingEvents,
             teamID: teamID,
             teamName: teamName
         )
 
         #expect(timeline.filter { $0.isFinished }.count == 4)
         #expect(timeline.filter { !$0.isFinished }.count == 3)
+    }
+
+    // MARK: - v4 payload decoding
+
+    @Test("Decodes a real football-data.org team-matches payload")
+    func decodesTeamMatchesPayload() throws {
+        let json = """
+        {
+          "matches": [
+            {
+              "id": 523311,
+              "utcDate": "2026-11-21T20:00:00Z",
+              "status": "TIMED",
+              "matchday": 13,
+              "competition": {"id": 2014, "name": "Primera Division", "code": "PD"},
+              "homeTeam": {"id": 86, "name": "Real Madrid CF", "crest": "https://crests.football-data.org/86.png"},
+              "awayTeam": {"id": 558, "name": "RC Celta de Vigo", "crest": "https://crests.football-data.org/558.png"},
+              "score": {"winner": null, "fullTime": {"home": null, "away": null}}
+            },
+            {
+              "id": 523300,
+              "utcDate": "2026-11-08T20:00:00Z",
+              "status": "FINISHED",
+              "matchday": 12,
+              "competition": {"id": 2014, "name": "Primera Division", "code": "PD"},
+              "homeTeam": {"id": 86, "name": "Real Madrid CF", "crest": null},
+              "awayTeam": {"id": 78, "name": "Club Atlético de Madrid", "crest": null},
+              "score": {"winner": "HOME_TEAM", "fullTime": {"home": 1, "away": 0}}
+            }
+          ]
+        }
+        """
+        let response = try JSONDecoder().decode(FDMatchesResponse.self, from: Data(json.utf8))
+        let matches = try #require(response.matches)
+        #expect(matches.count == 2)
+        #expect(matches[0].isUpcoming == true)
+        #expect(matches[0].isFinished == false)
+        #expect(matches[0].matchDate != nil)
+        #expect(matches[1].isFinished == true)
+        #expect(matches[1].score?.winner == "HOME_TEAM")
+        #expect(matches[1].score?.fullTime?.home == 1)
+    }
+
+    @Test("Decodes standings and picks the TOTAL regular-season table")
+    func decodesStandingsPayload() throws {
+        let json = """
+        {
+          "standings": [
+            {
+              "stage": "REGULAR_SEASON",
+              "type": "TOTAL",
+              "table": [
+                {"position": 2, "team": {"id": 86, "name": "Real Madrid CF", "crest": "https://crests.football-data.org/86.png"},
+                 "playedGames": 12, "won": 10, "draw": 1, "lost": 1,
+                 "goalsFor": 28, "goalsAgainst": 12, "goalDifference": 16, "points": 31},
+                {"position": 1, "team": {"id": 81, "name": "FC Barcelona", "crest": null},
+                 "playedGames": 12, "won": 11, "draw": 0, "lost": 1,
+                 "goalsFor": 33, "goalsAgainst": 10, "goalDifference": 23, "points": 33}
+              ]
+            },
+            {"stage": "REGULAR_SEASON", "type": "HOME", "table": []}
+          ]
+        }
+        """
+        let response = try JSONDecoder().decode(FDStandingsResponse.self, from: Data(json.utf8))
+        let table = FootballDataOrgClient.totalTable(from: response)
+        let standing = MadridPipeline.parseStanding(from: table, teamID: "86")
+
+        #expect(standing != nil)
+        #expect(standing?.rank == 2)
+        #expect(standing?.points == 31)
+        #expect(standing?.played == 12)
+        #expect(standing?.won == 10)
+        #expect(standing?.drawn == 1)
+        #expect(standing?.lost == 1)
+        #expect(standing?.goalDifference == 16)
+    }
+}
+
+@Suite("FootballData ID migration")
+struct FootballDataMigrationTests {
+    @Test("Legacy thesportsdb team IDs map to football-data.org IDs")
+    func legacyTeamIDs() {
+        #expect(FootballData.modernTeamID(for: "133738") == "86")
+        #expect(FootballData.modernTeamID(for: "133739") == "81")
+        #expect(FootballData.modernTeamID(for: "133729") == "78")
+        #expect(FootballData.modernTeamID(for: "133613") == "65")
+    }
+
+    @Test("Legacy league IDs map to competition codes")
+    func legacyLeagueIDs() {
+        #expect(FootballData.modernLeagueID(for: "4335") == "PD")
+        #expect(FootballData.modernLeagueID(for: "4328") == "PL")
+        #expect(FootballData.modernLeagueID(for: "4331") == "BL1")
+        #expect(FootballData.modernLeagueID(for: "4332") == "SA")
+        #expect(FootballData.modernLeagueID(for: "4334") == "FL1")
+        #expect(FootballData.modernLeagueID(for: "4344") == "PPL")
+    }
+
+    @Test("Modern IDs pass through unchanged")
+    func modernIDsPassThrough() {
+        #expect(FootballData.modernTeamID(for: "86") == "86")
+        #expect(FootballData.modernLeagueID(for: "PD") == "PD")
+    }
+
+    @Test("Every listed team has a unique ID and a valid competition code")
+    func teamListIntegrity() {
+        let teams = FootballData.topChampionsLeagueTeams
+        #expect(Set(teams.map { $0.id }).count == teams.count)
+        let validCodes: Set<String> = ["PD", "PL", "BL1", "SA", "FL1", "PPL"]
+        #expect(teams.allSatisfy { validCodes.contains($0.leagueID) })
+        #expect(FootballData.team(byID: "86")?.name == "Real Madrid")
     }
 }

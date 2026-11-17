@@ -25,6 +25,7 @@ struct ApiKeysSection: View {
                 cloudSummaryToggle
 
                 footballDataBlock
+                footballDataKeyCard
                 saveBlock
             }
         }
@@ -147,15 +148,20 @@ struct ApiKeysSection: View {
                     .padding(.horizontal, 6)
                     .padding(.vertical, 3)
                     .background(Theme.Colors.success.opacity(0.15), in: .capsule)
+                    .opacity(settingsStore.isStored(.footballData) ? 1 : 0)
             }
 
-            Text("Powered by thesportsdb.com free tier — no key required")
+            Text("Powered by football-data.org — free key at football-data.org/client/register")
                 .font(Theme.Fonts.manrope(13))
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Theme.Colors.canvasDeep, in: RoundedRectangle(cornerRadius: Theme.Radius.small))
         }
+    }
+
+    private var footballDataKeyCard: some View {
+        apiKeyCard(.footballData, title: "FOOTBALL DATA", placeholder: "Enter football-data.org API token")
     }
 
     private var saveBlock: some View {

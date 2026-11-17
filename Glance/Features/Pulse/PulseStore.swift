@@ -279,10 +279,10 @@ final class PulseStore {
                 madrid = .degraded(data: data, age: TimeFormat.age(from: data.timestamp), reason: reason)
             case .keyMissing(let cachedData, _):
                 if let cachedData {
-                    madrid = .keyMissing(keyName: "keys_exa")
+                    madrid = .keyMissing(keyName: "keys_football_data")
                     _ = cachedData
                 } else {
-                    madrid = .keyMissing(keyName: "keys_exa")
+                    madrid = .keyMissing(keyName: "keys_football_data")
                 }
             }
         case .pogo:

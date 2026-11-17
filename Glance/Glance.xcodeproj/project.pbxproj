@@ -91,7 +91,6 @@
 		A3999457EEF16025ACBDDBCD /* PoGoPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FB95C1730B6F97CC7F7701 /* PoGoPipelineTests.swift */; };
 		A4BD23CA0E1F654CB69F2637 /* AiIntelPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7282ABAAB95A19566D2F48E /* AiIntelPipeline.swift */; };
 		A96986B8A8C94414ED991F21 /* CacheStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FCCD985E015E21DCCED8520 /* CacheStore.swift */; };
-		AA11BB22CC33DD44EE55FF77 /* SportsDBClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22CC33DD44EE55FF660077 /* SportsDBClient.swift */; };
 		AA11BB22CC33DD44EE55FF78 /* FoundationModelsStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22CC33DD44EE55FF660079 /* FoundationModelsStatus.swift */; };
 		AA11BB22CC33DD44EE55FF81 /* GitHubTrendingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF82 /* GitHubTrendingClient.swift */; };
 		B1C2D3E4F5A6B7C8D9E0F1A2 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2D3E4F5A6B7C8D9E0F1A2B3 /* NetworkMonitor.swift */; };
@@ -127,6 +126,7 @@
 		E5CB8D9BFF379C4E8765123A /* SkeletonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F457B157FC966D801CD62CE1 /* SkeletonView.swift */; };
 		E78A461D3A5B0A1F140AF378 /* GeminiClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8432ADC86D8071C0A729DC28 /* GeminiClient.swift */; };
 		E9DC9274D7EF30EAFCE6C500 /* PoGoPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5618ACB47108C5ECE2A1DF1 /* PoGoPipeline.swift */; };
+		FD0000000000000000AA0001 /* FootballDataOrgClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0000000000000000AA0002 /* FootballDataOrgClient.swift */; };
 		EC388E6180F7AFEFE7A00C77 /* ManagingMadridClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761E28609E32E6E33EB2DC21 /* ManagingMadridClient.swift */; };
 		EDDC18A1BC9900E24D8AD800 /* GlanceCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1BCC33D8717BCEE296C1A85 /* GlanceCardView.swift */; };
 		EE11FF22GG33HH44II55FF80 /* GenericRSSPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF22GG33HH44II55FF660080 /* GenericRSSPipeline.swift */; };
@@ -248,6 +248,7 @@
 		62BB524E1F13B6631643F30B /* MadridModels.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = MadridModels.swift; sourceTree = "<group>"; };
 		73FCEFE840005BDAE6E9BFDC /* raids.json */ = {isa = PBXFileReference; explicitFileType = text.json; path = raids.json; sourceTree = "<group>"; };
 		75197729187B4AE302A61239 /* HankenGrotesk-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = file; path = "HankenGrotesk-Regular.ttf"; sourceTree = "<group>"; };
+		FD0000000000000000AA0002 /* FootballDataOrgClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = FootballDataOrgClient.swift; sourceTree = "<group>"; };
 		761E28609E32E6E33EB2DC21 /* ManagingMadridClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ManagingMadridClient.swift; sourceTree = "<group>"; };
 		76BA268209C52E00B0FB8062 /* GitHubClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubClient.swift; sourceTree = "<group>"; };
 		7858C0D91F95952753F08721 /* Enums.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
@@ -290,7 +291,6 @@
 		B7282ABAAB95A19566D2F48E /* AiIntelPipeline.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AiIntelPipeline.swift; sourceTree = "<group>"; };
 		B7ABFE1A44714303D7726BAE /* Manrope-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = file; path = "Manrope-Regular.ttf"; sourceTree = "<group>"; };
 		B92DC84F647A42D0148EDD88 /* GitHubHubView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = GitHubHubView.swift; sourceTree = "<group>"; };
-		BB22CC33DD44EE55FF660077 /* SportsDBClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = SportsDBClient.swift; sourceTree = "<group>"; };
 		BB22CC33DD44EE55FF660078 /* ProviderView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = ProviderView.swift; sourceTree = "<group>"; };
 		BB22CC33DD44EE55FF660079 /* FoundationModelsStatus.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = FoundationModelsStatus.swift; sourceTree = "<group>"; };
 		BE285836ED3E944296D83FED /* PulseDot.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = PulseDot.swift; sourceTree = "<group>"; };
@@ -417,12 +417,12 @@
 				F51CF1627D85BFE9CBAF8666 /* HTTPTransport.swift */,
 				C6ED33C0331559AB8FD78379 /* URLRedactor.swift */,
 				032774EA8666009381F3C760 /* ExaClient.swift */,
-				BB22CC33DD44EE55FF660077 /* SportsDBClient.swift */,
 				8432ADC86D8071C0A729DC28 /* GeminiClient.swift */,
 				76BA268209C52E00B0FB8062 /* GitHubClient.swift */,
 				AA11BB22CC33DD44EE55FF82 /* GitHubTrendingClient.swift */,
 				7AC5FEA17B8577E4EB10A0AB /* ScrapedDuckClient.swift */,
 				761E28609E32E6E33EB2DC21 /* ManagingMadridClient.swift */,
+				FD0000000000000000AA0002 /* FootballDataOrgClient.swift */,
 				FEED1234FACEBEEF00000002 /* ArticleScraper.swift */,
 				DD22EE33FF44GG55FF660079 /* GenericRSSClient.swift */,
 				AA000000000000000000001B /* ExaEnhancedClient.swift */,
@@ -964,12 +964,12 @@
 				A96986B8A8C94414ED991F21 /* CacheStore.swift in Sources */,
 				CB04AF25B8072EB1C93103FF /* KeychainStore.swift in Sources */,
 				096DB724932563428E9C79B3 /* ExaClient.swift in Sources */,
-				AA11BB22CC33DD44EE55FF77 /* SportsDBClient.swift in Sources */,
 				E78A461D3A5B0A1F140AF378 /* GeminiClient.swift in Sources */,
 				B77B36E6CC1DE6610C3101A3 /* GitHubClient.swift in Sources */,
 				AA11BB22CC33DD44EE55FF81 /* GitHubTrendingClient.swift in Sources */,
 				5BA02C670F37712948EB23B7 /* ScrapedDuckClient.swift in Sources */,
 				EC388E6180F7AFEFE7A00C77 /* ManagingMadridClient.swift in Sources */,
+				FD0000000000000000AA0001 /* FootballDataOrgClient.swift in Sources */,
 				FEED1234FACEBEEF00000001 /* ArticleScraper.swift in Sources */,
 				89477086D92D8EA1A76A0BEA /* Models.swift in Sources */,
 				BC10008C484758547C989AAC /* FoundationModelsClient.swift in Sources */,

@@ -36,6 +36,7 @@ struct SettingsStoreKeyPersistenceTests {
         first.setDraftValue("exa-secret", for: .exa)
         first.setDraftValue("gemini-secret", for: .gemini)
         first.setDraftValue("openrouter-secret", for: .openRouter)
+        first.setDraftValue("football-secret", for: .footballData)
 
         let failures = first.saveToKeychain()
         #expect(failures.isEmpty)
@@ -46,6 +47,7 @@ struct SettingsStoreKeyPersistenceTests {
         #expect(reopened.isStored(.exa))
         #expect(reopened.isStored(.gemini))
         #expect(reopened.isStored(.openRouter))
+        #expect(reopened.isStored(.footballData))
         #expect(reopened.storedKeys == Set(ApiKey.allCases))
     }
 
@@ -71,16 +73,17 @@ struct SettingsStoreKeyPersistenceTests {
         #expect(store.isStored(.exa))
     }
 
-    @Test("All three keys persist together")
-    func allThreePersistTogether() {
+    @Test("All keys persist together")
+    func allKeysPersistTogether() {
         let keychain = InMemoryKeychain()
         let store = SettingsStore(keychain: keychain)
         store.setDraftValue("a", for: .exa)
         store.setDraftValue("b", for: .gemini)
         store.setDraftValue("c", for: .openRouter)
+        store.setDraftValue("d", for: .footballData)
 
         #expect(store.saveToKeychain().isEmpty)
-        #expect(keychain.keys == ["keys_exa", "keys_gemini", "keys_openrouter"])
+        #expect(keychain.keys == ["keys_exa", "keys_football_data", "keys_gemini", "keys_openrouter"])
     }
 
     @Test("Empty draft does not delete an already-stored key")
