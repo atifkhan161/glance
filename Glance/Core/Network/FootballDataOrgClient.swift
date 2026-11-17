@@ -37,14 +37,8 @@ struct FDMatch: Codable, Sendable, Equatable {
 
     var matchDate: Date? {
         guard let utcDate else { return nil }
-        return Self.utcDateFormatter.date(from: utcDate)
+        return try? Date(utcDate, strategy: .iso8601)
     }
-
-    private static let utcDateFormatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime]
-        return formatter
-    }()
 }
 
 struct FDMatchesResponse: Codable, Sendable {
