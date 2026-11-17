@@ -1,0 +1,101 @@
+# Build and publish a Glance IPA release, entirely on GitHub's macOS runner.
+#
+# Runs ONLY on manual dispatch - never on commits (deliberate: this repo has
+# no push/tag/schedule triggers anywhere). One dispatch = one full release:
+# version is bumped locally beforehand (scripts/bump-version.py, commit,
+# push), this workflow builds, ad-hoc signs, tags, publishes the GitHub
+# release, regenerates apps.json, and verifies the published asset, all via
+# the untouched machinery of scripts/release.sh.
+#
+# Standard macOS runner minutes are free on public repos; this pinned setup
+# matches the toolchain the Mac used:
+#
+#   macos-26      - pinned, NOT macos-latest (the label migrates between OS
+#                   versions without a commit; macos-14 retired 2026-11-02)
+#   Xcode 26.6    - the image's default, iOS 26.5 SDK, matching the project's
+#                   IPHONEOS_DEPLOYMENT_TARGET = 26.0. Pinned via DEVELOPER_DIR
+#                   so a future image update cannot move it silently.
+#
+# The job token carries contents:write, which release.sh needs for its git
+# push, tag, gh release create/upload/download. Events caused by GITHUB_TOKEN
+# never trigger other workflows, so this cannot loop even if a trigger is
+# added later.
+
+name: Release IPA
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: >-
+          Version to release. Leave empty to release whatever
+          Glance/Resources/Info.plist says; when given, it must match the
+          plist exactly (guards against dispatching before bumping).
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-26
+    timeout-minutes: 60
+
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      GH_TOKEN: ${{ github.token }}
+      INPUT_VERSION: ${{ inputs.version }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      # release.sh pushes its apps.json commit explicitly to main, so a run
+      # from any other ref would push a tree main never saw. Dispatch
+      # defaults to main; fail fast if someone picked another branch.
+      - name: Assert checkout is the tip of main
+        run: |
+          git fetch origin main
+          if [[ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]]; then
+            echo "::error::This workflow must run from the tip of main (dispatch defaults to it)." >&2
+            exit 1
+          fi
+
+      - name: Verify toolchain
+        run: |
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+
+      - name: Configure git identity
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Install zsign
+        run: brew install zsign
+
+      - name: Resolve target version
+        id: version
+        run: |
+          PLIST_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' Glance/Resources/Info.plist)"
+          if [[ -n "$INPUT_VERSION" && "$INPUT_VERSION" != "$PLIST_VERSION" ]]; then
+            echo "::error::Input version $INPUT_VERSION != Info.plist $PLIST_VERSION - bump first (scripts/bump-version.py) or fix the input."
+            exit 1
+          fi
+          echo "target=$PLIST_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Releasing $PLIST_VERSION" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build, tag, publish, verify
+        run: scripts/release.sh "${{ steps.version.outputs.target }}"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Glance-${{ steps.version.outputs.target }}.ipa
+          path: Glance/build/release/Glance-*.ipa
+          if-no-files-found: error

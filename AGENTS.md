@@ -37,17 +37,33 @@ The `IntelligenceRouter` actor routes through multiple backends:
 
 ## Releasing
 
+Releases build entirely on GitHub's macOS runners (`.github/workflows/release.yml`), triggered
+**only** by manual dispatch — nothing builds on commits. This dev box is Linux and cannot run
+`xcodebuild`, so its whole role is `git push` plus `gh workflow run`:
+
 ```bash
-brew install zsign                                     # one-time
-scripts/release.sh patch                               # 1.2 -> 1.2.1
-scripts/release.sh minor|2.0.0                         # other bumps
+scripts/bump-version.py patch          # 1.4.6 -> 1.4.7 (also: minor | major | 2.0.0)
+git add Glance/Resources/Info.plist
+git commit -m "chore: bump version to 1.4.7 (build 14)"
+git push origin main
+gh workflow run release.yml            # build, sign, tag, publish, apps.json, verify
+gh run watch                           # release is up when the run goes green
 ```
 
-Cuts a version end to end: bumps `Glance/Resources/Info.plist` (the app target uses this file with
-`GENERATE_INFOPLIST_FILE = NO`, so it is the single source of truth for version and bundle id), builds
-and ad-hoc signs the IPA, tags, publishes, regenerates `apps.json`, then downloads the published asset
-back and compares SHA-256. Each version gets its own tag and a `Glance-<version>.ipa` asset so a
-version's download URL cannot change after the fact.
+- The workflow is a thin wrapper around `scripts/release.sh`, which runs on the runner
+  unchanged apart from its entry guard: `brew install zsign`, `GH_TOKEN`, and the bot git
+  identity come from the workflow.
+- `Info.plist` is still the single source of truth for version and bundle id (`GENERATE_INFOPLIST_FILE = NO`).
+- Two entry modes in `release.sh`: a version the plist does **not** have yet makes the script
+  bump and commit itself (the old Mac-local flow, still works); a version the plist **already**
+  has (the CI flow above) skips the bump step and keeps the build number — but is allowed
+  exactly once, because a run whose tag already exists on origin is refused. A published
+  release asset must never change.
+- The workflow's optional `version` input must match `Info.plist` exactly when given; empty
+  means "release what the plist says".
+- Pinned toolchain (verified 2026-11-17): `runs-on: macos-26` (not the drifting
+  `macos-latest` label) with `DEVELOPER_DIR` = Xcode 26.6 → iOS 26.5 SDK, matching
+  `IPHONEOS_DEPLOYMENT_TARGET = 26.0`. Standard macOS runner minutes are free on public repos.
 
 `apps.json` (SideStore source) is **generated from the built IPA** — version, size and downloadURL are
 read out of the product, never hand-typed. `version` there must equal `CFBundleShortVersionString`
@@ -122,7 +138,12 @@ local copy, before assuming the metadata is at fault.
 
 ## Build & Run
 
-- **Simulator**: `iPhone 17 Pro Max` (iOS 26.5), id `4ABF9BBF-AB35-4739-B282-0EE19B2CE023` — this is the device that is actually **booted** on this machine. Use it so `xcodebuild` reuses it instead of paying a cold boot.
+> **This dev box is Linux (Omarchy) — the following sections are Mac-era documentation kept for
+> the record.** There is no `xcodebuild`, Swift toolchain, or iOS SDK on this machine, so no
+> local build, simulator, or test run is possible. Builds — including the release IPA — happen
+> on GitHub's macOS runners; see [Releasing](#releasing).
+
+- **Simulator**: `iPhone 17 Pro Max` (iOS 26.5), id `4ABF9BBF-AB35-4739-B282-0EE19B2CE023` — this is the device that is actually **booted** on the previous macOS machine. Use it so `xcodebuild` reuses it instead of paying a cold boot.
   - Verify before trusting any destination: `xcrun simctl list devices booted`
   - `iPhone 17 Pro` (id `C9F6FBC3-2E5D-4CF4-BB12-129357E0F3C2`) is also installed but is in **Shutdown** state.
 - **Build** (`CODE_SIGNING_ALLOWED=NO` is required, see pitfalls):
@@ -212,6 +233,9 @@ Full measured timings and the open 10-minute full-suite stall are documented in
 - **Xcode group path resolution** — Xcode resolves file paths relative to the parent group's `path`. Files must be placed on disk at the path the group expects. For example, the `Shared` group has `path = Shared` (root of Glance target), not `Features/Shared/`.
 - **Build before committing** — Always run `xcodebuild build` before committing. Errors introduced in one commit cascade through subsequent commits, making diagnosis harder.
 - **Avoid pbxproj Python libraries** — The `pbxproj` and `xcodeproj` Python packages corrupt the project file when adding files. Edit `project.pbxproj` manually or use Xcode directly. Plain `sed`/scripted line insertion is fine; always confirm with `plutil -lint Glance/Glance.xcodeproj/project.pbxproj` and by grepping each new filename (expect exactly 4 hits: build file, file ref, group child, Sources phase).
-- **Code signing is not configured for this machine** — the `ATIFKHAN` team has no valid iOS Development certificate and the installed runtimes are iOS 26.5/27.0, so any build without `CODE_SIGNING_ALLOWED=NO` fails on provisioning, not on your code. Don't read a provisioning error as a compile error.
+- **No Apple toolchain on this machine** — the dev box is Linux: there is no `xcodebuild` here at
+  all, so don't try to build locally and don't read anything as a provisioning error. Builds and
+  IPAs come from GitHub's macOS runners (`.github/workflows/release.yml`); the Mac-era notes
+  below about signing/provisioning applied when this project was built locally.
 - **`@Observable` stores passed into sub-views need `@Bindable`** — a `let settingsStore: SettingsStore` does not give you `$settingsStore`. Either declare `@Bindable var settingsStore: SettingsStore` on the child view, or shadow with `@Bindable var x = x` inside `body` (which does *not* reach sibling computed properties).
 - **Foundation Models `modelNotReady` state** — `SystemLanguageModel.default.isAvailable` returns `true` when Apple Intelligence is enabled, even if the safety sub-model (`instruct_300m.safety`) isn't downloaded. Use `SystemLanguageModel.default.availability` for a full check. The `modelNotReady` state is transient — it resolves after the model downloads (~1.6 GB). Always check availability before calling `streamResponse(to:generating:)` or `respond(to:generating:)`.

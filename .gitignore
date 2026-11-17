@@ -63,5 +63,11 @@ skills-lock.json
 # graphify
 graphify-out/
 
+# local planning docs
+tasks/
+
 # codesign build artifact
 .zsign_cache/
+
+# Python bytecode
+__pycache__/

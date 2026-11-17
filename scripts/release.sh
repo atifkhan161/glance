@@ -7,6 +7,17 @@
 #   scripts/release.sh minor      # 1.2.1 -> 1.3.0
 #   scripts/release.sh major      # 1.2.1 -> 2.0.0
 #
+# Two entry modes:
+#
+#   - Version not yet in Info.plist: this script bumps the plist, increments
+#     the build number, and commits - the original Mac-local flow.
+#   - Version already in Info.plist (the CI flow: bump with
+#     scripts/bump-version.py, push, then the release workflow dispatches
+#     with the plist's version): the bump step is skipped and the existing
+#     build number kept. Allowed exactly once per version - a run whose tag
+#     already exists on origin is refused, because a published release asset
+#     must never change.
+#
 # Every asset goes on its own immutable tag (v1.2.1) and is named
 # Glance-<version>.ipa, so a version's downloadURL can never silently change.
 #
@@ -62,14 +73,40 @@ esac
 
 CURRENT="$(read_version)"
 BUILD="$(read_build)"
-[[ "$VERSION" == "$CURRENT" ]] && { echo "already at $VERSION" >&2; exit 2; }
 if [[ "$(printf '%s\n%s\n' "$CURRENT" "$VERSION" | sort -V | tail -1)" != "$VERSION" ]]; then
   echo "refusing to go backwards: $CURRENT -> $VERSION" >&2
   exit 2
 fi
 
-NEW_BUILD=$((BUILD + 1))
 TAG="v$VERSION"
+
+# A version already in Info.plist is releasable exactly once, under two
+# conditions that must BOTH hold before we treat the plist as pre-bumped:
+#
+#   1. The tag does not exist yet on origin - a published release is
+#      immutable, so a second run must never re-tag or re-upload, silently
+#      replacing the asset the SideStore source points at.
+#   2. We were given that version explicitly (the CI flow: the plist was
+#      bumped remotely with scripts/bump-version.py, pushed, then the
+#      release workflow dispatched with the plist's version). The old
+#      "already at $VERSION -> exit 2" guard assumed this script always
+#      does its own bumping, which aborted that flow before the build.
+#
+# When both hold, skip the plist edit and bump commit and keep the existing
+# build number. Locally on a Mac nothing changes: a version the plist does
+# not have yet still goes through the bump path below.
+if [[ "$VERSION" == "$CURRENT" ]]; then
+  if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+    echo "$VERSION is already released (tag $TAG exists on origin)" >&2
+    exit 2
+  fi
+  NEW_BUILD="$BUILD"
+  SKIP_BUMP=1
+else
+  NEW_BUILD=$((BUILD + 1))
+  SKIP_BUMP=0
+fi
+
 ASSET="Glance-$VERSION.ipa"
 DOWNLOAD_URL="https://github.com/$REPO/releases/download/$TAG/$ASSET"
 RELEASE_DATE="$(date -u +%Y-%m-%d)"
@@ -81,12 +118,16 @@ echo "    download : $DOWNLOAD_URL"
 
 # ------------------------------------------------------------- 1. bump + commit
 
-echo "==> bumping version in Info.plist"
-/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$PLIST"
-/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEW_BUILD" "$PLIST"
+if [[ "$SKIP_BUMP" -eq 1 ]]; then
+  echo "==> Info.plist already at $VERSION (build $BUILD) - skipping bump"
+else
+  echo "==> bumping version in Info.plist"
+  /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$PLIST"
+  /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEW_BUILD" "$PLIST"
 
-git add "$PLIST"
-git commit -m "chore: bump version to $VERSION (build $NEW_BUILD)"
+  git add "$PLIST"
+  git commit -m "chore: bump version to $VERSION (build $NEW_BUILD)"
+fi
 
 # ------------------------------------------------------------------ 2. build
 

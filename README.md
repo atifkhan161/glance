@@ -190,27 +190,36 @@ Developer Mode must be enabled the first time you open a sideloaded app:
 
 ## Building the IPA
 
+The build runs on GitHub's macOS runners — no local macOS, Xcode, or packages needed:
+
 ```bash
-brew install zsign          # one-time
-scripts/build-ipa.sh        # -> Glance/build/ipa/Glance-v<version>-unsigned.ipa
+gh workflow run release.yml    # -> tagged release with Glance-<version>.ipa (+ a workflow artifact)
+gh run watch                   # or watch at https://github.com/atifkhan161/glance/actions
 ```
 
-The script builds Release for `generic/platform=iOS`, ad-hoc signs with **zsign**, and packages the IPA.
+Under the hood the workflow calls `scripts/build-ipa.sh`: it builds Release for
+`generic/platform=iOS`, ad-hoc signs with **zsign**, and packages the IPA.
 It prints the bundle id, version, arch, SHA-256 and signature at the end, and verifies the signature both
-before and after zipping. It fails the build rather than shipping a broken IPA.
+before and after zipping. It fails the build rather than shipping a broken IPA. (On a Mac,
+`brew install zsign && scripts/build-ipa.sh` still works for a local build.)
 
 ## Releasing
 
 ```bash
-scripts/release.sh patch       # 1.2   -> 1.2.1
-scripts/release.sh minor       # 1.2.1 -> 1.3.0
-scripts/release.sh 2.0.0      # explicit version
+scripts/bump-version.py patch   # 1.4.6 -> 1.4.7 (also: minor | major | 2.0.0)
+git add Glance/Resources/Info.plist
+git commit -m "chore: bump version to 1.4.7 (build 14)"
+git push origin main
+gh workflow run release.yml     # build, sign, tag, publish, regenerate apps.json, verify SHA
 ```
 
-One command bumps `Info.plist`, builds and signs the IPA, tags, publishes the release, regenerates
-`apps.json`, and then downloads the published asset back to confirm it matches the local build. Each
-version gets its own tag and a `Glance-<version>.ipa` asset, so a version's download URL can never
-change after the fact. The script refuses no-op and backwards bumps.
+One flow bumps `Info.plist` locally (any machine — the helper is plain Python), then the
+workflow does the rest on GitHub's runner: builds and signs the IPA, tags, publishes the
+release, regenerates `apps.json`, and downloads the published asset back to confirm it matches.
+Each version gets its own tag and a `Glance-<version>.ipa` asset, so a version's download URL
+can never change after the fact. The workflow only ever runs on manual dispatch, refuses a
+second run for a version whose tag already exists, and its optional `version` input must match
+`Info.plist` exactly when given.
 
 ### Auto-updates in SideStore
 
